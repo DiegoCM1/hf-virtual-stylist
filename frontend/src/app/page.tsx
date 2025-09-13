@@ -78,7 +78,7 @@ export default function Home() {
               onChange={(e)=>{ setFamilyId(e.target.value); setColorId(""); }}
             >
               {catalog.families.map(f=>(
-                <option key={f.family_id} value={f.family_id}>{f.display_name}</option>
+                <option className="text-black" key={f.family_id} value={f.family_id}>{f.display_name}</option>
               ))}
             </select>
           </div>
@@ -90,7 +90,7 @@ export default function Home() {
                 <button
                   key={c.color_id}
                   onClick={()=>setColorId(c.color_id)}
-                  className={`border rounded p-2 text-sm hover:border-gray-500 ${colorId === c.color_id ? "ring-2 ring-black" : ""}`}
+                  className={`border rounded p-2 text-sm hover:border-gray-500 ${colorId === c.color_id ? "ring-1 ring-white" : ""}`}
                   title={c.name}
                 >
                   <div className="w-full h-6 rounded mb-1" style={{backgroundColor: c.hex}} />
@@ -103,7 +103,7 @@ export default function Home() {
           <button
             onClick={onGenerate}
             disabled={loading || !familyId || !colorId}
-            className="w-full bg-black text-white py-2 rounded disabled:opacity-50 hover:border-white"
+            className="w-full bg-black text-white py-2 rounded disabled:opacity-50 hover:border hover:border-white"
           >
             {loading ? "Generando..." : "Generar imagenes"}
           </button>
