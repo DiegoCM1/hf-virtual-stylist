@@ -1,0 +1,21 @@
+{
+  "families": [
+    {
+      "family_id": "lana-cachemir",
+      "display_name": "Lana-Cachemir",
+      "lora_id": "lora_wool_cashmere_v1",
+      "default_recipe": {
+        "base_prompt": "studio full body, hyperrealistic, high-end catalogue lighting",
+        "negative_prompt": "blur, distortion, deformed hands, artifacts, lowres",
+        "cfg": 6.5,
+        "steps": 20
+      },
+      "colors": [
+        {"color_id": "navy-001", "name": "Azul Marino", "hex": "#03204C"},
+        {"color_id": "gris-002", "name": "Gris Carbón", "hex": "#2B2B2B"}
+      ],
+      "status": "active",
+      "sort": 1
+    }
+  ]
+}
