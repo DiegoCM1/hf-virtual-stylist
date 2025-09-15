@@ -63,7 +63,7 @@ export default function Home() {
   return (
     <main className="min-h-screen max-w-4xl mx-auto p-6">
       <header className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">HF Virtual Stylist</h1>
+        <h1 className="text-2xl font-semibold">Harris & Frank</h1>
         <div className="text-sm text-neutral-500">Demo · Semana 1</div>
       </header>
 

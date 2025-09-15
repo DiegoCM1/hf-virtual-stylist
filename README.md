@@ -46,3 +46,16 @@ This project leverages a modern, high-performance stack to deliver a cutting-edg
 ## Current Status
 
 **MVP in Development.** The backend skeleton with mock data is complete and functional. The minimal frontend UI is in progress. The core focus is on completing the Week 1 deliverable: a functional end-to-end flow with placeholder data.
+
+---
+
+## Commands
+### Backend
+source .venv/Scripts/activate
+
+uvicorn app.main:app --reload --port 8000
+
+
+### Frontend
+npm run dev
+
