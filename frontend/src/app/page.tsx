@@ -29,6 +29,12 @@ export default function Home() {
   const [images, setImages] = useState<
     { cut: Cut; url: string; width: number; height: number }[]
   >([]);
+  const [selected, setSelected] = useState<{
+    url: string;
+    cut: Cut;
+    width: number;
+    height: number;
+  } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -50,6 +56,21 @@ export default function Home() {
       }
     })();
   }, []);
+
+  // Disable scroll
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setSelected(null);
+    }
+    if (selected) {
+      document.addEventListener("keydown", onKey);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [selected]);
 
   const currentFamily = catalog.families.find((f) => f.family_id === familyId);
 
@@ -88,7 +109,6 @@ export default function Home() {
           height={60}
           priority
         />
-        <div className="text-sm text-neutral-500">Demo · Semana 1</div>
       </header>
 
       <section className="grid gap-4 md:grid-cols-3">
@@ -175,10 +195,15 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {images.map((img) => (
                 <figure key={img.cut} className="border rounded p-2">
-                  <img
+                  {/* Use Next/Image instead of <img> */}
+                  <Image
                     src={img.url}
                     alt={img.cut}
-                    className="w-full h-auto rounded"
+                    width={img.width || 800}
+                    height={img.height || 1200}
+                    className="w-full h-auto rounded cursor-zoom-in"
+                    sizes="(min-width: 768px) 50vw, 100vw"
+                    onClick={() => setSelected(img)}
                   />
                   <figcaption className="text-sm mt-1 capitalize">
                     {img.cut}
@@ -189,6 +214,53 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* Modal */}
+      {selected && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          aria-modal="true"
+          role="dialog"
+        >
+          {/* Backdrop (click to close) */}
+          <div
+            className="absolute inset-0 bg-black/70"
+            onClick={() => setSelected(null)}
+          />
+
+          {/* Dialog */}
+          <div
+            className="relative max-w-5xl w-[92vw] md:w-auto p-0"
+            onClick={(e) => e.stopPropagation()} // prevent closing when clicking image
+          >
+            {/* Close button (optional but handy) */}
+            <button
+              aria-label="Cerrar"
+              className="absolute -top-10 right-0 md:top-2 md:-right-10 bg-white/10 hover:bg-white/20 text-white rounded-full px-3 py-1 text-sm"
+              onClick={() => setSelected(null)}
+            >
+              ✕
+            </button>
+
+            {/* The image */}
+            <Image
+              src={selected.url}
+              alt={selected.cut}
+              width={selected.width || 1200}
+              height={selected.height || 1600}
+              className="rounded shadow-lg max-h-[85vh] w-auto h-auto"
+              // If your source images are already optimized or huge/remote and
+              // you want to bypass optimization, you can add: unoptimized
+              // unoptimized
+              sizes="85vh"
+              priority
+            />
+            <div className="mt-2 text-center text-sm text-white/80 capitalize">
+              {selected.cut} · clic fuera para cerrar
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
