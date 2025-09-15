@@ -177,6 +177,7 @@ export default function Home() {
             </div>
           )}
 
+          {/* Loading state */}
           {loading && (
             <div className="border rounded p-6 text-neutral-600 space-y-2">
               <div className="animate-pulse text-white">
@@ -191,11 +192,11 @@ export default function Home() {
             </div>
           )}
 
+          {/* Generated images */}
           {images.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {images.map((img) => (
                 <figure key={img.cut} className="border rounded p-2">
-                  {/* Use Next/Image instead of <img> */}
                   <Image
                     src={img.url}
                     alt={img.cut}
@@ -256,7 +257,7 @@ export default function Home() {
               priority
             />
             <div className="mt-2 text-center text-sm text-white/80 capitalize">
-              {selected.cut} · clic fuera para cerrar
+              {selected.cut} · Toca fuera para cerrar
             </div>
           </div>
         </div>
