@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useRef } from "react";
 import { API_BASE } from "@/lib/api";
 import Image from "next/image";
 import SearchTela from "@/components/SearchTela";
@@ -27,8 +27,6 @@ export default function Home() {
   const [colorId, setColorId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchInput, setSearchInput] = useState("");
-  const [searchMsg, setSearchMsg] = useState<string | null>(null);
   const [images, setImages] = useState<
     { cut: Cut; url: string; width: number; height: number }[]
   >([]);
@@ -38,6 +36,12 @@ export default function Home() {
     width: number;
     height: number;
   } | null>(null);
+  const [preview, setPreview] = useState<
+    { url: string; name: string; width: number; height: number } | null
+  >(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -53,8 +57,8 @@ export default function Home() {
           setFamilyId(fam.family_id);
           if (fam.colors?.length) setColorId(fam.colors[0].color_id);
         }
-      } catch (e: any) {
-        console.error(e);
+      } catch (err) {
+        console.error(err);
         setError("No se pudo cargar el catálogo");
       }
     })();
@@ -77,19 +81,36 @@ export default function Home() {
 
   const currentFamily = catalog.families.find((f) => f.family_id === familyId);
 
-  // Index for looking tela/color by id
-  const colorIndex = useMemo(() => {
-    const map = new Map<string, { familyId: string; colorId: string }>();
-    for (const f of catalog.families) {
-      for (const c of f.colors || []) {
-        map.set(c.color_id.toLowerCase(), {
-          familyId: f.family_id,
-          colorId: c.color_id,
-        });
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
       }
+    };
+  }, []);
+
+  function handlePreview(files: FileList | null) {
+    const file = files?.[0];
+    if (!file) return;
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
     }
-    return map;
-  }, [catalog]);
+    const url = URL.createObjectURL(file);
+    previewUrlRef.current = url;
+    const img = new window.Image();
+    img.onload = () => {
+      setPreview({
+        url,
+        name: file.name,
+        width: img.naturalWidth || img.width,
+        height: img.naturalHeight || img.height,
+      });
+    };
+    img.onerror = () => {
+      setPreview({ url, name: file.name, width: 400, height: 400 });
+    };
+    img.src = url;
+  }
 
   async function onGenerate() {
     setLoading(true);
@@ -109,7 +130,8 @@ export default function Home() {
       if (!res.ok) throw new Error("API error");
       const data = await res.json();
       setImages(data.images || []);
-    } catch (e: any) {
+    } catch (err) {
+      console.error(err);
       setError("No pudimos generar las imágenes. Probemos otra combinación.");
     } finally {
       setLoading(false);
@@ -202,6 +224,64 @@ export default function Home() {
             //   return res.json(); // { familyId, colorId }
             // }}
           />
+
+          <div className="space-y-2">
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => {
+                handlePreview(event.target.files);
+                event.target.value = "";
+              }}
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(event) => {
+                handlePreview(event.target.files);
+                event.target.value = "";
+              }}
+            />
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                className="w-full rounded border border-white/20 bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20"
+                onClick={() => galleryInputRef.current?.click()}
+              >
+                Elegir foto
+              </button>
+              <button
+                type="button"
+                className={[
+                  "w-full rounded border border-white/20 bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20",
+                  "md:hidden",
+                ].join(" ")}
+                onClick={() => cameraInputRef.current?.click()}
+              >
+                Tomar foto
+              </button>
+            </div>
+            {preview && (
+              <div className="space-y-2">
+                <div className="text-sm text-white/70">Vista previa</div>
+                <div className="overflow-hidden rounded border border-white/10 bg-black/20">
+                  <Image
+                    src={preview.url}
+                    alt={`Vista previa de ${preview.name}`}
+                    width={preview.width || 400}
+                    height={preview.height || 400}
+                    className="h-auto w-full object-cover"
+                    unoptimized
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right preview */}
