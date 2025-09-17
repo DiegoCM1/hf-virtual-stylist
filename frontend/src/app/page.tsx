@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { API_BASE } from "@/lib/api";
 import Image from "next/image";
+import SearchTela from "@/components/SearchTela";
 
 type Color = {
   color_id: string;
@@ -26,6 +27,8 @@ export default function Home() {
   const [colorId, setColorId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchMsg, setSearchMsg] = useState<string | null>(null);
   const [images, setImages] = useState<
     { cut: Cut; url: string; width: number; height: number }[]
   >([]);
@@ -73,6 +76,20 @@ export default function Home() {
   }, [selected]);
 
   const currentFamily = catalog.families.find((f) => f.family_id === familyId);
+
+  // Index for looking tela/color by id
+  const colorIndex = useMemo(() => {
+    const map = new Map<string, { familyId: string; colorId: string }>();
+    for (const f of catalog.families) {
+      for (const c of f.colors || []) {
+        map.set(c.color_id.toLowerCase(), {
+          familyId: f.family_id,
+          colorId: c.color_id,
+        });
+      }
+    }
+    return map;
+  }, [catalog]);
 
   async function onGenerate() {
     setLoading(true);
@@ -137,7 +154,7 @@ export default function Home() {
           </div>
 
           <div>
-            <label className="text-sm block mb-1">Color</label>
+            <label className="text-sm block mb-1">Tela</label>
             <div className="grid grid-cols-3 gap-2">
               {currentFamily?.colors?.map((c) => (
                 <button
@@ -149,7 +166,7 @@ export default function Home() {
                   title={c.name}
                 >
                   <div
-                    className="w-full h-6 rounded mb-1"
+                    className="w-full h-10 md:h-14 lg:h-16 rounded mb-1"
                     style={{ backgroundColor: c.hex }}
                   />
                   <div className="truncate">{c.name}</div>
@@ -167,6 +184,24 @@ export default function Home() {
           </button>
 
           {error && <div className="text-red-600 text-sm">{error}</div>}
+
+          <div className="w-full flex text-white py-2 justify-center">O</div>
+
+          <SearchTela
+            catalog={catalog}
+            currentFamilyId={familyId}
+            currentColorId={colorId}
+            onSelect={(famId, colId) => {
+              setFamilyId(famId);
+              setColorId(colId);
+            }}
+            // Later you can inject a real resolver:
+            // resolveTelaId={async (telaId) => {
+            //   const res = await fetch(`${API_BASE}/catalog/search?color_id=${encodeURIComponent(telaId)}`);
+            //   if (!res.ok) return null;
+            //   return res.json(); // { familyId, colorId }
+            // }}
+          />
         </div>
 
         {/* Right preview */}
