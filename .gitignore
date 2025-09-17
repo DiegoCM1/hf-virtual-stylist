@@ -68,3 +68,8 @@ frontend/.env.*
 backend/.env
 backend/.env.*
 !backend/.env.example
+
+# Test scripts and outputs
+smoke_test.py
+*.png
+out.json
