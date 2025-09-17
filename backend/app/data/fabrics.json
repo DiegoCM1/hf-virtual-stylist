@@ -29,7 +29,7 @@
       },
       "colors": [
         {"color_id": "green-001", "name": "Verde militar", "hex": "#10231C"},
-        {"color_id": "morado-002", "name": "Morado bajo", "hex": "#2B2B9B"}
+        {"color_id": "verde-002", "name": "Verde jade", "hex": "#2B2B1B"}
       ],
       "status": "active",
       "sort": 1

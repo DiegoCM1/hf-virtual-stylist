@@ -8,3 +8,13 @@ numpy==2.3.2
 pillow==11.3.0
 sympy==1.14.0
 typing_extensions==4.15.0
+
+# --- Added for FastAPI + SDXL ---
+fastapi
+uvicorn[standard]
+torch              # choose GPU or CPU build when you install
+diffusers
+transformers
+accelerate
+safetensors
+python-multipart   # (optional, for file uploads)
