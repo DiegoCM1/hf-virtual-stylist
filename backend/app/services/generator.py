@@ -1,11 +1,10 @@
 from __future__ import annotations
 import io, os, time, uuid, random
-from dataclasses import dataclass
 from typing import List
 from PIL import Image, ImageDraw, ImageFont
 
 from app.models.generate import GenerationRequest, GenerationResponse, ImageResult
-from app.services.storage import Storage, LocalStorage
+from app.services.storage import save_bytes
 from app.services.watermark import apply_watermark_image
 
 # Config
@@ -33,10 +32,7 @@ def _placeholder_bytes(text: str, width=1024, height=1536) -> bytes:
 
 # --- Mock generator (now returns saved, watermarked URLs) ------------------
 
-@dataclass
 class MockGenerator(Generator):
-    storage: Storage
-
     def generate(self, req: GenerationRequest) -> GenerationResponse:
         t0 = time.time()
         run_id = uuid.uuid4().hex[:10]
@@ -47,7 +43,7 @@ class MockGenerator(Generator):
             raw = _placeholder_bytes(f"{req.family_id}:{req.color_id}:{cut}")
             wm = apply_watermark_image(raw, WATERMARK_PATH, scale=0.12)  # watermark first
             key = f"generated/{req.family_id}/{req.color_id}/{run_id}/{cut}.jpg"
-            url = self.storage.save_bytes(wm, key)  # then save → URL
+            url = save_bytes(wm, key)  # then save → URL
             images.append(ImageResult(cut=cut, url=url, width=1024, height=1536, watermark=True))
 
         return GenerationResponse(
@@ -72,8 +68,7 @@ from app.models.generate import GenerationRequest, GenerationResponse, ImageResu
 class SdxlTurboGenerator(Generator):
     _pipe = None  # lazy singleton
 
-    def __init__(self, storage: Storage, watermark_path: str = "logo.webp"):
-        self.storage = storage
+    def __init__(self, watermark_path: str = "logo.webp"):
         self.watermark_path = watermark_path
 
     @classmethod
@@ -145,7 +140,7 @@ class SdxlTurboGenerator(Generator):
 
             # 4) Save -> URL
             key = f"generated/{req.family_id}/{req.color_id}/{run_id}/{cut}.jpg"
-            url = self.storage.save_bytes(wm_bytes, key)
+            url = save_bytes(wm_bytes, key)
 
             images.append(
                 ImageResult(

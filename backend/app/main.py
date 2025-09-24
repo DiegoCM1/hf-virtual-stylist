@@ -11,8 +11,9 @@ from pathlib import Path
 app = FastAPI(title="HF Virtual Stylist")
 
 # make sure the folder exists before mounting
-Path("storage").mkdir(parents=True, exist_ok=True)
-app.mount("/files", StaticFiles(directory="storage", html=False), name="files")
+storage_dir = os.getenv("LOCAL_STORAGE_DIR", "storage")
+Path(storage_dir).mkdir(parents=True, exist_ok=True)
+app.mount("/files", StaticFiles(directory=storage_dir, html=False), name="files")
 
 # Errors handler
 add_error_handlers(app)
