@@ -1,19 +1,15 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-
-type Color = { color_id: string; name: string; hex: string };
-type Family = { family_id: string; display_name: string; colors: Color[] };
-type Catalog = { families: Family[] };
+import { CatalogResponse, ColorSelection } from "@/types/catalog";
+import { ResolveTelaResult, SearchStatus } from "@/types/search";
 
 type Props = {
-  catalog: Catalog;
+  catalog: CatalogResponse;
   onSelect: (familyId: string, colorId: string) => void;
-  resolveTelaId?: (telaId: string) => Promise<{ familyId: string; colorId: string } | null>;
+  resolveTelaId?: (telaId: string) => Promise<ResolveTelaResult>;
   currentFamilyId?: string;   // 👈 nuevo
   currentColorId?: string;    // 👈 nuevo
 };
-
-type Status = "idle" | "ok" | "notfound" | "already" | "loading";
 
 export default function SearchTela({
   catalog,
@@ -23,13 +19,13 @@ export default function SearchTela({
   currentColorId,
 }: Props) {
   const [value, setValue] = useState("");
-  const [status, setStatus] = useState<Status>("idle");
+  const [status, setStatus] = useState<SearchStatus>("idle");
   const [lastSearched, setLastSearched] = useState<string | null>(null);
-  const [lastResolved, setLastResolved] = useState<{ familyId: string; colorId: string } | null>(null);
+  const [lastResolved, setLastResolved] = useState<ColorSelection | null>(null);
   const [recent, setRecent] = useState<string[]>([]);
 
   const colorIndex = useMemo(() => {
-    const map = new Map<string, { familyId: string; colorId: string }>();
+    const map = new Map<string, ColorSelection>();
     for (const f of catalog.families) {
       for (const c of f.colors || []) {
         map.set(c.color_id.toLowerCase(), { familyId: f.family_id, colorId: c.color_id });
@@ -58,13 +54,15 @@ export default function SearchTela({
     if (currentColorId && q === currentColorId.toLowerCase()) {
       setStatus("already");
       setLastSearched(q);
-      setLastResolved(currentFamilyId ? { familyId: currentFamilyId, colorId: currentColorId } : null);
+      setLastResolved(
+        currentFamilyId ? { familyId: currentFamilyId, colorId: currentColorId } : null,
+      );
       return;
     }
 
     setStatus(resolveTelaId ? "loading" : "idle");
 
-    let hit: { familyId: string; colorId: string } | null = null;
+    let hit: ColorSelection | null = null;
     if (resolveTelaId) {
       hit = await resolveTelaId(q);
     } else {
