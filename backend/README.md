@@ -16,3 +16,6 @@ jq -r '.images[1].url' out.json | sed 's|^data:image/png;base64,||' | base64 -d 
 curl -s http://127.0.0.1:8000/generate \
   -H "Content-Type: application/json" \
   -d '{"family_id":"HF-001","color_id":"Navy","cuts":["recto","cruzado"],"quality":"preview","seed":123456789}' | jq .
+
+<!-- Run backend -->
+uvicorn app.main:app --reload --port 8000

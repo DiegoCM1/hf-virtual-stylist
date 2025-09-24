@@ -3,14 +3,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import catalog, generate
 from app.errors import add_error_handlers
 import os
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
+
+
 
 app = FastAPI(title="HF Virtual Stylist")
+
+# make sure the folder exists before mounting
+Path("storage").mkdir(parents=True, exist_ok=True)
+app.mount("/files", StaticFiles(directory="storage", html=False), name="files")
 
 # Errors handler
 add_error_handlers(app)
 
 
-# CORS: allow your frontend during dev (adjust as needed)
+# Allowed origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
