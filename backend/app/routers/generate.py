@@ -6,6 +6,6 @@ router = APIRouter()
 USE_MOCK = False
 generator = MockGenerator() if USE_MOCK else SdxlTurboGenerator()
 
-@router.post("/generate", response_model=GenerationResponse)
+@router.post("/generate", response_model=GenerationResponse, status_code=201)
 def generate(req: GenerationRequest) -> GenerationResponse:
     return generator.generate(req)
