@@ -15,11 +15,11 @@ export default function AdminTable({ initialItems }: { initialItems: FabricRead[
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="rounded-xl border border-gray-200 bg-transparent p-4 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex w-full max-w-sm flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700" htmlFor="admin-search">
-              Search fabrics
+            <label className="text-sm font-medium text-gray-300" htmlFor="admin-search">
+              Buscar telas
             </label>
             <div className="flex gap-2">
               <input
@@ -42,11 +42,11 @@ export default function AdminTable({ initialItems }: { initialItems: FabricRead[
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-transparent shadow-sm">
         <div className="overflow-x-auto">
           <table className="min-w-full border-collapse text-sm sm:text-base">
-            <thead className="bg-gray-50">
-              <tr className="text-left text-gray-600">
+            <thead className="bg-gray-50/20">
+              <tr className="text-left text-gray-300">
                 <th className="px-4 py-3 font-medium">Family</th>
                 <th className="px-4 py-3 font-medium">ID</th>
                 <th className="px-4 py-3 font-medium">Status</th>
@@ -56,9 +56,9 @@ export default function AdminTable({ initialItems }: { initialItems: FabricRead[
             </thead>
             <tbody>
               {items.map((f) => (
-                <tr key={f.id} className="border-t last:border-b-0 hover:bg-gray-50/70">
-                  <td className="px-4 py-3 font-medium text-gray-900">{f.display_name}</td>
-                  <td className="px-4 py-3 text-gray-600">{f.family_id}</td>
+                <tr key={f.id} className="border-t last:border-b-0 hover:bg-gray-50/10">
+                  <td className="px-4 py-3 font-medium text-gray-200">{f.display_name}</td>
+                  <td className="px-4 py-3 text-gray-300">{f.family_id}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold sm:text-sm ${f.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-gray-200 text-gray-700"}`}
@@ -69,7 +69,7 @@ export default function AdminTable({ initialItems }: { initialItems: FabricRead[
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-3">
                       {f.colors.map((c) => (
-                        <div key={c.id} className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
+                        <div key={c.id} className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700">
                           <span className="inline-block h-3 w-3 rounded-full border border-white shadow" style={{ background: c.hex_value }} />
                           <span className="font-medium">{c.color_id}</span>
                         </div>
@@ -135,11 +135,11 @@ function QuickCreate({ onCreate }: { onCreate: () => void }) {
           onCreate();
         });
       }}
-      className="flex w-full flex-col gap-4 rounded-lg bg-gray-50 p-4 shadow-inner lg:w-auto lg:flex-1 lg:max-w-3xl"
+      className="flex w-full flex-col gap-4 rounded-lg bg-transparent border p-4 shadow-inner lg:w-auto lg:flex-1 lg:max-w-3xl"
     >
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">Display name</label>
+          <label className="text-sm font-medium text-gray-300">Display name</label>
           <input
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
             value={display}
@@ -147,7 +147,7 @@ function QuickCreate({ onCreate }: { onCreate: () => void }) {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">Color name</label>
+          <label className="text-sm font-medium text-gray-300">Color name</label>
           <input
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
             value={colorName}
@@ -155,7 +155,7 @@ function QuickCreate({ onCreate }: { onCreate: () => void }) {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">Hex</label>
+          <label className="text-sm font-medium text-gray-300">Hex</label>
           <input
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
             value={hex}
