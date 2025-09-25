@@ -5,6 +5,8 @@ from app.errors import add_error_handlers
 import os
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
+from app.admin.router import router as admin_fabrics_router
+
 
 
 
@@ -26,6 +28,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(admin_fabrics_router)
 
 @app.get("/healthz")
 def healthz():
