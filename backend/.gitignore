@@ -1,3 +1,6 @@
 # Not commiting any output images
 storage/ 
 .env
+
+# Database
+/main.db

@@ -3,7 +3,7 @@
     {
       "family_id": "lana-cachemir",
       "display_name": "Lana-Cachemir",
-      "lora_id": "lora_wool_cashmere_v1",
+      "lora_id": "lora_wool_cachemere_v1",
       "default_recipe": {
         "base_prompt": "studio full body, hyperrealistic, high-end catalogue lighting",
         "negative_prompt": "blur, distortion, deformed hands, artifacts, lowres",
@@ -11,8 +11,8 @@
         "steps": 20
       },
       "colors": [
-        {"color_id": "navy-001", "name": "Azul Marino", "hex": "#03204C"},
-        {"color_id": "gris-002", "name": "Gris Carbón", "hex": "#2B2B2B"}
+        { "color_id": "navy-001", "name": "Azul Marino", "hex": "#03204C" },
+        { "color_id": "gris-002", "name": "Gris Carbón", "hex": "#2B2B2B" }
       ],
       "status": "active",
       "sort": 1
@@ -28,11 +28,62 @@
         "steps": 20
       },
       "colors": [
-        {"color_id": "green-001", "name": "Verde militar", "hex": "#10231C"},
-        {"color_id": "verde-002", "name": "Verde jade", "hex": "#2B2B1B"}
+        { "color_id": "green-001", "name": "Verde militar", "hex": "#10231C" },
+        { "color_id": "verde-002", "name": "Verde jade", "hex": "#2B2B1B" }
       ],
       "status": "active",
-      "sort": 1
+      "sort": 2
+    },
+    {
+      "family_id": "lino-premium",
+      "display_name": "Lino Premium",
+      "lora_id": "lora_linen_premium_v1",
+      "default_recipe": {
+        "base_prompt": "studio full body, hyperrealistic, high-end catalogue lighting",
+        "negative_prompt": "blur, distortion, deformed hands, artifacts, lowres",
+        "cfg": 6.5,
+        "steps": 20
+      },
+      "colors": [
+        { "color_id": "beige-001", "name": "Beige Arena", "hex": "#D6C7A1" },
+        { "color_id": "hueso-002", "name": "Hueso", "hex": "#F1EDE4" }
+      ],
+      "status": "active",
+      "sort": 3
+    },
+    {
+      "family_id": "algodon-tech",
+      "display_name": "Algodón Tech",
+      "lora_id": "lora_cotton_tech_v1",
+      "default_recipe": {
+        "base_prompt": "studio full body, hyperrealistic, high-end catalogue lighting",
+        "negative_prompt": "blur, distortion, deformed hands, artifacts, lowres",
+        "cfg": 6.5,
+        "steps": 20
+      },
+      "colors": [
+        { "color_id": "negro-001", "name": "Negro Profundo", "hex": "#0A0A0A" },
+        { "color_id": "blanco-002", "name": "Blanco Nieve", "hex": "#FFFFFF" }
+      ],
+      "status": "active",
+      "sort": 4
+    },
+    {
+      "family_id": "sedalux",
+      "display_name": "Seda Lux",
+      "lora_id": "lora_silk_lux_v1",
+      "default_recipe": {
+        "base_prompt": "studio full body, hyperrealistic, high-end catalogue lighting",
+        "negative_prompt": "blur, distortion, deformed hands, artifacts, lowres",
+        "cfg": 6.5,
+        "steps": 20
+      },
+      "colors": [
+        { "color_id": "vino-001", "name": "Vino", "hex": "#6C0E23" },
+        { "color_id": "cobre-002", "name": "Cobre", "hex": "#B46A3C" }
+      ],
+      "status": "active",
+      "sort": 5
     }
   ]
 }

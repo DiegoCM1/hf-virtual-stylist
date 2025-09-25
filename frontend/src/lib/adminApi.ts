@@ -32,3 +32,13 @@ export async function deactivateFabric(id: number) {
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
+
+export async function setFabricStatus(id: number, status: "active" | "inactive") {
+  const r = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/admin/fabrics/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}

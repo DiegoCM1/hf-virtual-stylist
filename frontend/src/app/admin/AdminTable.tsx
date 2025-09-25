@@ -2,9 +2,14 @@
 
 import { useState, useTransition } from "react";
 import type { FabricRead } from "@/types/admin";
-import { createFabric, deactivateFabric, listFabrics } from "@/lib/adminApi";
+import { createFabric, deactivateFabric, listFabrics, setFabricStatus } from "@/lib/adminApi";
 
-export default function AdminTable({ initialItems }: { initialItems: FabricRead[] }) {
+
+export default function AdminTable({
+  initialItems,
+}: {
+  initialItems: FabricRead[];
+}) {
   const [items, setItems] = useState<FabricRead[]>(initialItems);
   const [q, setQ] = useState("");
   const [pending, start] = useTransition();
@@ -18,7 +23,10 @@ export default function AdminTable({ initialItems }: { initialItems: FabricRead[
       <div className="rounded-xl border border-gray-200 bg-transparent p-4 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex w-full max-w-sm flex-col gap-1">
-            <label className="text-sm font-medium text-gray-300" htmlFor="admin-search">
+            <label
+              className="text-sm font-medium text-gray-300"
+              htmlFor="admin-search"
+            >
               Buscar telas
             </label>
             <div className="flex gap-2">
@@ -56,12 +64,21 @@ export default function AdminTable({ initialItems }: { initialItems: FabricRead[
             </thead>
             <tbody>
               {items.map((f) => (
-                <tr key={f.id} className="border-t last:border-b-0 hover:bg-gray-50/10">
-                  <td className="px-4 py-3 font-medium text-gray-200">{f.display_name}</td>
+                <tr
+                  key={f.id}
+                  className="border-t last:border-b-0 hover:bg-gray-50/10"
+                >
+                  <td className="px-4 py-3 font-medium text-gray-200">
+                    {f.display_name}
+                  </td>
                   <td className="px-4 py-3 text-gray-300">{f.family_id}</td>
                   <td className="px-4 py-3">
                     <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold sm:text-sm ${f.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-gray-200 text-gray-700"}`}
+                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold sm:text-sm ${
+                        f.status === "active"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-gray-200 text-gray-700"
+                      }`}
                     >
                       {f.status}
                     </span>
@@ -69,8 +86,14 @@ export default function AdminTable({ initialItems }: { initialItems: FabricRead[
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-3">
                       {f.colors.map((c) => (
-                        <div key={c.id} className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700">
-                          <span className="inline-block h-3 w-3 rounded-full border border-white shadow" style={{ background: c.hex_value }} />
+                        <div
+                          key={c.id}
+                          className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700"
+                        >
+                          <span
+                            className="inline-block h-3 w-3 rounded-full border border-white shadow"
+                            style={{ background: c.hex_value }}
+                          />
                           <span className="font-medium">{c.color_id}</span>
                         </div>
                       ))}
@@ -80,21 +103,29 @@ export default function AdminTable({ initialItems }: { initialItems: FabricRead[
                     <button
                       onClick={() =>
                         start(async () => {
-                          await deactivateFabric(f.id);
+                          if (f.status === "active") {
+                            // keep your existing flow
+                            await deactivateFabric(f.id);
+                          } else {
+                            await setFabricStatus(f.id, "active");
+                          }
                           await refresh(q);
                         })
                       }
-                      disabled={pending || f.status !== "active"}
-                      className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:cursor-not-allowed disabled:bg-gray-400"
+                      disabled={pending}
+                      className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-900 disabled:cursor-not-allowed disabled:bg-gray-400"
                     >
-                      Deactivate
+                      {f.status === "active" ? "Deactivate" : "Activate"}
                     </button>
                   </td>
                 </tr>
               ))}
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-500 sm:text-base">
+                  <td
+                    colSpan={5}
+                    className="px-4 py-10 text-center text-sm text-gray-500 sm:text-base"
+                  >
                     No fabrics found
                   </td>
                 </tr>
@@ -139,7 +170,9 @@ function QuickCreate({ onCreate }: { onCreate: () => void }) {
     >
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-300">Display name</label>
+          <label className="text-sm font-medium text-gray-300">
+            Display name
+          </label>
           <input
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
             value={display}
@@ -147,7 +180,9 @@ function QuickCreate({ onCreate }: { onCreate: () => void }) {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-300">Color name</label>
+          <label className="text-sm font-medium text-gray-300">
+            Color name
+          </label>
           <input
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
             value={colorName}
