@@ -2,8 +2,12 @@
 
 import { useState, useTransition } from "react";
 import type { FabricRead } from "@/types/admin";
-import { createFabric, deactivateFabric, listFabrics, setFabricStatus } from "@/lib/adminApi";
-
+import {
+  createFabric,
+  deactivateFabric,
+  listFabrics,
+  setFabricStatus,
+} from "@/lib/adminApi";
 
 export default function AdminTable({
   initialItems,
@@ -55,11 +59,11 @@ export default function AdminTable({
           <table className="min-w-full border-collapse text-sm sm:text-base">
             <thead className="bg-gray-50/20">
               <tr className="text-left text-gray-300">
-                <th className="px-4 py-3 font-medium">Family</th>
+                <th className="px-4 py-3 font-medium">Familia</th>
                 <th className="px-4 py-3 font-medium">ID</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Colors</th>
-                <th className="px-4 py-3 font-medium">Actions</th>
+                <th className="px-4 py-3 font-medium">Estado</th>
+                <th className="px-4 py-3 font-medium">Colores</th>
+                <th className="px-4 py-3 font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -104,7 +108,6 @@ export default function AdminTable({
                       onClick={() =>
                         start(async () => {
                           if (f.status === "active") {
-                            // keep your existing flow
                             await deactivateFabric(f.id);
                           } else {
                             await setFabricStatus(f.id, "active");
@@ -113,9 +116,18 @@ export default function AdminTable({
                         })
                       }
                       disabled={pending}
-                      className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-900 disabled:cursor-not-allowed disabled:bg-gray-400"
+                      className={`
+                        rounded-lg px-4 py-2 text-sm font-medium text-white transition
+                        disabled:cursor-not-allowed disabled:bg-gray-400
+                        ${
+                            f.status === "active"
+                            ? "bg-red-600 hover:bg-red-700"
+                            : // Inactive state, button will show "Agregar"
+                                "bg-green-600 hover:bg-green-700"
+                        }
+                      `}
                     >
-                      {f.status === "active" ? "Deactivate" : "Activate"}
+                      {f.status === "active" ? "Quitar" : "Agregar"}
                     </button>
                   </td>
                 </tr>
@@ -126,7 +138,7 @@ export default function AdminTable({
                     colSpan={5}
                     className="px-4 py-10 text-center text-sm text-gray-500 sm:text-base"
                   >
-                    No fabrics found
+                    Telas no encontradas
                   </td>
                 </tr>
               )}
