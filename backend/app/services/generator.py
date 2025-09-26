@@ -7,9 +7,15 @@ from PIL import Image, ImageDraw, ImageFont
 from app.models.generate import GenerationRequest, GenerationResponse, ImageResult
 from app.services.storage import Storage, LocalStorage
 from app.services.watermark import apply_watermark_image
+import secrets
+
 
 # Config
 WATERMARK_PATH = os.getenv("WATERMARK_PATH", "tests/assets/logo.webp")
+
+
+neg_prompt = ""
+
 
 
 class Generator:
@@ -78,18 +84,31 @@ class SdxlTurboGenerator(Generator):
 
     @classmethod
     def _get_pipe(cls):
-        if cls._pipe is None:
-            cls._pipe = StableDiffusionXLPipeline.from_pretrained(
-                r"D:\models\sdxl-turbo",
-                dtype=torch.float32,  # <- use dtype (not string)
-                low_cpu_mem_usage=True,
-            )
-            cls._pipe.to("cpu")
-            try:
-                cls._pipe.enable_attention_slicing()
-            except Exception:
-                pass
+        if cls._pipe is not None:
+            return cls._pipe
+
+        import time, torch
+        from diffusers import StableDiffusionXLPipeline
+
+        t0 = time.time()
+        print("[sdxl] init: base on cuda")
+        cls._pipe = StableDiffusionXLPipeline.from_pretrained(
+            "stabilityai/stable-diffusion-xl-base-1.0",
+            dtype=torch.float16,          # fp16 en GPU (evita warning)
+            use_safetensors=True,
+        )
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        cls._pipe.to(device)
+        try:
+            if device == "cuda":
+                cls._pipe.enable_xformers_memory_efficient_attention()
+        except Exception:
+            pass
+        print(f"[sdxl] init: done in {time.time()-t0:.2f}s on {device}")
+        cls._device = device  # opcional: recordar el device
         return cls._pipe
+
+
 
     @staticmethod
     def _to_data_url(img: Image.Image) -> str:
@@ -102,55 +121,56 @@ class SdxlTurboGenerator(Generator):
     def generate(self, req: GenerationRequest) -> GenerationResponse:
         t0 = time.time()
         pipe = self._get_pipe()
+        device = "cuda" if torch.cuda.is_available() else "cpu"
 
         cuts = (req.cuts or ["recto", "cruzado"])[:2]
-        # CPU-friendly defaults for Turbo (keep your values)
-        width, height = 640, 640
-        steps, guidance = 4, 0.0
 
+        # Calidad (SDXL Base en GPU)
+        width, height = 1024, 1536  # vertical "recto"
+        steps, guidance = 28, 5.5
         base_prompt = (
-            "man wearing an elegant bespoke suit, photorealistic, "
-            "neutral studio lighting, high detail, clean background"
+            "front view of a luxury men's suit on a mannequin, photorealistic, "
+            "neutral studio lighting, sharp fabric texture, clean background"
         )
         prompts = {
-            "recto": base_prompt + ", front view shoulders to knees",
-            "cruzado": base_prompt + ", three-quarter view slightly angled",
+            "recto": base_prompt + ", shoulders to knees, centered",
+            "cruzado": base_prompt + ", three-quarter view, slightly angled",
         }
-        seed_map = {"recto": 12345, "cruzado": 67890}
+        neg_prompt = "blurry, low quality, text, watermark, logo, extra limbs, malformed"
 
-        run_id = str(uuid.uuid4())[:8]
+        run_id = uuid.uuid4().hex[:10]
         images: List[ImageResult] = []
 
         for cut in cuts:
-            seed = req.seed or seed_map.get(cut, 1234)
-            g = torch.Generator(device="cpu").manual_seed(seed)
+            seed = req.seed if req.seed is not None else secrets.randbits(32)
+            g = torch.Generator(device=device).manual_seed(seed)
 
-            # 1) Generate PIL image (unchanged)
+            print(f"[sdxl] {cut}: infer start")
+            t1 = time.time()
             img: Image.Image = pipe(
                 prompt=prompts.get(cut, base_prompt),
+                negative_prompt=neg_prompt,
                 num_inference_steps=steps,
                 guidance_scale=guidance,
                 width=width,
                 height=height,
                 generator=g,
             ).images[0]
+            print(f"[sdxl] {cut}: infer done in {time.time()-t1:.2f}s (seed={seed})")
 
-            # 2) PIL -> bytes (JPEG). Keep PNG if you prefer, but JPEG is fine.
+            # bytes -> watermark -> storage URL
             buf = io.BytesIO()
             img.save(buf, format="JPEG", quality=95)
             raw_bytes = buf.getvalue()
 
-            # 3) Watermark bytes
             wm_bytes = apply_watermark_image(raw_bytes, self.watermark_path, scale=0.12)
-
-            # 4) Save -> URL
             key = f"generated/{req.family_id}/{req.color_id}/{run_id}/{cut}.jpg"
             url = self.storage.save_bytes(wm_bytes, key)
 
             images.append(
                 ImageResult(
                     cut=cut,
-                    url=url,                 # <-- now a public URL, not data URL
+                    url=url,
                     width=width,
                     height=height,
                     watermark=True,
@@ -158,7 +178,7 @@ class SdxlTurboGenerator(Generator):
                         "seed": str(seed),
                         "steps": str(steps),
                         "guidance": str(guidance),
-                        "engine": "sdxl-turbo",
+                        "engine": "sdxl-base",
                     },
                 )
             )
@@ -168,9 +188,6 @@ class SdxlTurboGenerator(Generator):
             status="completed",
             images=images,
             duration_ms=int((time.time() - t0) * 1000),
-            meta={
-                "family_id": req.family_id,
-                "color_id": req.color_id,
-                "device": "cpu",
-            },
+            meta={"family_id": req.family_id, "color_id": req.color_id, "device": device},
         )
+

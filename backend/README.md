@@ -39,3 +39,38 @@ curl -I "$URL2"
 
 <!-- Run backend -->
 uvicorn app.main:app --reload --port 8000
+
+
+
+
+
+## POD
+### Sync POD - One command
+Created a quick deploy script in the pod so syncing is one command:
+
+cat > /workspace/deploy.sh <<'SH'
+set -e
+cd /workspace/app
+git fetch origin
+git reset --hard origin/main
+cd backend
+pip install -r requirements.txt -q
+export PYTHONPATH=/workspace/app/backend
+export HF_HOME=/workspace/.cache/huggingface
+export HF_HUB_ENABLE_HF_TRANSFER=1
+export WATERMARK_PATH=/workspace/app/backend/tests/assets/logo.webp
+pkill -f uvicorn || true
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+SH
+chmod +x /workspace/deploy.sh
+
+
+Whenever you push from your laptop, on the pod just run:
+
+/workspace/deploy.sh
+
+
+### Testing Pod
+curl -s -X POST "https://lnqrev4dnktv7s-8000.proxy.runpod.net/generate" \
+  -H "Content-Type: application/json" \
+  -d '{"family_id":"lana-normal","color_id":"green-001","cuts":["recto"]}'

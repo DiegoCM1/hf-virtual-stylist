@@ -5,7 +5,7 @@ from app.services.storage import LocalStorage
 
 
 router = APIRouter()
-USE_MOCK = True
+USE_MOCK = False
 storage = LocalStorage()  # or R2/S3 later
 generator = MockGenerator(storage) if USE_MOCK else SdxlTurboGenerator(storage)
 
