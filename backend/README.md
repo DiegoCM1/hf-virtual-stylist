@@ -51,6 +51,7 @@ Created a quick deploy script in the pod so syncing is one command:
 cat > /workspace/deploy.sh <<'SH'
 set -e
 cd /workspace/app
+export PYTHONUNBUFFERED=1
 git fetch origin
 git reset --hard origin/main
 cd backend
@@ -59,6 +60,12 @@ export PYTHONPATH=/workspace/app/backend
 export HF_HOME=/workspace/.cache/huggingface
 export HF_HUB_ENABLE_HF_TRANSFER=1
 export WATERMARK_PATH=/workspace/app/backend/tests/assets/logo.webp
+python - <<'PY'
+import torch, torchvision
+print("[sanity] torch", torch.__version__, "torchvision", torchvision.__version__)
+from transformers import CLIPImageProcessor; print("[sanity] CLIPImageProcessor OK")
+from diffusers import StableDiffusionXLPipeline; print("[sanity] SDXL pipeline import OK")
+PY
 pkill -f uvicorn || true
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 SH

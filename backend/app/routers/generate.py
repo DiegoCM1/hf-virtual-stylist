@@ -2,6 +2,8 @@ from fastapi import APIRouter
 from app.models.generate import GenerationRequest, GenerationResponse
 from app.services.generator import MockGenerator, SdxlTurboGenerator
 from app.services.storage import LocalStorage
+from urllib.parse import urljoin
+from app.core.config import PUBLIC_BASE_URL
 
 
 router = APIRouter()

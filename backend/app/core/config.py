@@ -1,5 +1,8 @@
 # app/core/config.py
 from pydantic_settings import BaseSettings
+import os
+
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL")
 
 class Settings(BaseSettings):
     database_url: str
@@ -11,3 +14,4 @@ class Settings(BaseSettings):
         env_file = ".env"
 
 settings = Settings()
+

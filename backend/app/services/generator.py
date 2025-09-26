@@ -8,6 +8,8 @@ from app.models.generate import GenerationRequest, GenerationResponse, ImageResu
 from app.services.storage import Storage, LocalStorage
 from app.services.watermark import apply_watermark_image
 import secrets
+from urllib.parse import urljoin, urlparse
+from app.core.config import PUBLIC_BASE_URL
 
 
 # Config
