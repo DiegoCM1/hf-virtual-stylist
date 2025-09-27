@@ -9,6 +9,7 @@ from app.services.storage import Storage, LocalStorage
 from app.services.watermark import apply_watermark_image
 import secrets
 from urllib.parse import urljoin, urlparse
+import hashlib
 from app.core.config import PUBLIC_BASE_URL
 
 
@@ -151,8 +152,12 @@ class SdxlTurboGenerator(Generator):
         run_id = uuid.uuid4().hex[:10]
         images: List[ImageResult] = []
 
+        base_seed = req.seed if req.seed is not None else secrets.randbits(32)
+
         for cut in cuts:
-            seed = req.seed if req.seed is not None else secrets.randbits(32)
+            # derive a per-cut seed from base_seed (stable & distinct)
+            derived = hashlib.sha256(f"{base_seed}:{cut}".encode()).digest()
+            seed = int.from_bytes(derived[:4], "little")
             g = torch.Generator(device=device).manual_seed(seed)
 
             print(f"[sdxl] {cut}: infer start")
