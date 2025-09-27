@@ -1,11 +1,8 @@
 # app/core/config.py
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import os
-
-PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL")
 
 class Settings(BaseSettings):
-    # allow other env vars in .env without error
+    # v2 style: read backend/.env and ignore extra keys (e.g., PUBLIC_BASE_URL)
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str
@@ -13,14 +10,10 @@ class Settings(BaseSettings):
     jwt_secret: str
     jwt_algorithm: str
 
-    # optional, so having PUBLIC_BASE_URL in .env won’t crash
+    # optional; maps from PUBLIC_BASE_URL in .env automatically
     public_base_url: str | None = None
-
-    class Config:
-        env_file = ".env"
 
 settings = Settings()
 
-
-# keep a simple constant too (backward compatible with your imports)
-PUBLIC_BASE_URL = settings.public_base_url or os.getenv("PUBLIC_BASE_URL")
+# single source of truth for the rest of the app
+PUBLIC_BASE_URL: str | None = settings.public_base_url
