@@ -56,7 +56,15 @@ class MockGenerator(Generator):
             wm = apply_watermark_image(raw, WATERMARK_PATH, scale=0.12)  # watermark first
             key = f"generated/{req.family_id}/{req.color_id}/{run_id}/{cut}.jpg"
             url = self.storage.save_bytes(wm, key)  # then save → URL
-            images.append(ImageResult(cut=cut, url=url, width=1024, height=1536, watermark=True))
+            images.append(
+                ImageResult(
+                    cut=cut,
+                    url=url,
+                    width=1024,
+                    height=1536,
+                    watermark=True,
+                )
+            )
 
         return GenerationResponse(
             request_id=run_id,
@@ -167,12 +175,23 @@ class SdxlTurboGenerator(Generator):
 
             wm_bytes = apply_watermark_image(raw_bytes, self.watermark_path, scale=0.12)
             key = f"generated/{req.family_id}/{req.color_id}/{run_id}/{cut}.jpg"
-            url = self.storage.save_bytes(wm_bytes, key)
+            saved_url  = self.storage.save_bytes(wm_bytes, key)
+
+            # --- NEW: force public domain if env is set ---
+            if PUBLIC_BASE_URL:
+                parsed = urlparse(saved_url)
+                # if storage returned absolute (e.g., http://localhost:8000/...),
+                # strip domain and keep only the path; if it was already relative, keep it
+                path = parsed.path if parsed.scheme else saved_url
+                public_url = urljoin(PUBLIC_BASE_URL.rstrip('/') + '/', path.lstrip('/'))
+            else:
+                public_url = saved_url
+            # ---------------------------------------------
 
             images.append(
                 ImageResult(
                     cut=cut,
-                    url=url,
+                    url=public_url,
                     width=width,
                     height=height,
                     watermark=True,
