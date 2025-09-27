@@ -11,6 +11,14 @@ import secrets
 from urllib.parse import urljoin, urlparse
 import hashlib
 from app.core.config import PUBLIC_BASE_URL
+import base64, io, time, uuid
+from typing import List
+from PIL import Image
+import torch
+from diffusers import StableDiffusionXLPipeline
+
+from app.models.generate import GenerationRequest, GenerationResponse, ImageResult
+
 
 
 # Config
@@ -18,7 +26,6 @@ WATERMARK_PATH = os.getenv("WATERMARK_PATH", "tests/assets/logo.webp")
 
 
 neg_prompt = ""
-
 
 
 class Generator:
@@ -77,13 +84,6 @@ class MockGenerator(Generator):
 
 
 
-import base64, io, time, uuid
-from typing import List
-from PIL import Image
-import torch
-from diffusers import StableDiffusionXLPipeline
-
-from app.models.generate import GenerationRequest, GenerationResponse, ImageResult
 
 
 class SdxlTurboGenerator(Generator):
@@ -119,8 +119,6 @@ class SdxlTurboGenerator(Generator):
         cls._device = device  # opcional: recordar el device
         return cls._pipe
 
-
-
     @staticmethod
     def _to_data_url(img: Image.Image) -> str:
         buf = io.BytesIO()
@@ -138,16 +136,26 @@ class SdxlTurboGenerator(Generator):
 
         # Calidad (SDXL Base en GPU)
         width, height = 1024, 1536  # vertical "recto"
-        steps, guidance = 28, 5.5
+        steps, guidance = 20, 5.5
         base_prompt = (
             "front view of a luxury men's suit on a mannequin, photorealistic, "
             "neutral studio lighting, sharp fabric texture, clean background"
         )
-        prompts = {
-            "recto": base_prompt + ", shoulders to knees, centered",
-            "cruzado": base_prompt + ", three-quarter view, slightly angled",
-        }
+
         neg_prompt = "blurry, low quality, text, watermark, logo, extra limbs, malformed"
+
+        CUT_DELTAS = {
+            "recto":   {"pos": "shoulders to knees, centered", 
+                        "neg": ""},
+            "cruzado": {"pos": "three-quarter view, slightly angled, diagonal feel",
+                        "neg": "flat, straight-on, perfectly horizontal weave"}
+        }
+
+        def build_prompts(base_pos: str, base_neg: str, cut: str):
+            d = CUT_DELTAS.get(cut, {"pos": "", "neg": ""})
+            pos = f"{base_pos}, {d['pos']}".strip(", ")
+            neg = base_neg + (", " + d["neg"] if d["neg"] else "")
+            return pos, neg
 
         run_id = uuid.uuid4().hex[:10]
         images: List[ImageResult] = []
@@ -162,9 +170,10 @@ class SdxlTurboGenerator(Generator):
 
             print(f"[sdxl] {cut}: infer start")
             t1 = time.time()
+            pos, neg = build_prompts(base_prompt, neg_prompt, cut)
             img: Image.Image = pipe(
-                prompt=prompts.get(cut, base_prompt),
-                negative_prompt=neg_prompt,
+                prompt=pos,
+                negative_prompt=neg,
                 num_inference_steps=steps,
                 guidance_scale=guidance,
                 width=width,
