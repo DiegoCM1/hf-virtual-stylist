@@ -136,7 +136,7 @@ class SdxlTurboGenerator(Generator):
 
         # Calidad (SDXL Base en GPU)
         width, height = 1024, 1536  # vertical "recto"
-        steps, guidance = 20, 5.5
+        steps, guidance = 18, 5.5
         base_prompt = (
             "front view of a luxury men's suit on a mannequin, photorealistic, "
             "neutral studio lighting, sharp fabric texture, clean background"
