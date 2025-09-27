@@ -1,5 +1,12 @@
 import { API_BASE } from "@/lib/api";
 import { CatalogResponse, GeneratedImage } from "@/types/catalog";
+import axios from "axios";
+
+export const api = axios.create({
+  baseURL: "/api", // gets rewritten to RunPod
+  timeout: 25000,  // (we'll add fallback next step)
+});
+
 
 type GenerateRequest = {
   familyId: string;
