@@ -1,1 +1,3 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+// Keep a single source of truth for the FE base.
+// DO NOT point to localhost or an absolute URL here.
+export const API_BASE = "/api";   // ← used only if some code still imports this
