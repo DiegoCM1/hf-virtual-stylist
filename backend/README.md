@@ -198,5 +198,3 @@ Lightweight heartbeat endpoint that returns `{ "ok": true, "version": "…" }`. 
 2. **Swap storage providers:** Implement `Storage.save_bytes` and `Storage.save_file` interfaces (see `app/services/storage.py`). Update the router to use the new provider.
 3. **Customize prompts:** Modify `base_prompt` and `prompts` within `SdxlTurboGenerator`. Keep the negative prompt aligned with brand guidelines.
 4. **Persist metadata:** Integrate a database by leveraging `app/core/database.py` and `alembic/` migrations to store run history or catalog state.
-
-These conventions keep the backend modular while allowing rapid experimentation with new AI models or delivery pipelines.
