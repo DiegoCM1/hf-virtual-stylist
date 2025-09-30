@@ -183,7 +183,7 @@ function QuickCreate({ onCreate }: { onCreate: () => void }) {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-gray-300">
-            Display name
+            Nombre mostrado
           </label>
           <input
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
@@ -193,7 +193,7 @@ function QuickCreate({ onCreate }: { onCreate: () => void }) {
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-gray-300">
-            Color name
+            Nombre del color
           </label>
           <input
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
