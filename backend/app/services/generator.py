@@ -133,10 +133,12 @@ class SdxlTurboGenerator(Generator):
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
         cuts = (req.cuts or ["recto", "cruzado"])[:2]
+        # Forzar 1 imagen por request para evitar 524 y simplificar FE
+        cuts = (req.cuts or ["recto"])[:1]
 
         # Calidad (SDXL Base en GPU)
         width, height = 1024, 1536  # vertical "recto"
-        steps, guidance = 10, 5.5 #28 is the optimal one
+        steps, guidance = 28, 5.5 #28 is the optimal one
         base_prompt = (
             "front view of a luxury men's suit on a mannequin, photorealistic, "
             "neutral studio lighting, sharp fabric texture, clean background"
@@ -179,6 +181,7 @@ class SdxlTurboGenerator(Generator):
                 width=width,
                 height=height,
                 generator=g,
+                num_images_per_prompt=1,
             ).images[0]
             print(f"[sdxl] {cut}: infer done in {time.time()-t1:.2f}s (seed={seed})")
 
