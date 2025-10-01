@@ -22,7 +22,7 @@ from app.models.generate import GenerationRequest, GenerationResponse, ImageResu
 
 
 # Config
-WATERMARK_PATH = os.getenv("WATERMARK_PATH", "tests/assets/logo.webp")
+WATERMARK_PATH = os.getenv("WATERMARK_PATH", "tests/assets/watermark-logo.png")
 
 
 neg_prompt = ""
@@ -89,7 +89,7 @@ class MockGenerator(Generator):
 class SdxlTurboGenerator(Generator):
     _pipe = None  # lazy singleton
 
-    def __init__(self, storage: Storage, watermark_path: str = "logo.webp"):
+    def __init__(self, storage: Storage, watermark_path: str = "watermark-logo.png"):
         self.storage = storage
         self.watermark_path = watermark_path
 

@@ -59,7 +59,7 @@ pip install -r requirements.txt -q
 export PYTHONPATH=/workspace/app/backend
 export HF_HOME=/workspace/.cache/huggingface
 export HF_HUB_ENABLE_HF_TRANSFER=1
-export WATERMARK_PATH=/workspace/app/backend/tests/assets/logo.webp
+export WATERMARK_PATH=/workspace/app/backend/tests/assets/watermark-logo.png
 python - <<'PY'
 import torch, torchvision
 print("[sanity] torch", torch.__version__, "torchvision", torchvision.__version__)
@@ -175,7 +175,7 @@ Lightweight heartbeat endpoint that returns `{ "ok": true, "version": "…" }`. 
 | Variable | Purpose | Default |
 | --- | --- | --- |
 | `APP_VERSION` | Exposed via `/healthz` for release tracking. | `0.1.0` |
-| `WATERMARK_PATH` | Path to the watermark image consumed by `apply_watermark_image`. | `tests/assets/logo.webp` |
+| `WATERMARK_PATH` | Path to the watermark image consumed by `apply_watermark_image`. | `tests/assets/watermark-logo.png` |
 | `HF_HOME` | Hugging Face cache location for SDXL weights. | `$HOME/.cache/huggingface` |
 | `HF_HUB_ENABLE_HF_TRANSFER` | Enables accelerated downloads when set to `1`. | unset |
 | `USE_MOCK` | Toggle between mock generator and SDXL. Set in `routers/generate.py`. | `False` |

@@ -17,7 +17,7 @@ def test_save_bytes_local_serves_url():
 def test_watermark_changes_bytes():
     img = Image.new("RGB", (400, 300), "#888B8D")
     raw = io.BytesIO(); img.save(raw, format="JPEG", quality=85)
-    wm = apply_watermark_image(raw.getvalue(), "tests/assets/logo.webp", scale=0.2)
+    wm = apply_watermark_image(raw.getvalue(), "tests/assets/watermark-logo.png", scale=0.2)
     assert isinstance(wm, (bytes, bytearray))
     # watermark should change content length
     assert len(wm) != len(raw.getvalue())
