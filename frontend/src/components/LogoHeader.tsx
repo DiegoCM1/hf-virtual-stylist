@@ -4,7 +4,7 @@ export function LogoHeader() {
   return (
     <header className="mb-6 flex items-center justify-between">
       <Image
-        src="/logo-transparent.webp"
+        src="/logo-Harris and frank color blanco.png"
         alt="Harris & Frank logo"
         width={180}
         height={60}
