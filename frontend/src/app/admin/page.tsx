@@ -20,8 +20,7 @@ export default function AdminPage() {
     const controller = new AbortController();
     (async () => {
       try {
-        const data = await listFabrics({ limit: 50, signal: controller.signal });
-        setItems(data);
+        const data = await listFabrics({ limit: 50 });        setItems(data);
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : "error desconocido";
         setError(`No se pudo conectar al backend: ${msg}`);
@@ -29,7 +28,7 @@ export default function AdminPage() {
       }
     })();
 
-    return () => controller.abort();
+    return () => {}; // no-op
   }, []);
 
   return (
