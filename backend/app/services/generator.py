@@ -18,11 +18,30 @@ import torch
 from diffusers import StableDiffusionXLPipeline
 
 from app.models.generate import GenerationRequest, GenerationResponse, ImageResult
+from pathlib import Path
+
 
 
 
 # Config
-WATERMARK_PATH = os.getenv("WATERMARK_PATH", "tests/assets/watermark-logo.png")
+# WITH this:
+
+def _resolve_wm_path() -> str:
+    # 1) env override (deploy.sh can set this)
+    p = os.getenv("WATERMARK_PATH")
+    if p and Path(p).exists():
+        return p
+    # 2) repo default: backend/tests/assets/watermark-logo.png
+    repo_default = Path(__file__).resolve().parents[2] / "tests" / "assets" / "watermark-logo.png"
+    if repo_default.exists():
+        return str(repo_default)
+    # 3) last-ditch (if someone drops a copy next to this module)
+    sibling = Path(__file__).resolve().parent / "watermark-logo.png"
+    if sibling.exists():
+        return str(sibling)
+    raise FileNotFoundError("Watermark not found. Set WATERMARK_PATH or keep tests/assets/watermark-logo.png")
+
+WATERMARK_PATH = _resolve_wm_path()
 
 
 neg_prompt = ""
@@ -89,9 +108,9 @@ class MockGenerator(Generator):
 class SdxlTurboGenerator(Generator):
     _pipe = None  # lazy singleton
 
-    def __init__(self, storage: Storage, watermark_path: str = "watermark-logo.png"):
+    def __init__(self, storage: Storage, watermark_path: str | None = None):
         self.storage = storage
-        self.watermark_path = watermark_path
+        self.watermark_path = watermark_path or WATERMARK_PATH
 
     @classmethod
     def _get_pipe(cls):
