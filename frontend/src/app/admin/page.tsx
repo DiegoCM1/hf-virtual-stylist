@@ -12,7 +12,7 @@ export default function AdminPage() {
   useEffect(() => {
     const base = process.env.NEXT_PUBLIC_API_BASE_URL;
     if (!base) {
-      setError("Backend no configurado. Define NEXT_PUBLIC_API_BASE_URL o usa rewrites en vercel.json.");
+      setError("Backend caido. Define NEXT_PUBLIC_API_BASE_URL o usa rewrites en vercel.json.");
       setItems([]);
       return;
     }

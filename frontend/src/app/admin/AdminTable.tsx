@@ -62,7 +62,7 @@ export default function AdminTable({
                 <th className="px-4 py-3 font-medium">Familia</th>
                 <th className="px-4 py-3 font-medium">ID</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
-                <th className="px-4 py-3 font-medium">Colores</th>
+                <th className="px-4 py-3 font-medium">Telas</th>
                 <th className="px-4 py-3 font-medium">Acciones</th>
               </tr>
             </thead>
@@ -193,7 +193,7 @@ function QuickCreate({ onCreate }: { onCreate: () => void }) {
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-gray-300">
-            Nombre del color
+            Nombre de la tela
           </label>
           <input
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm transition focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20"
