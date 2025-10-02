@@ -3,8 +3,8 @@ import Image from "next/image";
 import { PreviewImage } from "@/types/catalog";
 
 type ImageUploadControlsProps = {
-  galleryInputRef: RefObject<HTMLInputElement>;
-  cameraInputRef: RefObject<HTMLInputElement>;
+  galleryInputRef: RefObject<HTMLInputElement | null>;
+  cameraInputRef: RefObject<HTMLInputElement | null>;
   onFileChange: (files: FileList | null) => void;
   onOpenGallery: () => void;
   onOpenCamera: () => void;
