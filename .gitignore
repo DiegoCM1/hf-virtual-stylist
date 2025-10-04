@@ -71,5 +71,4 @@ backend/.env.*
 
 # Test scripts and outputs
 smoke_test.py
-*.png
 out.json
