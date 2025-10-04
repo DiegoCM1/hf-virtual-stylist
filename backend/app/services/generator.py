@@ -24,8 +24,8 @@ from pathlib import Path
 
 # Config / Env toggles for refiner
 USE_REFINER = os.getenv("USE_REFINER", "1") == "1"
-TOTAL_STEPS = int(os.getenv("TOTAL_STEPS", "30"))
-REFINER_SPLIT = float(os.getenv("REFINER_SPLIT", "0.8"))
+TOTAL_STEPS = int(os.getenv("TOTAL_STEPS", "50"))
+REFINER_SPLIT = float(os.getenv("REFINER_SPLIT", "0.65"))
 
 # Watermark path not correct
 def _resolve_wm_path() -> str:
@@ -112,33 +112,6 @@ class SdxlTurboGenerator(Generator):
         self.storage = storage
         self.watermark_path = watermark_path or WATERMARK_PATH
 
-    # Befor refiner
-    # @classmethod
-    # def _get_pipe(cls):
-    #     if cls._pipe is not None:
-    #         return cls._pipe
-
-    #     import time, torch
-    #     from diffusers import StableDiffusionXLPipeline
-
-    #     t0 = time.time()
-    #     print("[sdxl] init: base on cuda")
-    #     cls._pipe = StableDiffusionXLPipeline.from_pretrained(
-    #         "stabilityai/stable-diffusion-xl-base-1.0",
-    #         dtype=torch.float16,          # fp16 en GPU (evita warning)
-    #         use_safetensors=True,
-    #     )
-    #     device = "cuda" if torch.cuda.is_available() else "cpu"
-    #     cls._pipe.to(device)
-    #     try:
-    #         if device == "cuda":
-    #             cls._pipe.enable_xformers_memory_efficient_attention()
-    #     except Exception:
-    #         pass
-    #     print(f"[sdxl] init: done in {time.time()-t0:.2f}s on {device}")
-    #     cls._device = device  # opcional: recordar el device
-    #     return cls._pipe
-
     @classmethod
     def _get_pipes(cls):
         if cls._base is not None:
@@ -195,8 +168,8 @@ class SdxlTurboGenerator(Generator):
         cuts = (req.cuts or ["recto"])[:1]
 
         # Calidad (SDXL Base en GPU)
-        width, height = 1024, 1536  # vertical "recto"
-        steps, guidance = TOTAL_STEPS, 5.5
+        width, height = 1536, 2304  # vertical, the bigger it is, the more details the image will have
+        steps, guidance = TOTAL_STEPS, 5.5 # Guidance will tell the model how strictly to follow the prompt, usually 4.5 - 6 is best
         base_prompt = (
             "front view of a luxury men's suit on a mannequin, photorealistic, "
             "neutral studio lighting, sharp fabric texture, clean background"
