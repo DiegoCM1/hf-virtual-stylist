@@ -13,9 +13,8 @@ import hashlib
 from app.core.config import PUBLIC_BASE_URL
 import base64, io, time, uuid
 from typing import List
-from PIL import Image
 import torch
-from diffusers import StableDiffusionXLPipeline
+from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline
 
 from app.models.generate import GenerationRequest, GenerationResponse, ImageResult
 from pathlib import Path
@@ -23,9 +22,12 @@ from pathlib import Path
 
 
 
-# Config
-# WITH this:
+# Config / Env toggles for refiner
+USE_REFINER = os.getenv("USE_REFINER", "1") == "1"
+TOTAL_STEPS = int(os.getenv("TOTAL_STEPS", "30"))
+REFINER_SPLIT = float(os.getenv("REFINER_SPLIT", "0.8"))
 
+# Watermark path not correct
 def _resolve_wm_path() -> str:
     # 1) env override (deploy.sh can set this)
     p = os.getenv("WATERMARK_PATH")
@@ -44,15 +46,12 @@ def _resolve_wm_path() -> str:
 WATERMARK_PATH = _resolve_wm_path()
 
 
-neg_prompt = ""
-
 
 class Generator:
     def generate(self, req: GenerationRequest) -> GenerationResponse:
         raise NotImplementedError
     
 # --- Helpers ---------------------------------------------------------------
-
 def _placeholder_bytes(text: str, width=1024, height=1536) -> bytes:
     img = Image.new("RGB", (width, height), (24, 24, 24))
     d = ImageDraw.Draw(img)
@@ -67,7 +66,6 @@ def _placeholder_bytes(text: str, width=1024, height=1536) -> bytes:
 
 
 # --- Mock generator (now returns saved, watermarked URLs) ------------------
-
 @dataclass
 class MockGenerator(Generator):
     storage: Storage
@@ -106,37 +104,78 @@ class MockGenerator(Generator):
 
 
 class SdxlTurboGenerator(Generator):
-    _pipe = None  # lazy singleton
+    _base = None     # lazy singletons
+    _refiner = None
+    _device = "cpu"
 
     def __init__(self, storage: Storage, watermark_path: str | None = None):
         self.storage = storage
         self.watermark_path = watermark_path or WATERMARK_PATH
 
-    @classmethod
-    def _get_pipe(cls):
-        if cls._pipe is not None:
-            return cls._pipe
+    # Befor refiner
+    # @classmethod
+    # def _get_pipe(cls):
+    #     if cls._pipe is not None:
+    #         return cls._pipe
 
-        import time, torch
-        from diffusers import StableDiffusionXLPipeline
+    #     import time, torch
+    #     from diffusers import StableDiffusionXLPipeline
+
+    #     t0 = time.time()
+    #     print("[sdxl] init: base on cuda")
+    #     cls._pipe = StableDiffusionXLPipeline.from_pretrained(
+    #         "stabilityai/stable-diffusion-xl-base-1.0",
+    #         dtype=torch.float16,          # fp16 en GPU (evita warning)
+    #         use_safetensors=True,
+    #     )
+    #     device = "cuda" if torch.cuda.is_available() else "cpu"
+    #     cls._pipe.to(device)
+    #     try:
+    #         if device == "cuda":
+    #             cls._pipe.enable_xformers_memory_efficient_attention()
+    #     except Exception:
+    #         pass
+    #     print(f"[sdxl] init: done in {time.time()-t0:.2f}s on {device}")
+    #     cls._device = device  # opcional: recordar el device
+    #     return cls._pipe
+
+    @classmethod
+    def _get_pipes(cls):
+        if cls._base is not None:
+            return cls._base, cls._refiner
 
         t0 = time.time()
-        print("[sdxl] init: base on cuda")
-        cls._pipe = StableDiffusionXLPipeline.from_pretrained(
-            "stabilityai/stable-diffusion-xl-base-1.0",
-            dtype=torch.float16,          # fp16 en GPU (evita warning)
-            use_safetensors=True,
-        )
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        cls._pipe.to(device)
+        dtype = torch.float16 if device == "cuda" else torch.float32
+
+        print("[sdxl] init: base on", device)
+        cls._base = StableDiffusionXLPipeline.from_pretrained(
+            "stabilityai/stable-diffusion-xl-base-1.0",
+            torch_dtype=dtype,
+            use_safetensors=True,
+        ).to(device)
         try:
             if device == "cuda":
-                cls._pipe.enable_xformers_memory_efficient_attention()
+                cls._base.enable_xformers_memory_efficient_attention()
         except Exception:
             pass
-        print(f"[sdxl] init: done in {time.time()-t0:.2f}s on {device}")
-        cls._device = device  # opcional: recordar el device
-        return cls._pipe
+
+        if USE_REFINER:
+            print("[sdxl] init: refiner on", device)
+            cls._refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
+                "stabilityai/stable-diffusion-xl-refiner-1.0",
+                torch_dtype=dtype,
+                use_safetensors=True,
+            ).to(device)
+            try:
+                if device == "cuda":
+                    cls._refiner.enable_xformers_memory_efficient_attention()
+            except Exception:
+                pass
+
+        print(f"[sdxl] init: done in {time.time()-t0:.2f}s")
+        cls._device = device
+        return cls._base, cls._refiner
 
     @staticmethod
     def _to_data_url(img: Image.Image) -> str:
@@ -148,8 +187,8 @@ class SdxlTurboGenerator(Generator):
 
     def generate(self, req: GenerationRequest) -> GenerationResponse:
         t0 = time.time()
-        pipe = self._get_pipe()
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        base, refiner = self._get_pipes()
+        device = self._device
 
         cuts = (req.cuts or ["recto", "cruzado"])[:2]
         # Forzar 1 imagen por request para evitar 524 y simplificar FE
@@ -157,7 +196,7 @@ class SdxlTurboGenerator(Generator):
 
         # Calidad (SDXL Base en GPU)
         width, height = 1024, 1536  # vertical "recto"
-        steps, guidance = 28, 5.5 #28 is the optimal one
+        steps, guidance = TOTAL_STEPS, 5.5
         base_prompt = (
             "front view of a luxury men's suit on a mannequin, photorealistic, "
             "neutral studio lighting, sharp fabric texture, clean background"
@@ -192,16 +231,44 @@ class SdxlTurboGenerator(Generator):
             print(f"[sdxl] {cut}: infer start")
             t1 = time.time()
             pos, neg = build_prompts(base_prompt, neg_prompt, cut)
-            img: Image.Image = pipe(
-                prompt=pos,
-                negative_prompt=neg,
-                num_inference_steps=steps,
-                guidance_scale=guidance,
-                width=width,
-                height=height,
-                generator=g,
-                num_images_per_prompt=1,
-            ).images[0]
+            if refiner:
+                # Base → latent (0 → split)
+                base_out = base(
+                    prompt=pos,
+                    negative_prompt=neg,
+                    num_inference_steps=steps,
+                    denoising_end=REFINER_SPLIT,
+                    guidance_scale=guidance,
+                    width=width,
+                    height=height,
+                    generator=g,
+                    num_images_per_prompt=1,
+                    output_type="latent",
+                )
+                latents = base_out.images  # latent tensor
+
+                # Refiner → image (split → 1.0)
+                refiner_steps = max(5, int(round(steps * (1.0 - REFINER_SPLIT))))
+                img: Image.Image = refiner(
+                    prompt=pos,
+                    negative_prompt=neg,
+                    num_inference_steps=refiner_steps,
+                    denoising_start=REFINER_SPLIT,
+                    guidance_scale=guidance,
+                    image=latents,
+                    generator=g,
+                ).images[0]
+            else:
+                img: Image.Image = base(
+                    prompt=pos,
+                    negative_prompt=neg,
+                    num_inference_steps=steps,
+                    guidance_scale=guidance,
+                    width=width,
+                    height=height,
+                    generator=g,
+                    num_images_per_prompt=1,
+                ).images[0]
             print(f"[sdxl] {cut}: infer done in {time.time()-t1:.2f}s (seed={seed})")
 
             # bytes -> watermark -> storage URL
@@ -213,7 +280,7 @@ class SdxlTurboGenerator(Generator):
             key = f"generated/{req.family_id}/{req.color_id}/{run_id}/{cut}.jpg"
             saved_url  = self.storage.save_bytes(wm_bytes, key)
 
-            # --- NEW: force public domain if env is set ---
+            # --- Force public domain if env is set ---
             if PUBLIC_BASE_URL:
                 parsed = urlparse(saved_url)
                 # if storage returned absolute (e.g., http://localhost:8000/...),
@@ -235,8 +302,10 @@ class SdxlTurboGenerator(Generator):
                         "seed": str(seed),
                         "steps": str(steps),
                         "guidance": str(guidance),
-                        "engine": "sdxl-base",
-                    },
+                        "engine": "sdxl-refiner" if refiner else "sdxl-base",
+                        "refiner_split": str(REFINER_SPLIT),
+                        "refiner_steps": str(refiner_steps) if refiner else "0",                    
+                        },
                 )
             )
 

@@ -28,6 +28,9 @@ export PYTHONPATH=/workspace/app/backend
 export HF_HOME=/workspace/.cache/huggingface
 export HF_HUB_ENABLE_HF_TRANSFER=1
 export WATERMARK_PATH=/workspace/app/backend/tests/assets/watermark-logo.png
+export USE_REFINER=1
+export TOTAL_STEPS=30
+export REFINER_SPLIT=0.8
 mkdir -p /workspace/app/db
 export DATABASE_URL=sqlite:////workspace/app/db/app.db
 export ADMIN_PASSWORD="${ADMIN_PASSWORD:-change-this-now}"
