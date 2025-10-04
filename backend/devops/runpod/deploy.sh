@@ -20,7 +20,7 @@ git reset --hard origin/main
 # --- 2) Install deps with py311 ----------------------------------------------
 cd backend
 python -m pip install --upgrade pip -q
-python -m pip install --quiet --only-binary=:all: tokenizers==0.20.3 || true
+python -m pip install --quiet --only-binary=:all: tokenizers==0.19.1
 python -m pip install --quiet -r requirements.txt
 
 # --- 3) Runtime envs ----------------------------------------------------------
