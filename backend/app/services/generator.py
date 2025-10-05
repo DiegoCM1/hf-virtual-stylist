@@ -404,7 +404,7 @@ class SdxlTurboGenerator(Generator):
             img.save(buf, format="JPEG", quality=95)
             raw_bytes = buf.getvalue()
 
-            wm_bytes = apply_watermark_image(raw_bytes, self.watermark_path, scale=0.12)
+            wm_bytes = apply_watermark_image(raw_bytes, self.watermark_path, scale=0.30)
             key = f"generated/{req.family_id}/{req.color_id}/{run_id}/{cut}.jpg"
             saved_url  = self.storage.save_bytes(wm_bytes, key)
 
