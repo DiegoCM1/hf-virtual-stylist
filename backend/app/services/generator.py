@@ -10,11 +10,16 @@ from app.services.watermark import apply_watermark_image
 import secrets
 from urllib.parse import urljoin, urlparse
 import hashlib
-from app.core.config import PUBLIC_BASE_URL
+from app.core.config import (
+    PUBLIC_BASE_URL,
+    CONTROLNET_ENABLED, CONTROLNET_MODEL,
+    CONTROLNET_WEIGHT, CONTROLNET_GUIDANCE_START, CONTROLNET_GUIDANCE_END,
+    CONTROL_IMAGE_RECTO, CONTROL_IMAGE_CRUZADO
+)
 import base64, io, time, uuid
 from typing import List
 import torch
-from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline, DPMSolverMultistepScheduler
+from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline, DPMSolverMultistepScheduler, StableDiffusionXLControlNetPipeline, ControlNetModel
 
 from app.models.generate import GenerationRequest, GenerationResponse, ImageResult
 from pathlib import Path
@@ -139,6 +144,34 @@ class SdxlTurboGenerator(Generator):
         cls._base.enable_vae_tiling()
         cls._base.enable_vae_slicing()
 
+        # --- Optional ControlNet ---------------------------------------------------
+        if CONTROLNET_ENABLED and CONTROLNET_MODEL:
+            print(f"[controlnet] loading {CONTROLNET_MODEL}")
+            controlnet = ControlNetModel.from_pretrained(
+                CONTROLNET_MODEL,
+                torch_dtype=dtype,
+                use_safetensors=True,
+            ).to(device)
+            cls._base = StableDiffusionXLControlNetPipeline(
+                vae=cls._base.vae,
+                text_encoder=cls._base.text_encoder,
+                text_encoder_2=cls._base.text_encoder_2,
+                tokenizer=cls._base.tokenizer,
+                tokenizer_2=cls._base.tokenizer_2,
+                unet=cls._base.unet,
+                controlnet=controlnet,
+                scheduler=cls._base.scheduler,
+                feature_extractor=cls._base.feature_extractor,
+            ).to(device)
+            try:
+                if device == "cuda":
+                    cls._base.enable_xformers_memory_efficient_attention()
+            except Exception:
+                pass
+            cls._base.enable_vae_tiling()
+            cls._base.enable_vae_slicing()
+            print("[controlnet] enabled")
+
         if USE_REFINER:
             print("[sdxl] init: refiner on", device)
             cls._refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
@@ -169,6 +202,18 @@ class SdxlTurboGenerator(Generator):
         return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode(
             "utf-8"
         )
+    
+    
+    def _control_image_for_cut(self, cut: str, size: tuple[int,int]) -> Image.Image | None:
+        """
+        Returns the control image (pose/depth map) for the given cut, resized to (w,h),
+        or None if CONTROLNET is disabled or the file is missing.
+        """
+        if not CONTROLNET_ENABLED:
+            return None
+        path = CONTROL_IMAGE_RECTO if cut == "recto" else CONTROL_IMAGE_CRUZADO
+        if not path or not os.path.exists(path): return None
+        return Image.open(path).convert("RGB").resize(size, Image.BICUBIC)
 
     def generate(self, req: GenerationRequest) -> GenerationResponse:
         t0 = time.time()
@@ -217,6 +262,17 @@ class SdxlTurboGenerator(Generator):
             t1 = time.time()
             pos, neg = build_prompts(base_prompt, neg_prompt, cut)
             if refiner:
+                # Optional ControlNet kwargs
+                control_img = self._control_image_for_cut(cut, (width, height))
+                extra = {}
+                if control_img is not None:
+                    extra = dict(
+                        image=control_img,
+                        controlnet_conditioning_scale=CONTROLNET_WEIGHT,
+                        control_guidance_start=CONTROLNET_GUIDANCE_START,
+                        control_guidance_end=CONTROLNET_GUIDANCE_END,
+                    )
+
                 # Base → latent (0 → split)
                 base_out = base(
                     prompt=pos,
@@ -229,6 +285,7 @@ class SdxlTurboGenerator(Generator):
                     generator=g,
                     num_images_per_prompt=1,
                     output_type="latent",
+                    **extra,
                 )
                 latents = base_out.images  # latent tensor
 
@@ -244,6 +301,16 @@ class SdxlTurboGenerator(Generator):
                     generator=g,
                 ).images[0]
             else:
+                # Optional ControlNet kwargs
+                control_img = self._control_image_for_cut(cut, (width, height))
+                extra = {}
+                if control_img is not None:
+                    extra = dict(
+                        image=control_img,
+                        controlnet_conditioning_scale=CONTROLNET_WEIGHT,
+                        control_guidance_start=CONTROLNET_GUIDANCE_START,
+                        control_guidance_end=CONTROLNET_GUIDANCE_END,
+                    )
                 img: Image.Image = base(
                     prompt=pos,
                     negative_prompt=neg,
@@ -253,6 +320,7 @@ class SdxlTurboGenerator(Generator):
                     height=height,
                     generator=g,
                     num_images_per_prompt=1,
+                    **extra,
                 ).images[0]
             print(f"[sdxl] {cut}: infer done in {time.time()-t1:.2f}s (seed={seed})")
 
