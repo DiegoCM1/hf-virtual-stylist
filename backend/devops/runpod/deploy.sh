@@ -31,12 +31,12 @@ export WATERMARK_PATH=/workspace/app/backend/tests/assets/watermark-logo.png
 # Quality assurance
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export USE_REFINER=1
-export TOTAL_STEPS=60
-export REFINER_SPLIT=0.62
+export TOTAL_STEPS=75
+export REFINER_SPLIT=0.70
 # --- ControlNet ---
 export CONTROLNET_ENABLED=1
 export CONTROLNET_MODEL="diffusers/controlnet-depth-sdxl-1.0"   # Depth-only model
-export CONTROLNET_WEIGHT=1.25           # strength of geometry influence
+export CONTROLNET_WEIGHT=1.2           # strength of geometry influence
 export CONTROLNET_GUIDANCE_START=0.0    # begin applying from step 0
 export CONTROLNET_GUIDANCE_END=0.80     # taper off near the end to preserve texture
 

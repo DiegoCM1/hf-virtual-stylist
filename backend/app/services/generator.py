@@ -226,7 +226,7 @@ class SdxlTurboGenerator(Generator):
 
         # Calidad (SDXL Base en GPU)
         width, height = 1344, 2016  # vertical, the bigger it is, the more details the image will have
-        steps, guidance = TOTAL_STEPS, 5.0 # Guidance will tell the model how strictly to follow the prompt, usually 4.5 - 6 is best
+        steps, guidance = TOTAL_STEPS, 4.6 # Guidance will tell the model how strictly to follow the prompt, usually 4.5 - 6 is best
 
         # Common product-photo prompt (neutral, high detail, e-comm style)
         base_prompt = (
@@ -239,18 +239,18 @@ class SdxlTurboGenerator(Generator):
         neg_prompt = (
             "blurry, low quality, text, watermark, logo, jpeg artifacts, "
             "texture stretching, melted cloth, rubbery fabric, wavy weave, "
-            "warped or collapsed lapels, misaligned seams or buttons, "
+            "misaligned buttons, off-center buttons, missing buttons, "
             "torn edges, moiré, duplicated patterns, heavy denoise"
         )
 
         # Minimal pose hints (ControlNet handles geometry)  garment specifics
         CUT_TEMPLATES = {
             "recto": {
-                "pos": "single-breasted 2-button, notch lapels, patch pockets, shoulders-to-knees crop",
+                "pos": "single-breasted 2-button, notch lapels, patch pockets, shoulders-to-knees crop, buttons centered on placket, evenly spaced, correct button stance",
                 "neg": "double-breasted, peak lapels"
             },
             "cruzado": {
-                "pos": "double-breasted 6x2, peak lapels, clean overlap, shoulders-to-knees crop",
+                "pos": "double-breasted 6x2, peak lapels, clean overlap, shoulders-to-knees crop, button rows aligned and symmetric",
                 "neg": "single-breasted, notch lapels"
             },
         }
