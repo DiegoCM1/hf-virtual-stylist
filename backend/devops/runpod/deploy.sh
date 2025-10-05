@@ -41,8 +41,8 @@ export CONTROLNET_GUIDANCE_START=0.0    # begin applying from step 0
 export CONTROLNET_GUIDANCE_END=0.75     # taper off near the end to preserve texture
 
 # Control images per cut (ABSOLUTE paths so it works no matter the cwd)
-CONTROL_IMAGE_RECTO=backend/assets/control/recto_depth.png
-CONTROL_IMAGE_CRUZADO=backend/assets/control/cruzado_depth.png
+export CONTROL_IMAGE_RECTO="/workspace/app/backend/assets/control/recto_depth.png"
+export CONTROL_IMAGE_CRUZADO="/workspace/app/backend/assets/control/cruzado_depth.png"
 
 # DB
 mkdir -p /workspace/app/db
