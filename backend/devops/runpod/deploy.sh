@@ -28,10 +28,22 @@ export PYTHONPATH=/workspace/app/backend
 export HF_HOME=/workspace/.cache/huggingface
 export HF_HUB_ENABLE_HF_TRANSFER=1
 export WATERMARK_PATH=/workspace/app/backend/tests/assets/watermark-logo.png
+# Quality assurance
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export USE_REFINER=1
 export TOTAL_STEPS=60
 export REFINER_SPLIT=0.70
+# --- ControlNet ---
+export CONTROLNET_ENABLED=1
+export CONTROLNET_MODEL="diffusers/controlnet-openpose-sdxl-1.0"  # full ID  ---  # or depth-sdxl-1.0 later if you prefer
+export CONTROLNET_WEIGHT=1.15           # strength of geometry influence
+export CONTROLNET_GUIDANCE_START=0.0    # begin applying from step 0
+export CONTROLNET_GUIDANCE_END=0.75     # taper off near the end to preserve texture
+
+# Control images per cut (ABSOLUTE paths so it works no matter the cwd)
+export CONTROL_IMAGE_RECTO="/workspace/app/backend/assets/control/recto_openpose.png"
+export CONTROL_IMAGE_CRUZADO="/workspace/app/backend/assets/control/cruzado_openpose.png"
+# DB
 mkdir -p /workspace/app/db
 export DATABASE_URL=sqlite:////workspace/app/db/app.db
 export ADMIN_PASSWORD="${ADMIN_PASSWORD:-change-this-now}"
