@@ -25,7 +25,7 @@ from pathlib import Path
 # Config / Env toggles for refiner
 USE_REFINER = os.getenv("USE_REFINER", "1") == "1"
 TOTAL_STEPS = int(os.getenv("TOTAL_STEPS", "60"))
-REFINER_SPLIT = float(os.getenv("REFINER_SPLIT", "0.60"))
+REFINER_SPLIT = float(os.getenv("REFINER_SPLIT", "0.70"))
 
 # Watermark path not correct
 def _resolve_wm_path() -> str:
@@ -52,7 +52,7 @@ class Generator:
         raise NotImplementedError
     
 # --- Helpers ---------------------------------------------------------------
-def _placeholder_bytes(text: str, width=1024, height=1536) -> bytes:
+def _placeholder_bytes(text: str, width=1344, height=2016) -> bytes:
     img = Image.new("RGB", (width, height), (24, 24, 24))
     d = ImageDraw.Draw(img)
     font = ImageFont.load_default()
@@ -85,8 +85,8 @@ class MockGenerator(Generator):
                 ImageResult(
                     cut=cut,
                     url=url,
-                    width=1024,
-                    height=1536,
+                    width=1344,
+                    height=2016,
                     watermark=True,
                 )
             )
@@ -181,13 +181,13 @@ class SdxlTurboGenerator(Generator):
 
         # Calidad (SDXL Base en GPU)
         width, height = 1344, 2016  # vertical, the bigger it is, the more details the image will have
-        steps, guidance = TOTAL_STEPS, 5.5 # Guidance will tell the model how strictly to follow the prompt, usually 4.5 - 6 is best
+        steps, guidance = TOTAL_STEPS, 5.0 # Guidance will tell the model how strictly to follow the prompt, usually 4.5 - 6 is best
         base_prompt = (
             "front view of a luxury men's suit on a mannequin, photorealistic, "
-            "neutral studio lighting, sharp fabric texture, clean background"
+            "neutral studio lighting, sharp fabric texture, clean background, symmetric, straight posture, studio product photo, natural proportions, realistic anatomy"
         )
 
-        neg_prompt = "blurry, low quality, text, watermark, logo, extra limbs, malformed"
+        neg_prompt = "blurry, low quality, text, watermark, logo, extra limbs, malformed, deformed, warped, asymmetry, distorted limbs, plastic, oversmooth"
 
         CUT_DELTAS = {
             "recto":   {"pos": "shoulders to knees, centered", 
