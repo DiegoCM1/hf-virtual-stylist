@@ -230,18 +230,17 @@ class SdxlTurboGenerator(Generator):
 
         # Common product-photo prompt (neutral, high detail, e-comm style)
         base_prompt = (
-            "studio product photo of a men's tailored suit on a model, photorealistic, "
-            "white seamless background, balanced studio lighting, clean color, "
+            "studio catalog photo of a men's tailored suit on a model"
+            "white seamless background, even lighting, sharp fabric detail, crisp lapels, 85mm look"
             "high-frequency fabric detail, crisp lapel edges, sharp stitching, "
-            "natural proportions, realistic anatomy, catalog quality, 85mm look"
         )
 
         # Stronger negatives to fight geometry/artifacts
         neg_prompt = (
-            "blurry, low quality, text, watermark, logo, jpeg artifacts, "
-            "extra limbs, extra fingers, fused fingers, mutated hands, "
-            "warped lapels, misaligned lapels, broken collar, crooked buttons, "
-            "mismatched pockets, misaligned seams, deformed torso, twisted wrists, "
+            "blurry, low quality, text, watermark"
+            "extra limbs, extra fingers, fused fingers, mutated hands"
+            "warped lapels, misaligned lapels, broken collar, crooked buttons"
+            "mismatched pockets, misaligned seams, deformed torso, twisted wrists"
             "asymmetry, plastic skin, overexposed highlights, harsh shadows"
         )
 
@@ -252,16 +251,16 @@ class SdxlTurboGenerator(Generator):
         CUT_TEMPLATES = {
             "recto": {
                 "pos": (
-                    "single-breasted 2-button, notch lapels, patch pockets, "
-                    "shoulders-to-knees crop, mild 3/4 view, arms relaxed, "
+                    "single-breasted 2-button, notch lapels, patch pockets"
+                    "shoulders-to-knees crop, mild 3/4 view, arms relaxed"
                     "head slightly right, straight posture"
                 ),
                 "neg": "double-breasted, crossed front, peak lapels"
             },
             "cruzado": {
                 "pos": (
-                    "double-breasted 6x2, peak lapels, clean overlap, "
-                    "shoulders-to-knees crop, 3/4 view, one hand in pocket, other arm relaxed, "
+                    "double-breasted 6x2, peak lapels, clean overlap"
+                    "shoulders-to-knees crop, 3/4 view, one hand in pocket, other arm relaxed"
                     "head slightly left, subtle torso twist"
                 ),
                 "neg": "single-breasted, two-button, notch lapels"
