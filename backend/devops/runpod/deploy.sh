@@ -35,7 +35,7 @@ export TOTAL_STEPS=60
 export REFINER_SPLIT=0.70
 # --- ControlNet ---
 export CONTROLNET_ENABLED=1
-export CONTROLNET_MODEL="diffusers/controlnet-openpose-sdxl-1.0"  # full ID  ---  # or depth-sdxl-1.0 later if you prefer
+export CONTROLNET_MODEL="thibaud/controlnet-openpose-sdxl-1.0" # Weight used
 export CONTROLNET_WEIGHT=1.15           # strength of geometry influence
 export CONTROLNET_GUIDANCE_START=0.0    # begin applying from step 0
 export CONTROLNET_GUIDANCE_END=0.75     # taper off near the end to preserve texture
