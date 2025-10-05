@@ -36,7 +36,7 @@ export REFINER_SPLIT=0.62
 # --- ControlNet ---
 export CONTROLNET_ENABLED=1
 export CONTROLNET_MODEL="diffusers/controlnet-depth-sdxl-1.0"   # Depth-only model
-export CONTROLNET_WEIGHT=1.15           # strength of geometry influence
+export CONTROLNET_WEIGHT=1.25           # strength of geometry influence
 export CONTROLNET_GUIDANCE_START=0.0    # begin applying from step 0
 export CONTROLNET_GUIDANCE_END=0.75     # taper off near the end to preserve texture
 
