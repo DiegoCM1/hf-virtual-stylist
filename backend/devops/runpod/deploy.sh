@@ -51,7 +51,7 @@ export CONTROLNET2_MODEL="diffusers/controlnet-canny-sdxl-1.0"
 # Secondary weight: start moderate; we’ll tune after wiring
 export CONTROLNET2_WEIGHT=0.30
 # Let Canny kick in shortly after start and persist late to anchor buttons
-export CONTROLNET2_GUIDANCE_START=0.03
+export CONTROLNET2_GUIDANCE_START=0.05
 export CONTROLNET2_GUIDANCE_END=0.85
 # Canny control images (from Step 1)
 export CONTROL_IMAGE_RECTO_CANNY="/workspace/app/backend/assets/control/recto_canny.png"
