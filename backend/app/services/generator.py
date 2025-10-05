@@ -168,7 +168,7 @@ class SdxlTurboGenerator(Generator):
         cuts = (req.cuts or ["recto"])[:1]
 
         # Calidad (SDXL Base en GPU)
-        width, height = 1536, 2304  # vertical, the bigger it is, the more details the image will have
+        width, height = 1216, 1792  # vertical, the bigger it is, the more details the image will have
         steps, guidance = TOTAL_STEPS, 5.5 # Guidance will tell the model how strictly to follow the prompt, usually 4.5 - 6 is best
         base_prompt = (
             "front view of a luxury men's suit on a mannequin, photorealistic, "
