@@ -14,7 +14,7 @@ from app.core.config import PUBLIC_BASE_URL
 import base64, io, time, uuid
 from typing import List
 import torch
-from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline
+from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline, DPMSolverMultistepScheduler
 
 from app.models.generate import GenerationRequest, GenerationResponse, ImageResult
 from pathlib import Path
@@ -24,8 +24,8 @@ from pathlib import Path
 
 # Config / Env toggles for refiner
 USE_REFINER = os.getenv("USE_REFINER", "1") == "1"
-TOTAL_STEPS = int(os.getenv("TOTAL_STEPS", "50"))
-REFINER_SPLIT = float(os.getenv("REFINER_SPLIT", "0.65"))
+TOTAL_STEPS = int(os.getenv("TOTAL_STEPS", "60"))
+REFINER_SPLIT = float(os.getenv("REFINER_SPLIT", "0.60"))
 
 # Watermark path not correct
 def _resolve_wm_path() -> str:
@@ -132,6 +132,12 @@ class SdxlTurboGenerator(Generator):
                 cls._base.enable_xformers_memory_efficient_attention()
         except Exception:
             pass
+        # --- Scheduler: DPM-Solver (Karras) + VAE memory helpers
+        cls._base.scheduler = DPMSolverMultistepScheduler.from_config(
+            cls._base.scheduler.config, use_karras_sigmas=True
+        )
+        cls._base.enable_vae_tiling()
+        cls._base.enable_vae_slicing()
 
         if USE_REFINER:
             print("[sdxl] init: refiner on", device)
@@ -145,6 +151,12 @@ class SdxlTurboGenerator(Generator):
                     cls._refiner.enable_xformers_memory_efficient_attention()
             except Exception:
                 pass
+            # --- Scheduler + VAE helpers for refiner as well
+            cls._refiner.scheduler = DPMSolverMultistepScheduler.from_config(
+                cls._refiner.scheduler.config, use_karras_sigmas=True
+            )
+            cls._refiner.enable_vae_tiling()
+            cls._refiner.enable_vae_slicing()
 
         print(f"[sdxl] init: done in {time.time()-t0:.2f}s")
         cls._device = device
@@ -168,7 +180,7 @@ class SdxlTurboGenerator(Generator):
         cuts = (req.cuts or ["recto"])[:1]
 
         # Calidad (SDXL Base en GPU)
-        width, height = 1216, 1792  # vertical, the bigger it is, the more details the image will have
+        width, height = 1344, 2016  # vertical, the bigger it is, the more details the image will have
         steps, guidance = TOTAL_STEPS, 5.5 # Guidance will tell the model how strictly to follow the prompt, usually 4.5 - 6 is best
         base_prompt = (
             "front view of a luxury men's suit on a mannequin, photorealistic, "

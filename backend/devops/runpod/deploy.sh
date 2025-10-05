@@ -28,9 +28,10 @@ export PYTHONPATH=/workspace/app/backend
 export HF_HOME=/workspace/.cache/huggingface
 export HF_HUB_ENABLE_HF_TRANSFER=1
 export WATERMARK_PATH=/workspace/app/backend/tests/assets/watermark-logo.png
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export USE_REFINER=1
-export TOTAL_STEPS=50
-export REFINER_SPLIT=0.65
+export TOTAL_STEPS=60
+export REFINER_SPLIT=0.60
 mkdir -p /workspace/app/db
 export DATABASE_URL=sqlite:////workspace/app/db/app.db
 export ADMIN_PASSWORD="${ADMIN_PASSWORD:-change-this-now}"
