@@ -230,31 +230,27 @@ class SdxlTurboGenerator(Generator):
 
         # Common product-photo prompt (neutral, high detail, e-comm style)
         base_prompt = (
-            "studio catalog photo of a men's tailored suit on a model"
-            "white seamless background, even lighting, sharp fabric detail, crisp lapels, 85mm look"
-            "high-frequency fabric detail, crisp lapel edges, sharp stitching, "
+            "studio catalog photo of a men's tailored suit on a model, "
+            "white seamless background, even lighting, 85mm look, "
+            "clean tailoring, correct grain, even drape, crisp lapels, sharp stitching, "
+            "true fabric texture, no stretch"
         )
 
-        # Stronger negatives to fight geometry/artifacts
         neg_prompt = (
-            "blurry, low quality, text, watermark"
-            "extra limbs, extra fingers, fused fingers, mutated hands"
-            "warped lapels, misaligned lapels, broken collar, crooked buttons"
-            "mismatched pockets, misaligned seams, deformed torso, twisted wrists"
-            "asymmetry, plastic skin, overexposed highlights, harsh shadows"
+            "blurry, low quality, text, watermark, logo, jpeg artifacts, "
+            "texture stretching, melted cloth, rubbery fabric, wavy weave, "
+            "warped or collapsed lapels, misaligned seams or buttons, "
+            "torn edges, moiré, duplicated patterns, heavy denoise"
         )
 
-        # Cut-specific prompts (align with your control images)
-        # Cut-specific prompts aligned to YOUR photos:
-        # - recto  : single-breasted, notch lapels (pink image)
-        # - cruzado: double-breasted 6x2, peak lapels + hand in pocket (white image)
+        # Minimal pose hints (ControlNet handles geometry)  garment specifics
         CUT_TEMPLATES = {
             "recto": {
-                "pos": "SB 2-button, notch lapels, patch pockets, 3/4 view, arms relaxed, head right, straight posture",
+                "pos": "single-breasted 2-button, notch lapels, patch pockets, shoulders-to-knees crop",
                 "neg": "double-breasted, peak lapels"
             },
             "cruzado": {
-                "pos": "DB 6x2, peak lapels, clean overlap, 3/4 view, one hand in pocket, other arm relaxed, head left",
+                "pos": "double-breasted 6x2, peak lapels, clean overlap, shoulders-to-knees crop",
                 "neg": "single-breasted, notch lapels"
             },
         }
