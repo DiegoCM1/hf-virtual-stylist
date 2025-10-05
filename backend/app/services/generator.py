@@ -98,7 +98,7 @@ class MockGenerator(Generator):
         cuts = (req.cuts or ["recto", "cruzado"])[:2]
         for cut in cuts:
             raw = _placeholder_bytes(f"{req.family_id}:{req.color_id}:{cut}")
-            wm = apply_watermark_image(raw, WATERMARK_PATH, scale=0.12)  # watermark first
+            wm = apply_watermark_image(raw, WATERMARK_PATH, scale=0.30)  # watermark first
             key = f"generated/{req.family_id}/{req.color_id}/{run_id}/{cut}.jpg"
             url = self.storage.save_bytes(wm, key)  # then save → URL
             images.append(
