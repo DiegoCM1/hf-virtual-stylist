@@ -45,7 +45,7 @@ export CONTROL_IMAGE_RECTO="/workspace/app/backend/assets/control/recto_depth.pn
 export CONTROL_IMAGE_CRUZADO="/workspace/app/backend/assets/control/cruzado_depth.png"
 
 # Enable/disable second conditioner
-export CONTROLNET2_ENABLED=1
+export CONTROLNET2_ENABLED=0
 # SDXL canny ControlNet (if pull fails we’ll adjust in step 3)
 export CONTROLNET2_MODEL="diffusers/controlnet-canny-sdxl-1.0"
 # Secondary weight: start moderate; we’ll tune after wiring
