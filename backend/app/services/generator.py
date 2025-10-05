@@ -184,7 +184,7 @@ class SdxlTurboGenerator(Generator):
             # - if 1 CN → pass the single ControlNetModel
             # - if 2 CNs → pass a list; SDXL ControlNet pipeline accepts List[ControlNetModel]
             controlnet = cn_modules[0] if len(cn_modules) == 1 else cn_modules
-            
+
             cls._base = StableDiffusionXLControlNetPipeline(
                 vae=cls._base.vae,
                 text_encoder=cls._base.text_encoder,
@@ -298,7 +298,7 @@ class SdxlTurboGenerator(Generator):
         # Minimal pose hints (ControlNet handles geometry)  garment specifics
         CUT_TEMPLATES = {
             "recto": {
-                "pos": "single-breasted 2-button, notch lapels, patch pockets, buttons centered on placket, evenly spaced, correct button stance",
+                "pos": "single-breasted 2-button, notch lapels, patch pockets, buttons centered on placket",
                 "neg": "double-breasted, peak lapels"
             },
             "cruzado": {
