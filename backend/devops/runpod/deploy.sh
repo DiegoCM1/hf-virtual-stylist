@@ -32,7 +32,7 @@ export WATERMARK_PATH=/workspace/app/backend/tests/assets/watermark-logo.png
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export USE_REFINER=1
 export TOTAL_STEPS=60
-export REFINER_SPLIT=0.70
+export REFINER_SPLIT=0.62
 # --- ControlNet ---
 export CONTROLNET_ENABLED=1
 export CONTROLNET_MODEL="diffusers/controlnet-depth-sdxl-1.0"   # Depth-only model

@@ -1,5 +1,4 @@
 # Start image creation
-## call once and store JSON
   curl -s -X POST http://127.0.0.1:8000/generate \
   -H "Content-Type: application/json" \
   -d '{"family_id":"lana-normal","color_id":"green-001", "cuts":["recto","cruzado"]}'
@@ -11,6 +10,12 @@
     curl -s -X POST http://127.0.0.1:8000/generate \
   -H "Content-Type: application/json" \
   -d '{"family_id":"algodon-tech","color_id":"negro-001", "cuts":["recto"]}'
+
+## Fixed seed
+curl -s -X POST http://127.0.0.1:8000/generate \
+  -H "Content-Type: application/json" \
+  -d '{"family_id":"algodon-tech","color_id":"negro-001","cuts":["recto"],"seed":123456789}'
+
 
 ## extract recto
 jq -r '.images[0].url' out.json | sed 's|^data:image/png;base64,||' | base64 -d > recto.png
