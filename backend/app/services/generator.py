@@ -25,7 +25,6 @@ from diffusers import (
     DPMSolverMultistepScheduler,
     StableDiffusionXLControlNetPipeline,
     ControlNetModel,
-    MultiControlNetModel,
 )
 
 from app.models.generate import GenerationRequest, GenerationResponse, ImageResult
@@ -181,8 +180,11 @@ class SdxlTurboGenerator(Generator):
                 ).to(device)
                 cn_modules.append(cn_canny)
 
-            controlnet = cn_modules[0] if len(cn_modules) == 1 else MultiControlNetModel(cn_modules)
-
+            # For broad diffusers compatibility:
+            # - if 1 CN → pass the single ControlNetModel
+            # - if 2 CNs → pass a list; SDXL ControlNet pipeline accepts List[ControlNetModel]
+            controlnet = cn_modules[0] if len(cn_modules) == 1 else cn_modules
+            
             cls._base = StableDiffusionXLControlNetPipeline(
                 vae=cls._base.vae,
                 text_encoder=cls._base.text_encoder,
