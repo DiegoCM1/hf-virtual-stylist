@@ -38,7 +38,7 @@ export CONTROLNET_ENABLED=1
 export CONTROLNET_MODEL="diffusers/controlnet-depth-sdxl-1.0"   # Depth-only model
 export CONTROLNET_WEIGHT=1.25           # strength of geometry influence
 export CONTROLNET_GUIDANCE_START=0.0    # begin applying from step 0
-export CONTROLNET_GUIDANCE_END=0.75     # taper off near the end to preserve texture
+export CONTROLNET_GUIDANCE_END=0.80     # taper off near the end to preserve texture
 
 # Control images per cut (ABSOLUTE paths so it works no matter the cwd)
 export CONTROL_IMAGE_RECTO="/workspace/app/backend/assets/control/recto_depth.png"
