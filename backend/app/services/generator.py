@@ -227,22 +227,49 @@ class SdxlTurboGenerator(Generator):
         # Calidad (SDXL Base en GPU)
         width, height = 1344, 2016  # vertical, the bigger it is, the more details the image will have
         steps, guidance = TOTAL_STEPS, 5.0 # Guidance will tell the model how strictly to follow the prompt, usually 4.5 - 6 is best
+
+        # Common product-photo prompt (neutral, high detail, e-comm style)
         base_prompt = (
-            "front view of a luxury men's suit on a mannequin, photorealistic, "
-            "neutral studio lighting, sharp fabric texture, clean background, symmetric, straight posture, studio product photo, natural proportions, realistic anatomy"
+            "studio product photo of a men's tailored suit on a model, photorealistic, "
+            "white seamless background, balanced studio lighting, clean color, "
+            "high-frequency fabric detail, crisp lapel edges, sharp stitching, "
+            "natural proportions, realistic anatomy, catalog quality, 85mm look"
         )
 
-        neg_prompt = "blurry, low quality, text, watermark, logo, extra limbs, malformed, deformed, warped, asymmetry, distorted limbs, plastic, oversmooth"
+        # Stronger negatives to fight geometry/artifacts
+        neg_prompt = (
+            "blurry, low quality, text, watermark, logo, jpeg artifacts, "
+            "extra limbs, extra fingers, fused fingers, mutated hands, "
+            "warped lapels, misaligned lapels, broken collar, crooked buttons, "
+            "mismatched pockets, misaligned seams, deformed torso, twisted wrists, "
+            "asymmetry, plastic skin, overexposed highlights, harsh shadows"
+        )
 
-        CUT_DELTAS = {
-            "recto":   {"pos": "shoulders to knees, centered", 
-                        "neg": ""},
-            "cruzado": {"pos": "three-quarter view, slightly angled, diagonal feel",
-                        "neg": "flat, straight-on, perfectly horizontal weave"}
+        # Cut-specific prompts (align with your control images)
+        # Cut-specific prompts aligned to YOUR photos:
+        # - recto  : single-breasted, notch lapels (pink image)
+        # - cruzado: double-breasted 6x2, peak lapels + hand in pocket (white image)
+        CUT_TEMPLATES = {
+            "recto": {
+                "pos": (
+                    "single-breasted two-button jacket, notch lapels, patch pockets, "
+                    "shoulders-to-knees crop, mild three-quarter view, arms relaxed at sides, "
+                    "natural elbow bend, head turned slightly right, straight posture"
+                ),
+                "neg": "double-breasted, crossed front, peak lapels"
+            },
+            "cruzado": {
+                "pos": (
+                    "double-breasted jacket (6x2) with peak lapels, clean wrap-over front, "
+                    "shoulders-to-knees crop, three-quarter view, one hand in pocket, other arm relaxed, "
+                    "head turned slightly left, subtle torso twist"
+                ),
+                "neg": "single-breasted, two-button front, notch lapels"
+            },
         }
 
         def build_prompts(base_pos: str, base_neg: str, cut: str):
-            d = CUT_DELTAS.get(cut, {"pos": "", "neg": ""})
+            d = CUT_TEMPLATES.get(cut, {"pos": "", "neg": ""})
             pos = f"{base_pos}, {d['pos']}".strip(", ")
             neg = base_neg + (", " + d["neg"] if d["neg"] else "")
             return pos, neg
