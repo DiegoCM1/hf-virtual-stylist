@@ -1,5 +1,5 @@
 # tools/make_pose_maps.py
-from controlnet_aux import MidasDetector
+from controlnet_aux import MidasDetector, CannyDetector
 from PIL import Image, ImageOps
 from pathlib import Path
 
@@ -26,8 +26,11 @@ NAMES = {
     "cruzado": "cruzado-maniqui.png",
 }
 
-# Detector: Depth (MiDaS empaquetado en Annotators; público, sin token)
+# Detectores:
+#   - Depth (MiDaS en Annotators; público, sin token)
+#   - Canny (bordes finos para botones/costuras)
 depth = MidasDetector.from_pretrained("lllyasviel/Annotators")
+canny = CannyDetector()
 
 
 for key, fname in NAMES.items():
@@ -42,5 +45,10 @@ for key, fname in NAMES.items():
     depth_img = depth(im).resize(TARGET, Image.BICUBIC)
     depth_img.save(SRC_DIR / f"{key}_depth.png")
 
-    print(f"[ok] {key} -> {SRC_DIR / f'{key}_depth.png'}")
+    # Canny (umbrales bajos para capturar botones/placket)
+    # Rango típico 50–200; ajusta si ves demasiadas/pocas líneas.
+    canny_img = canny(im, low_threshold=80, high_threshold=180).resize(TARGET, Image.BICUBIC)
+    canny_img.save(SRC_DIR / f"{key}_canny.png")
+
+    print(f"[ok] {key} -> depth:{SRC_DIR / f'{key}_depth.png'}  canny:{SRC_DIR / f'{key}_canny.png'}")
 

@@ -19,7 +19,14 @@ from app.core.config import (
 import base64, io, time, uuid
 from typing import List
 import torch
-from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline, DPMSolverMultistepScheduler, StableDiffusionXLControlNetPipeline, ControlNetModel
+from diffusers import (
+    StableDiffusionXLPipeline,
+    StableDiffusionXLImg2ImgPipeline,
+    DPMSolverMultistepScheduler,
+    StableDiffusionXLControlNetPipeline,
+    ControlNetModel,
+    MultiControlNetModel,
+)
 
 from app.models.generate import GenerationRequest, GenerationResponse, ImageResult
 from pathlib import Path
@@ -31,6 +38,15 @@ from pathlib import Path
 USE_REFINER = os.getenv("USE_REFINER", "1") == "1"
 TOTAL_STEPS = int(os.getenv("TOTAL_STEPS", "60"))
 REFINER_SPLIT = float(os.getenv("REFINER_SPLIT", "0.70"))
+
+# --- SECOND CONTROLNET (CANNY) via env (kept local to this module) ----------
+CONTROLNET2_ENABLED = os.getenv("CONTROLNET2_ENABLED", "0") == "1"
+CONTROLNET2_MODEL = os.getenv("CONTROLNET2_MODEL", "")
+CONTROLNET2_WEIGHT = float(os.getenv("CONTROLNET2_WEIGHT", "0.55"))
+CONTROLNET2_GUIDANCE_START = float(os.getenv("CONTROLNET2_GUIDANCE_START", "0.05"))
+CONTROLNET2_GUIDANCE_END = float(os.getenv("CONTROLNET2_GUIDANCE_END", "0.85"))
+CONTROL_IMAGE_RECTO_CANNY = os.getenv("CONTROL_IMAGE_RECTO_CANNY", "")
+CONTROL_IMAGE_CRUZADO_CANNY = os.getenv("CONTROL_IMAGE_CRUZADO_CANNY", "")
 
 # Watermark path not correct
 def _resolve_wm_path() -> str:
@@ -144,14 +160,29 @@ class SdxlTurboGenerator(Generator):
         cls._base.enable_vae_tiling()
         cls._base.enable_vae_slicing()
 
-        # --- Optional ControlNet ---------------------------------------------------
+        # --- Optional ControlNet(s) ----------------------------------------------
         if CONTROLNET_ENABLED and CONTROLNET_MODEL:
             print(f"[controlnet] loading {CONTROLNET_MODEL}")
-            controlnet = ControlNetModel.from_pretrained(
+            cn_modules = []
+            cn_depth = ControlNetModel.from_pretrained(
                 CONTROLNET_MODEL,
                 torch_dtype=dtype,
                 use_safetensors=True,
             ).to(device)
+            cn_modules.append(cn_depth)
+
+            # Second CN (Canny), if enabled
+            if CONTROLNET2_ENABLED and CONTROLNET2_MODEL:
+                print(f"[controlnet-2] loading {CONTROLNET2_MODEL}")
+                cn_canny = ControlNetModel.from_pretrained(
+                    CONTROLNET2_MODEL,
+                    torch_dtype=dtype,
+                    use_safetensors=True,
+                ).to(device)
+                cn_modules.append(cn_canny)
+
+            controlnet = cn_modules[0] if len(cn_modules) == 1 else MultiControlNetModel(cn_modules)
+
             cls._base = StableDiffusionXLControlNetPipeline(
                 vae=cls._base.vae,
                 text_encoder=cls._base.text_encoder,
@@ -204,16 +235,34 @@ class SdxlTurboGenerator(Generator):
         )
     
     
-    def _control_image_for_cut(self, cut: str, size: tuple[int,int]) -> Image.Image | None:
+    def _control_images_for_cut(self, cut: str, size: tuple[int,int]):
         """
-        Returns the control image (pose/depth map) for the given cut, resized to (w,h),
-        or None if CONTROLNET is disabled or the file is missing.
+        Returns (images, scales, starts, ends) for enabled controlnets, resized to size.
+        Each list can have length 0, 1, or 2 depending on what is enabled/available.
         """
-        if not CONTROLNET_ENABLED:
-            return None
-        path = CONTROL_IMAGE_RECTO if cut == "recto" else CONTROL_IMAGE_CRUZADO
-        if not path or not os.path.exists(path): return None
-        return Image.open(path).convert("RGB").resize(size, Image.BICUBIC)
+        images, scales, starts, ends = [], [], [], []
+
+        # Depth (primary)
+        if CONTROLNET_ENABLED:
+            dpath = CONTROL_IMAGE_RECTO if cut == "recto" else CONTROL_IMAGE_CRUZADO
+            if dpath and os.path.exists(dpath):
+                img = Image.open(dpath).convert("RGB").resize(size, Image.BICUBIC)
+                images.append(img)
+                scales.append(CONTROLNET_WEIGHT)
+                starts.append(CONTROLNET_GUIDANCE_START)
+                ends.append(CONTROLNET_GUIDANCE_END)
+
+        # Canny (secondary)
+        if CONTROLNET2_ENABLED:
+            cpath = CONTROL_IMAGE_RECTO_CANNY if cut == "recto" else CONTROL_IMAGE_CRUZADO_CANNY
+            if cpath and os.path.exists(cpath):
+                img = Image.open(cpath).convert("RGB").resize(size, Image.BICUBIC)
+                images.append(img)
+                scales.append(CONTROLNET2_WEIGHT)
+                starts.append(CONTROLNET2_GUIDANCE_START)
+                ends.append(CONTROLNET2_GUIDANCE_END)
+
+        return images, scales, starts, ends
 
     def generate(self, req: GenerationRequest) -> GenerationResponse:
         t0 = time.time()
@@ -277,15 +326,20 @@ class SdxlTurboGenerator(Generator):
             t1 = time.time()
             pos, neg = build_prompts(base_prompt, neg_prompt, cut)
             if refiner:
-                # Optional ControlNet kwargs
-                control_img = self._control_image_for_cut(cut, (width, height))
+                # Optional ControlNet kwargs (apply only on base stage)
+                imgs, scales, starts, ends = self._control_images_for_cut(cut, (width, height))
                 extra = {}
-                if control_img is not None:
+                if imgs:
+                    # Support 1 or 2 controlnets transparently
+                    payload = imgs if len(imgs) > 1 else imgs[0]
+                    w = scales if len(scales) > 1 else scales[0]
+                    s = starts if len(starts) > 1 else starts[0]
+                    e = ends if len(ends) > 1 else ends[0]
                     extra = dict(
-                        image=control_img,
-                        controlnet_conditioning_scale=CONTROLNET_WEIGHT,
-                        control_guidance_start=CONTROLNET_GUIDANCE_START,
-                        control_guidance_end=CONTROLNET_GUIDANCE_END,
+                        image=payload,
+                        controlnet_conditioning_scale=w,
+                        control_guidance_start=s,
+                        control_guidance_end=e,
                     )
 
                 # Base → latent (0 → split)
@@ -316,15 +370,19 @@ class SdxlTurboGenerator(Generator):
                     generator=g,
                 ).images[0]
             else:
-                # Optional ControlNet kwargs
-                control_img = self._control_image_for_cut(cut, (width, height))
+                # Optional ControlNet kwargs (no refiner path)
+                imgs, scales, starts, ends = self._control_images_for_cut(cut, (width, height))
                 extra = {}
-                if control_img is not None:
+                if imgs:
+                    payload = imgs if len(imgs) > 1 else imgs[0]
+                    w = scales if len(scales) > 1 else scales[0]
+                    s = starts if len(starts) > 1 else starts[0]
+                    e = ends if len(ends) > 1 else ends[0]
                     extra = dict(
-                        image=control_img,
-                        controlnet_conditioning_scale=CONTROLNET_WEIGHT,
-                        control_guidance_start=CONTROLNET_GUIDANCE_START,
-                        control_guidance_end=CONTROLNET_GUIDANCE_END,
+                        image=payload,
+                        controlnet_conditioning_scale=w,
+                        control_guidance_start=s,
+                        control_guidance_end=e,
                     )
                 img: Image.Image = base(
                     prompt=pos,

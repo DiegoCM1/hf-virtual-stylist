@@ -33,7 +33,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export USE_REFINER=1
 export TOTAL_STEPS=75
 export REFINER_SPLIT=0.70
-# --- ControlNet ---
+# --- ControlNet -----------
 export CONTROLNET_ENABLED=1
 export CONTROLNET_MODEL="diffusers/controlnet-depth-sdxl-1.0"   # Depth-only model
 export CONTROLNET_WEIGHT=1.2           # strength of geometry influence
@@ -43,6 +43,19 @@ export CONTROLNET_GUIDANCE_END=0.80     # taper off near the end to preserve tex
 # Control images per cut (ABSOLUTE paths so it works no matter the cwd)
 export CONTROL_IMAGE_RECTO="/workspace/app/backend/assets/control/recto_depth.png"
 export CONTROL_IMAGE_CRUZADO="/workspace/app/backend/assets/control/cruzado_depth.png"
+
+# Enable/disable second conditioner
+export CONTROLNET2_ENABLED=1
+# SDXL canny ControlNet (if pull fails we’ll adjust in step 3)
+export CONTROLNET2_MODEL="diffusers/controlnet-canny-sdxl-1.0"
+# Secondary weight: start moderate; we’ll tune after wiring
+export CONTROLNET2_WEIGHT=0.55
+# Let Canny kick in shortly after start and persist late to anchor buttons
+export CONTROLNET2_GUIDANCE_START=0.05
+export CONTROLNET2_GUIDANCE_END=0.85
+# Canny control images (from Step 1)
+export CONTROL_IMAGE_RECTO_CANNY="/workspace/app/backend/assets/control/recto_canny.png"
+export CONTROL_IMAGE_CRUZADO_CANNY="/workspace/app/backend/assets/control/cruzado_canny.png"
 
 # DB
 mkdir -p /workspace/app/db
