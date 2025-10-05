@@ -281,28 +281,28 @@ class SdxlTurboGenerator(Generator):
 
         # Common product-photo prompt (neutral, high detail, e-comm style)
         base_prompt = (
-            "studio catalog photo of a men's tailored suit on a model"
-            "white seamless background, even lighting, 85mm look"
-            "clean tailoring, correct grain, even drape, crisp lapels, sharp stitching"
-            "true fabric texture, no stretch"
+            "studio catalog photo of a men's tailored suit on a model, "
+            "white seamless background, even lighting, 85mm look, "
+            "clean tailoring, correct grain, even drape, crisp lapels, sharp stitching, "
+            "true fabric texture, no stretch, "
             "shoulders-to-knees crop"
         )
 
         neg_prompt = (
             "blurry, low quality, text, watermark, logo, jpeg artifacts, "
             "texture stretching, melted cloth, rubbery fabric, wavy weave, "
-            "misaligned buttons, off-center buttons, missing buttons, "
-            "torn edges, moiré, duplicated patterns, heavy denoise"
+            "misaligned buttons, off-center buttons, missing buttons, warped edges, "
+            "asymmetry, twisted torso, duplicated patterns, heavy denoise"
         )
 
         # Minimal pose hints (ControlNet handles geometry)  garment specifics
         CUT_TEMPLATES = {
             "recto": {
-                "pos": "single-breasted 2-button, notch lapels, patch pockets, buttons centered on placket",
+                "pos": "single-breasted 2-button, notch lapels, patch pockets, buttons centered on placket, straight placket, symmetric front",
                 "neg": "double-breasted, peak lapels"
             },
             "cruzado": {
-                "pos": "double-breasted 6x2, peak lapels, clean overlap, 6 buttons in correct place",
+                "pos": "double-breasted 6x2, peak lapels, clean overlap, button rows aligned and symmetric",
                 "neg": "single-breasted, notch lapels"
             },
         }
