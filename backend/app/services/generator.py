@@ -230,10 +230,11 @@ class SdxlTurboGenerator(Generator):
 
         # Common product-photo prompt (neutral, high detail, e-comm style)
         base_prompt = (
-            "studio catalog photo of a men's tailored suit on a model, "
-            "white seamless background, even lighting, 85mm look, "
-            "clean tailoring, correct grain, even drape, crisp lapels, sharp stitching, "
+            "studio catalog photo of a men's tailored suit on a model"
+            "white seamless background, even lighting, 85mm look"
+            "clean tailoring, correct grain, even drape, crisp lapels, sharp stitching"
             "true fabric texture, no stretch"
+            "shoulders-to-knees crop"
         )
 
         neg_prompt = (
@@ -246,11 +247,11 @@ class SdxlTurboGenerator(Generator):
         # Minimal pose hints (ControlNet handles geometry)  garment specifics
         CUT_TEMPLATES = {
             "recto": {
-                "pos": "single-breasted 2-button, notch lapels, patch pockets, shoulders-to-knees crop, buttons centered on placket, evenly spaced, correct button stance",
+                "pos": "single-breasted 2-button, notch lapels, patch pockets, buttons centered on placket, evenly spaced, correct button stance",
                 "neg": "double-breasted, peak lapels"
             },
             "cruzado": {
-                "pos": "double-breasted 6x2, peak lapels, clean overlap, shoulders-to-knees crop, button rows aligned and symmetric",
+                "pos": "double-breasted 6x2, peak lapels, clean overlap, button rows aligned and symmetric",
                 "neg": "single-breasted, notch lapels"
             },
         }
