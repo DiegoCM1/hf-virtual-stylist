@@ -250,20 +250,12 @@ class SdxlTurboGenerator(Generator):
         # - cruzado: double-breasted 6x2, peak lapels + hand in pocket (white image)
         CUT_TEMPLATES = {
             "recto": {
-                "pos": (
-                    "single-breasted 2-button, notch lapels, patch pockets"
-                    "shoulders-to-knees crop, mild 3/4 view, arms relaxed"
-                    "head slightly right, straight posture"
-                ),
-                "neg": "double-breasted, crossed front, peak lapels"
+                "pos": "SB 2-button, notch lapels, patch pockets, 3/4 view, arms relaxed, head right, straight posture",
+                "neg": "double-breasted, peak lapels"
             },
             "cruzado": {
-                "pos": (
-                    "double-breasted 6x2, peak lapels, clean overlap"
-                    "shoulders-to-knees crop, 3/4 view, one hand in pocket, other arm relaxed"
-                    "head slightly left, subtle torso twist"
-                ),
-                "neg": "single-breasted, two-button, notch lapels"
+                "pos": "DB 6x2, peak lapels, clean overlap, 3/4 view, one hand in pocket, other arm relaxed, head left",
+                "neg": "single-breasted, notch lapels"
             },
         }
 
