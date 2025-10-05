@@ -302,7 +302,7 @@ class SdxlTurboGenerator(Generator):
                 "neg": "double-breasted, peak lapels"
             },
             "cruzado": {
-                "pos": "double-breasted 6x2, peak lapels, clean overlap, button rows aligned and symmetric",
+                "pos": "double-breasted 6x2, peak lapels, clean overlap, 6 buttons in correct place",
                 "neg": "single-breasted, notch lapels"
             },
         }
