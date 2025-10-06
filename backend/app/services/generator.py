@@ -3,7 +3,7 @@ import io, os, time, uuid, random
 from dataclasses import dataclass
 from typing import List
 from PIL import Image, ImageDraw, ImageFont
-
+from fastapi import HTTPException
 from app.models.generate import GenerationRequest, GenerationResponse, ImageResult
 from app.services.storage import Storage, LocalStorage
 from app.services.watermark import apply_watermark_image
@@ -347,6 +347,28 @@ class SdxlTurboGenerator(Generator):
                 return None
         ip_image = _load_ip_image(IP_ADAPTER_IMAGE)
 
+        # --- Prepare IP-Adapter embeds when enabled ----------------------------
+        ip_added_kwargs: dict | None = None
+        ip_scales: list[float] | None = None
+        if IP_ADAPTER_ENABLED:
+            if ip_image is None:
+                # Clear 4xx instead of crashing with 500 when adapter is enabled but no image
+                raise HTTPException(
+                    status_code=400,
+                    detail="IP-Adapter is enabled but no fabric image was provided (check IP_ADAPTER_IMAGE or send one in the request)."
+                )
+            # Do CFG embeds only if guidance > 1.0
+            do_cfg = GUIDANCE is not None and float(GUIDANCE) > 1.0
+            # Use the already-loaded base pipeline to compute SDXL embeds
+            image_embeds, negative_image_embeds = base.prepare_ip_adapter_image_embeds(
+                image=ip_image,
+                device=base.device,
+                num_images_per_prompt=1,
+                do_classifier_free_guidance=do_cfg,
+            )
+            ip_added_kwargs = {"image_embeds": image_embeds, "negative_image_embeds": negative_image_embeds}
+            ip_scales = [float(IP_ADAPTER_SCALE)]
+
         run_id = uuid.uuid4().hex[:10]
         images: List[ImageResult] = []
 
@@ -377,8 +399,18 @@ class SdxlTurboGenerator(Generator):
                         control_guidance_start=s,
                         control_guidance_end=e,
                     )
+                # Build IP kwargs for the no-refiner path as well
+                ip_kwargs = {}
+                if ip_added_kwargs is not None:
+                    ip_kwargs["added_cond_kwargs"] = ip_added_kwargs
+                    ip_kwargs["ip_adapter_scale"] = ip_scales
 
                 # Base → latent (0 → split)
+                # Build IP kwargs only when we actually have prepared embeds
+                ip_kwargs = {}
+                if ip_added_kwargs is not None:
+                    ip_kwargs["added_cond_kwargs"] = ip_added_kwargs
+                    ip_kwargs["ip_adapter_scale"] = ip_scales
                 base_out = base(
                     prompt=pos,
                     negative_prompt=neg,
@@ -391,6 +423,7 @@ class SdxlTurboGenerator(Generator):
                     num_images_per_prompt=1,
                     output_type="latent",
                     **({"ip_adapter_image": ip_image} if (IP_ADAPTER_ENABLED and ip_image is not None) else {}),
+                    **ip_kwargs,
                     **extra,
                 )
                 latents = base_out.images  # latent tensor
@@ -431,6 +464,7 @@ class SdxlTurboGenerator(Generator):
                     generator=g,
                     num_images_per_prompt=1,
                     **({"ip_adapter_image": ip_image} if (IP_ADAPTER_ENABLED and ip_image is not None) else {}),
+                    **ip_kwargs,
                     **extra,
                 ).images[0]
             print(f"[sdxl] {cut}: infer done in {time.time()-t1:.2f}s (seed={seed})")
