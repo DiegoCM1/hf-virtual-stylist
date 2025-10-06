@@ -31,22 +31,22 @@ export WATERMARK_PATH=/workspace/app/backend/tests/assets/watermark-logo.png
 # Quality assurance
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export USE_REFINER=1
-export TOTAL_STEPS=80
-export REFINER_SPLIT=0.70
+export TOTAL_STEPS=88
+export REFINER_SPLIT=0.62
 # --- ControlNet -----------
 # Depth ControlNet
 export CONTROLNET_ENABLED=1
 export CONTROLNET_MODEL="diffusers/controlnet-depth-sdxl-1.0"   # Depth-only model
-export CONTROLNET_WEIGHT=0.9          # strength of geometry influence
+export CONTROLNET_WEIGHT=0.95          # strength of geometry influence
 export CONTROLNET_GUIDANCE_START=0.0    # begin applying from step 0
-export CONTROLNET_GUIDANCE_END=0.45    # taper off near the end to preserve texture
+export CONTROLNET_GUIDANCE_END=0.40    # taper off near the end to preserve texture
 
 # Canny ControlNet
 export CONTROLNET2_ENABLED=1
 export CONTROLNET2_MODEL="diffusers/controlnet-canny-sdxl-1.0"      # SDXL canny ControlNet (if pull fails we’ll adjust in step 3)
-export CONTROLNET2_WEIGHT=0.6              # Secondary weight: start moderate; we’ll tune after wiring
-export CONTROLNET2_GUIDANCE_START=0.05      # Let Canny kick in shortly after start and persist late to anchor buttons
-export CONTROLNET2_GUIDANCE_END=0.85
+export CONTROLNET2_WEIGHT=0.72              # Secondary weight: start moderate; we’ll tune after wiring
+export CONTROLNET2_GUIDANCE_START=0.02      # Let Canny kick in shortly after start and persist late to anchor buttons
+export CONTROLNET2_GUIDANCE_END=0.95
 
 # Control images per cut (ABSOLUTE paths so it works no matter the cwd)
 export CONTROL_IMAGE_RECTO="/workspace/app/backend/assets/control/recto_depth.png"
