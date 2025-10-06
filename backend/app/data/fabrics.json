@@ -11,8 +11,11 @@
         "steps": 20
       },
       "colors": [
-        { "color_id": "navy-001", "name": "Azul Marino", "hex": "#03204C" },
-        { "color_id": "gris-002", "name": "Gris Carbón", "hex": "#2B2B2B" }
+        { "color_id": "lc-navy-001", "name": "Azul Marino Imperial", "hex": "#0A1D3A" },
+        { "color_id": "lc-charcoal-002", "name": "Gris Carbón", "hex": "#343434" },
+        { "color_id": "lc-camel-003", "name": "Camel Clásico", "hex": "#C19A6B" },
+        { "color_id": "lc-heather-004", "name": "Gris Jaspeado", "hex": "#B2BABB" },
+        { "color_id": "lc-burgundy-005", "name": "Borgoña Profundo", "hex": "#6D0D2B" }
       ],
       "status": "active",
       "sort": 1
@@ -28,8 +31,11 @@
         "steps": 20
       },
       "colors": [
-        { "color_id": "green-001", "name": "Verde militar", "hex": "#10231C" },
-        { "color_id": "verde-002", "name": "Verde jade", "hex": "#2B2B1B" }
+        { "color_id": "ln-forest-001", "name": "Verde Bosque", "hex": "#014421" },
+        { "color_id": "ln-olive-002", "name": "Oliva Militar", "hex": "#556B2F" },
+        { "color_id": "ln-rust-003", "name": "Óxido", "hex": "#B7410E" },
+        { "color_id": "ln-beige-004", "name": "Beige Estándar", "hex": "#C8B9A2" },
+        { "color_id": "ln-brown-005", "name": "Marrón Tierra", "hex": "#5C4033" }
       ],
       "status": "active",
       "sort": 2
@@ -45,8 +51,11 @@
         "steps": 20
       },
       "colors": [
-        { "color_id": "beige-001", "name": "Beige Arena", "hex": "#D6C7A1" },
-        { "color_id": "hueso-002", "name": "Hueso", "hex": "#F1EDE4" }
+        { "color_id": "lp-sand-001", "name": "Arena del Desierto", "hex": "#E1C699" },
+        { "color_id": "lp-ivory-002", "name": "Marfil", "hex": "#FFFFF0" },
+        { "color_id": "lp-sky-003", "name": "Azul Cielo", "hex": "#AEC6CF" },
+        { "color_id": "lp-sage-004", "name": "Verde Salvia", "hex": "#B2AC88" },
+        { "color_id": "lp-terracotta-005", "name": "Terracota", "hex": "#E2725B" }
       ],
       "status": "active",
       "sort": 3
@@ -62,8 +71,11 @@
         "steps": 20
       },
       "colors": [
-        { "color_id": "negro-001", "name": "Negro Profundo", "hex": "#0A0A0A" },
-        { "color_id": "blanco-002", "name": "Blanco Nieve", "hex": "#FFFFFF" }
+        { "color_id": "at-black-001", "name": "Negro Técnico", "hex": "#0A0A0A" },
+        { "color_id": "at-white-002", "name": "Blanco Óptico", "hex": "#FDFFFC" },
+        { "color_id": "at-techgrey-003", "name": "Gris Técnico", "hex": "#808080" },
+        { "color_id": "at-navy-004", "name": "Azul Marino Técnico", "hex": "#000080" },
+        { "color_id": "at-khaki-005", "name": "Khaki Técnico", "hex": "#9F8C76" }
       ],
       "status": "active",
       "sort": 4
@@ -79,8 +91,11 @@
         "steps": 20
       },
       "colors": [
-        { "color_id": "vino-001", "name": "Vino", "hex": "#6C0E23" },
-        { "color_id": "cobre-002", "name": "Cobre", "hex": "#B46A3C" }
+        { "color_id": "sl-emerald-001", "name": "Verde Esmeralda", "hex": "#50C878" },
+        { "color_id": "sl-ruby-002", "name": "Rojo Rubí", "hex": "#E0115F" },
+        { "color_id": "sl-sapphire-003", "name": "Azul Zafiro", "hex": "#0F52BA" },
+        { "color_id": "sl-gold-004", "name": "Dorado", "hex": "#FFD700" },
+        { "color_id": "sl-plum-005", "name": "Ciruela", "hex": "#8E4585" }
       ],
       "status": "active",
       "sort": 5
