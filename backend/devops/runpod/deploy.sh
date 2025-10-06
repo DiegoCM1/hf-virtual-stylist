@@ -39,7 +39,7 @@ export IP_ADAPTER_WEIGHT="ip-adapter_sdxl.bin"
 export IP_ADAPTER_SCALE=0.70
 # TEMP: local absolute path to a fabric swatch or garment reference (PNG/JPG)
 # Example: /workspace/app/backend/tests/assets/fabric_swatches/algodon-tech_negro.jpg
-export IP_ADAPTER_IMAGE=""   # leave empty = disabled
+export IP_ADAPTER_IMAGE="workspace/app/backend/tests/assets/tela-dark.png"   # leave empty = disabled
 
 
 # Quality assurance
