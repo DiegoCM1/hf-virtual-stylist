@@ -39,13 +39,13 @@ TOTAL_STEPS = int(os.getenv("TOTAL_STEPS", "60"))
 REFINER_SPLIT = float(os.getenv("REFINER_SPLIT", "0.70"))
 
 # --- SECOND CONTROLNET (CANNY) via env (kept local to this module) ----------
-CONTROLNET2_ENABLED = os.getenv("CONTROLNET2_ENABLED", "0") == "1"
-CONTROLNET2_MODEL = os.getenv("CONTROLNET2_MODEL", "")
-CONTROLNET2_WEIGHT = float(os.getenv("CONTROLNET2_WEIGHT", "0.55"))
-CONTROLNET2_GUIDANCE_START = float(os.getenv("CONTROLNET2_GUIDANCE_START", "0.05"))
-CONTROLNET2_GUIDANCE_END = float(os.getenv("CONTROLNET2_GUIDANCE_END", "0.85"))
-CONTROL_IMAGE_RECTO_CANNY = os.getenv("CONTROL_IMAGE_RECTO_CANNY", "")
-CONTROL_IMAGE_CRUZADO_CANNY = os.getenv("CONTROL_IMAGE_CRUZADO_CANNY", "")
+# CONTROLNET2_ENABLED = os.getenv("CONTROLNET2_ENABLED", "0") == "1"
+# CONTROLNET2_MODEL = os.getenv("CONTROLNET2_MODEL", "")
+# CONTROLNET2_WEIGHT = float(os.getenv("CONTROLNET2_WEIGHT", "0.55"))
+# CONTROLNET2_GUIDANCE_START = float(os.getenv("CONTROLNET2_GUIDANCE_START", "0.05"))
+# CONTROLNET2_GUIDANCE_END = float(os.getenv("CONTROLNET2_GUIDANCE_END", "0.85"))
+# CONTROL_IMAGE_RECTO_CANNY = os.getenv("CONTROL_IMAGE_RECTO_CANNY", "")
+# CONTROL_IMAGE_CRUZADO_CANNY = os.getenv("CONTROL_IMAGE_CRUZADO_CANNY", "")
 
 # Watermark path not correct
 def _resolve_wm_path() -> str:
@@ -281,8 +281,8 @@ class SdxlTurboGenerator(Generator):
 
         # Common product-photo prompt (neutral, high detail, e-comm style)
         base_prompt = (
-            "studio catalog photo of a men's tailored suit on a manneque, "
-            "clear seamless background, even lighting, 85mm look, "
+            "studio catalog photo of a men's tailored suit on a manneque, ultra-realistic, high detail, "
+            "clear background, even lighting, 85mm look, "
             "clean tailoring, correct grain, even drape, crisp lapels, sharp stitching, "
             "true fabric texture, no stretch, "
         )

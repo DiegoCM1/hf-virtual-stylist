@@ -32,19 +32,19 @@ export WATERMARK_PATH=/workspace/app/backend/tests/assets/watermark-logo.png
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export USE_REFINER=1
 export TOTAL_STEPS=80
-export REFINER_SPLIT=0.65
+export REFINER_SPLIT=0.70
 # --- ControlNet -----------
 # Depth ControlNet
 export CONTROLNET_ENABLED=1
 export CONTROLNET_MODEL="diffusers/controlnet-depth-sdxl-1.0"   # Depth-only model
-export CONTROLNET_WEIGHT=1          # strength of geometry influence
+export CONTROLNET_WEIGHT=0.7          # strength of geometry influence
 export CONTROLNET_GUIDANCE_START=0.0    # begin applying from step 0
 export CONTROLNET_GUIDANCE_END=0.55     # taper off near the end to preserve texture
 
 # Canny ControlNet
 export CONTROLNET2_ENABLED=1
 export CONTROLNET2_MODEL="diffusers/controlnet-canny-sdxl-1.0"      # SDXL canny ControlNet (if pull fails we’ll adjust in step 3)
-export CONTROLNET2_WEIGHT=0.70              # Secondary weight: start moderate; we’ll tune after wiring
+export CONTROLNET2_WEIGHT=0.7              # Secondary weight: start moderate; we’ll tune after wiring
 export CONTROLNET2_GUIDANCE_START=0.00      # Let Canny kick in shortly after start and persist late to anchor buttons
 export CONTROLNET2_GUIDANCE_END=0.92
 
