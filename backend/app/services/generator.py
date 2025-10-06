@@ -9,6 +9,7 @@ from app.services.storage import Storage, LocalStorage
 from app.services.watermark import apply_watermark_image
 import secrets
 from urllib.parse import urljoin, urlparse
+import urllib.request
 import hashlib
 from app.core.config import (
     PUBLIC_BASE_URL,
@@ -46,6 +47,15 @@ CONTROLNET2_GUIDANCE_START = float(os.getenv("CONTROLNET2_GUIDANCE_START", "0.03
 CONTROLNET2_GUIDANCE_END = float(os.getenv("CONTROLNET2_GUIDANCE_END", "0.82"))
 CONTROL_IMAGE_RECTO_CANNY = os.getenv("CONTROL_IMAGE_RECTO_CANNY", "")
 CONTROL_IMAGE_CRUZADO_CANNY = os.getenv("CONTROL_IMAGE_CRUZADO_CANNY", "")
+
+# --- IP-ADAPTER (image prompt) -----------------------------------------------
+IP_ADAPTER_ENABLED = os.getenv("IP_ADAPTER_ENABLED", "0") == "1"
+IP_ADAPTER_REPO = os.getenv("IP_ADAPTER_REPO", "h94/IP-Adapter")
+IP_ADAPTER_SUBFOLDER = os.getenv("IP_ADAPTER_SUBFOLDER", "sdxl_models")
+IP_ADAPTER_WEIGHT = os.getenv("IP_ADAPTER_WEIGHT", "ip-adapter_sdxl.bin")
+IP_ADAPTER_SCALE = float(os.getenv("IP_ADAPTER_SCALE", "0.70"))
+# quick test: absolute path or http(s) URL to a fabric/suit reference image
+IP_ADAPTER_IMAGE = os.getenv("IP_ADAPTER_IMAGE", "")  # leave empty to skip
 
 # Watermark path not correct
 def _resolve_wm_path() -> str:
@@ -204,6 +214,17 @@ class SdxlTurboGenerator(Generator):
             cls._base.enable_vae_tiling()
             cls._base.enable_vae_slicing()
             print("[controlnet] enabled")
+        
+        # --- Optional IP-Adapter -------------------------------------------------
+        # (supported on SDXL text2img and ControlNet pipelines)
+        if IP_ADAPTER_ENABLED:
+            print(f"[ip-adapter] loading {IP_ADAPTER_REPO}/{IP_ADAPTER_WEIGHT}")
+            cls._base.load_ip_adapter(
+                IP_ADAPTER_REPO,
+                subfolder=IP_ADAPTER_SUBFOLDER,
+                weight_name=IP_ADAPTER_WEIGHT,
+            )
+            cls._base.set_ip_adapter_scale(IP_ADAPTER_SCALE)
 
         if USE_REFINER:
             print("[sdxl] init: refiner on", device)
@@ -310,6 +331,22 @@ class SdxlTurboGenerator(Generator):
             pos = f"{base_pos}, {d['pos']}".strip(", ")
             neg = base_neg + (", " + d["neg"] if d["neg"] else "")
             return pos, neg
+        
+        # Resolve IP-Adapter image (env-only for Step 1)
+        def _load_ip_image(path_or_url: str) -> Image.Image | None:
+            if not path_or_url:
+                return None
+            try:
+                parsed = urlparse(path_or_url)
+                if parsed.scheme in ("http", "https"):
+                    with urllib.request.urlopen(path_or_url, timeout=10) as r:
+                        return Image.open(io.BytesIO(r.read())).convert("RGB")
+                # local path
+                return Image.open(path_or_url).convert("RGB")
+            except Exception as e:
+                print(f"[ip-adapter] failed to load image: {e}")
+                return None
+        ip_image = _load_ip_image(IP_ADAPTER_IMAGE)
 
         run_id = uuid.uuid4().hex[:10]
         images: List[ImageResult] = []
@@ -354,6 +391,7 @@ class SdxlTurboGenerator(Generator):
                     generator=g,
                     num_images_per_prompt=1,
                     output_type="latent",
+                    **({"ip_adapter_image": ip_image} if (IP_ADAPTER_ENABLED and ip_image is not None) else {}),
                     **extra,
                 )
                 latents = base_out.images  # latent tensor
@@ -393,6 +431,7 @@ class SdxlTurboGenerator(Generator):
                     height=height,
                     generator=g,
                     num_images_per_prompt=1,
+                    **({"ip_adapter_image": ip_image} if (IP_ADAPTER_ENABLED and ip_image is not None) else {}),
                     **extra,
                 ).images[0]
             print(f"[sdxl] {cut}: infer done in {time.time()-t1:.2f}s (seed={seed})")

@@ -28,6 +28,20 @@ export PYTHONPATH=/workspace/app/backend
 export HF_HOME=/workspace/.cache/huggingface
 export HF_HUB_ENABLE_HF_TRANSFER=1
 export WATERMARK_PATH=/workspace/app/backend/tests/assets/watermark-logo.png
+
+# --- IP-Adapter (image prompt) ---
+export IP_ADAPTER_ENABLED=1
+# SDXL weights: start with the basic adapter (no custom image encoder needed)
+export IP_ADAPTER_REPO="h94/IP-Adapter"
+export IP_ADAPTER_SUBFOLDER="sdxl_models"
+export IP_ADAPTER_WEIGHT="ip-adapter_sdxl.bin"
+# 0.0..1.0 — 0.7 balances text vs image; raise for stronger fabric transfer
+export IP_ADAPTER_SCALE=0.70
+# TEMP: local absolute path to a fabric swatch or garment reference (PNG/JPG)
+# Example: /workspace/app/backend/tests/assets/fabric_swatches/algodon-tech_negro.jpg
+export IP_ADAPTER_IMAGE=""   # leave empty = disabled
+
+
 # Quality assurance
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export USE_REFINER=1
