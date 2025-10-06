@@ -360,11 +360,13 @@ class SdxlTurboGenerator(Generator):
             # Do CFG embeds only if guidance > 1.0
             do_cfg = GUIDANCE is not None and float(GUIDANCE) > 1.0
             # Use the already-loaded base pipeline to compute SDXL embeds
+            # NOTE: positional args for broad compatibility across diffusers versions
+            # signature is (ip_adapter_image, device, num_images_per_prompt=1, do_classifier_free_guidance=False)
             image_embeds, negative_image_embeds = base.prepare_ip_adapter_image_embeds(
-                image=ip_image,
-                device=base.device,
-                num_images_per_prompt=1,
-                do_classifier_free_guidance=do_cfg,
+                ip_image,
+                base.device,
+                1,
+                do_cfg,
             )
             ip_added_kwargs = {"image_embeds": image_embeds, "negative_image_embeds": negative_image_embeds}
             ip_scales = [float(IP_ADAPTER_SCALE)]
@@ -422,7 +424,6 @@ class SdxlTurboGenerator(Generator):
                     generator=g,
                     num_images_per_prompt=1,
                     output_type="latent",
-                    **({"ip_adapter_image": ip_image} if (IP_ADAPTER_ENABLED and ip_image is not None) else {}),
                     **ip_kwargs,
                     **extra,
                 )
@@ -463,7 +464,6 @@ class SdxlTurboGenerator(Generator):
                     height=height,
                     generator=g,
                     num_images_per_prompt=1,
-                    **({"ip_adapter_image": ip_image} if (IP_ADAPTER_ENABLED and ip_image is not None) else {}),
                     **ip_kwargs,
                     **extra,
                 ).images[0]

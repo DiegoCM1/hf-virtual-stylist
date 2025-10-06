@@ -60,3 +60,16 @@ pytest -q
 
 ## Deployment
 `backend/devops/runpod/deploy.sh` encapsulates the GPU deployment flow: syncing the repo, installing Python 3.11, exporting generation env vars, applying Alembic migrations, seeding data, and starting Uvicorn. Use it as the baseline for RunPod or other GPU orchestrators.【F:backend/devops/runpod/deploy.sh†L1-L134】
+
+
+---
+### Testing
+<!-- Recto -->
+curl -s -X POST http://127.0.0.1:8000/generate \
+  -H "Content-Type: application/json" \
+  -d '{"family_id":"algodon-tech","color_id":"negro-001","cuts":["recto"],"seed":123456789}'
+
+  <!-- Cruzado -->
+curl -s -X POST http://127.0.0.1:8000/generate \
+-H "Content-Type: application/json" \
+-d '{"family_id":"algodon-tech","color_id":"negro-001","cuts":["recto"],"seed":123456789}'
