@@ -41,9 +41,9 @@ REFINER_SPLIT = float(os.getenv("REFINER_SPLIT", "0.70"))
 # --- SECOND CONTROLNET (CANNY) via env (kept local to this module) ----------
 CONTROLNET2_ENABLED = os.getenv("CONTROLNET2_ENABLED", "0") == "1"
 CONTROLNET2_MODEL = os.getenv("CONTROLNET2_MODEL", "")
-CONTROLNET2_WEIGHT = float(os.getenv("CONTROLNET2_WEIGHT", "1"))
-CONTROLNET2_GUIDANCE_START = float(os.getenv("CONTROLNET2_GUIDANCE_START", "0.00"))
-CONTROLNET2_GUIDANCE_END = float(os.getenv("CONTROLNET2_GUIDANCE_END", "0.70"))
+CONTROLNET2_WEIGHT = float(os.getenv("CONTROLNET2_WEIGHT", "0.6"))
+CONTROLNET2_GUIDANCE_START = float(os.getenv("CONTROLNET2_GUIDANCE_START", "0.05"))
+CONTROLNET2_GUIDANCE_END = float(os.getenv("CONTROLNET2_GUIDANCE_END", "0.85"))
 CONTROL_IMAGE_RECTO_CANNY = os.getenv("CONTROL_IMAGE_RECTO_CANNY", "")
 CONTROL_IMAGE_CRUZADO_CANNY = os.getenv("CONTROL_IMAGE_CRUZADO_CANNY", "")
 
@@ -281,10 +281,9 @@ class SdxlTurboGenerator(Generator):
 
         # Common product-photo prompt (neutral, high detail, e-comm style)
         base_prompt = (
-            "studio catalog photo of a men's tailored suit on a manneque, ultra-realistic, high detail, "
-            "clear background, even lighting, 85mm look, "
-            "clean tailoring, correct grain, even drape, crisp lapels, sharp stitching, "
-            "true fabric texture, no stretch, "
+            "studio photo of a men's tailored suit on a mannequin, ultra-realistic, "
+            "neutral background, soft even lighting, 85mm look, "
+            "sharp tailoring, crisp lapels, detailed fabric texture"
         )
 
         neg_prompt = (
@@ -297,11 +296,11 @@ class SdxlTurboGenerator(Generator):
         # Minimal pose hints (ControlNet handles geometry)  garment specifics
         CUT_TEMPLATES = {
             "recto": {
-                "pos": "single-breasted 2-button, notch lapels, patch pockets, buttons centered on placket",
+                "pos": "single-breasted 2-button, notch lapels, patch pockets, buttons centered",
                 "neg": "double-breasted, peak lapels"
             },
             "cruzado": {
-                "pos": "double-breasted 6x2, peak lapels, clean overlap, button rows symetric",
+                "pos": "double-breasted 6x2, peak lapels, clean overlap, aligned button rows",
                 "neg": "single-breasted, notch lapels"
             },
         }
