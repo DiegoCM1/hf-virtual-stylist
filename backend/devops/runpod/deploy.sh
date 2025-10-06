@@ -39,7 +39,13 @@ export IP_ADAPTER_WEIGHT="ip-adapter_sdxl.bin"
 export IP_ADAPTER_SCALE=0.70
 # TEMP: local absolute path to a fabric swatch or garment reference (PNG/JPG)
 # Example: /workspace/app/backend/tests/assets/fabric_swatches/algodon-tech_negro.jpg
-export IP_ADAPTER_IMAGE="workspace/app/backend/tests/assets/tela-dark.png"   # leave empty = disabled
+export IP_ADAPTER_IMAGE="/workspace/app/backend/tests/assets/tela-dark.png"   # leave empty = disabled
+
+# Ensure swatch exists when IP adapter is on
+if [ "${IP_ADAPTER_ENABLED:-0}" = "1" ] && [ -n "${IP_ADAPTER_IMAGE:-}" ] && [ ! -f "$IP_ADAPTER_IMAGE" ]; then
+  echo "[ip-adapter] ERROR: Swatch not found at $IP_ADAPTER_IMAGE"
+  exit 1
+fi
 
 
 # Quality assurance
