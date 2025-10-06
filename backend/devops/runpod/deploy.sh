@@ -30,7 +30,7 @@ export HF_HUB_ENABLE_HF_TRANSFER=1
 export WATERMARK_PATH=/workspace/app/backend/tests/assets/watermark-logo.png
 
 # --- IP-Adapter (image prompt) ---
-export IP_ADAPTER_ENABLED=1
+export IP_ADAPTER_ENABLED=0
 # SDXL weights: start with the basic adapter (no custom image encoder needed)
 export IP_ADAPTER_REPO="h94/IP-Adapter"
 export IP_ADAPTER_SUBFOLDER="sdxl_models"

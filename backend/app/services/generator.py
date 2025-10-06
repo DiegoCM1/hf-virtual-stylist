@@ -407,11 +407,17 @@ class SdxlTurboGenerator(Generator):
                 )
                 latents = base_out.images  # latent tensor
 
-                                # --- VRAM relief before refiner ---------------------------------
+                # --- VRAM relief before refiner ---------------------------------
                 # Share a single VAE (avoid duplicate copy) and keep it tiled.
                 try:
                     refiner.vae = base.vae
                     refiner.vae.to(device)
+                    # refiner device (don’t assume "cuda": query module)
+                    try:
+                        ref_device = next(refiner.parameters()).device
+                    except Exception:
+                        ref_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                    refiner.vae.to(ref_device)
                     if hasattr(refiner.vae, "enable_tiling"): refiner.vae.enable_tiling()
                     if hasattr(refiner.vae, "enable_slicing"): refiner.vae.enable_slicing()
                 except Exception as e:
