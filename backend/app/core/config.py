@@ -12,8 +12,14 @@ class Settings(BaseSettings):
     jwt_secret: str
     jwt_algorithm: str
 
-    # optional; maps from PUBLIC_BASE_URL in .env automatically
-    public_base_url: str | None = None
+    # --- Storage ---
+    storage_backend: str = "local"
+    public_base_url: str | None = None # For LocalStorage fallback
+    r2_account_id: str = ""
+    r2_access_key_id: str = ""
+    r2_secret_access_key: str = ""
+    r2_bucket_name: str = ""
+    r2_public_url: str = ""
 
 settings = Settings()
 

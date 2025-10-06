@@ -35,6 +35,8 @@ from pathlib import Path
 
 
 # Config / Env toggles for refiner
+GUIDANCE = float(os.getenv("GUIDANCE", "4.3"))
+MAX_CUTS = int(os.getenv("MAX_CUTS", "2"))
 USE_REFINER = os.getenv("USE_REFINER", "1") == "1"
 TOTAL_STEPS = int(os.getenv("TOTAL_STEPS", "80"))
 REFINER_SPLIT = float(os.getenv("REFINER_SPLIT", "0.70"))
@@ -54,7 +56,6 @@ IP_ADAPTER_REPO = os.getenv("IP_ADAPTER_REPO", "h94/IP-Adapter")
 IP_ADAPTER_SUBFOLDER = os.getenv("IP_ADAPTER_SUBFOLDER", "sdxl_models")
 IP_ADAPTER_WEIGHT = os.getenv("IP_ADAPTER_WEIGHT", "ip-adapter_sdxl.bin")
 IP_ADAPTER_SCALE = float(os.getenv("IP_ADAPTER_SCALE", "0.70"))
-# quick test: absolute path or http(s) URL to a fabric/suit reference image
 IP_ADAPTER_IMAGE = os.getenv("IP_ADAPTER_IMAGE", "")  # leave empty to skip
 
 # Watermark path not correct
@@ -292,13 +293,11 @@ class SdxlTurboGenerator(Generator):
         base, refiner = self._get_pipes()
         device = self._device
 
-        cuts = (req.cuts or ["recto", "cruzado"])[:2]
-        # Forzar 1 imagen por request para evitar 524 y simplificar FE
-        cuts = (req.cuts or ["recto"])[:1]
+        cuts = (req.cuts or ["recto", "cruzado"])[:MAX_CUTS]
 
         # Calidad (SDXL Base en GPU)
         width, height = 1344, 2016  # vertical, the bigger it is, the more details the image will have
-        steps, guidance = TOTAL_STEPS, 4.3 # Guidance will tell the model how strictly to follow the prompt, usually 4.5 - 6 is best
+        steps, guidance = TOTAL_STEPS, GUIDANCE  # tune via env GUIDANCE (e.g., 4.5–4.7)
 
         # Common product-photo prompt (neutral, high detail, e-comm style)
         base_prompt = (
