@@ -277,7 +277,7 @@ class SdxlTurboGenerator(Generator):
 
         # Calidad (SDXL Base en GPU)
         width, height = 1344, 2016  # vertical, the bigger it is, the more details the image will have
-        steps, guidance = TOTAL_STEPS, 4.7 # Guidance will tell the model how strictly to follow the prompt, usually 4.5 - 6 is best
+        steps, guidance = TOTAL_STEPS, 4.3 # Guidance will tell the model how strictly to follow the prompt, usually 4.5 - 6 is best
 
         # Common product-photo prompt (neutral, high detail, e-comm style)
         base_prompt = (
@@ -297,7 +297,7 @@ class SdxlTurboGenerator(Generator):
         # Minimal pose hints (ControlNet handles geometry)  garment specifics
         CUT_TEMPLATES = {
             "recto": {
-                "pos": "single-breasted 2-button, notch lapels, patch pockets, buttons centered on placket, straight placket, symmetric front",
+                "pos": "single-breasted 2-button, notch lapels, patch pockets, buttons centered on placket, symmetric front",
                 "neg": "double-breasted, peak lapels"
             },
             "cruzado": {
