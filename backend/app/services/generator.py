@@ -277,15 +277,14 @@ class SdxlTurboGenerator(Generator):
 
         # Calidad (SDXL Base en GPU)
         width, height = 1344, 2016  # vertical, the bigger it is, the more details the image will have
-        steps, guidance = TOTAL_STEPS, 4.6 # Guidance will tell the model how strictly to follow the prompt, usually 4.5 - 6 is best
+        steps, guidance = TOTAL_STEPS, 4.7 # Guidance will tell the model how strictly to follow the prompt, usually 4.5 - 6 is best
 
         # Common product-photo prompt (neutral, high detail, e-comm style)
         base_prompt = (
-            "studio catalog photo of a men's tailored suit on a model, "
-            "white seamless background, even lighting, 85mm look, "
+            "studio catalog photo of a men's tailored suit on a manneque, "
+            "clear seamless background, even lighting, 85mm look, "
             "clean tailoring, correct grain, even drape, crisp lapels, sharp stitching, "
             "true fabric texture, no stretch, "
-            "shoulders-to-knees crop"
         )
 
         neg_prompt = (
@@ -302,7 +301,7 @@ class SdxlTurboGenerator(Generator):
                 "neg": "double-breasted, peak lapels"
             },
             "cruzado": {
-                "pos": "double-breasted 6x2, peak lapels, clean overlap, button rows aligned and symmetric",
+                "pos": "double-breasted 6x2, peak lapels, clean overlap, button rows symetric",
                 "neg": "single-breasted, notch lapels"
             },
         }
