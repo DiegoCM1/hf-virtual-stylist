@@ -1,5 +1,5 @@
 from __future__ import annotations
-import io, os, time, uuid, random
+import io, os, time, uuid, random, gc
 from dataclasses import dataclass
 from typing import List
 from PIL import Image, ImageDraw, ImageFont
@@ -167,6 +167,7 @@ class SdxlTurboGenerator(Generator):
         cls._base.scheduler = DPMSolverMultistepScheduler.from_config(
             cls._base.scheduler.config, use_karras_sigmas=True
         )
+        cls._base.enable_attention_slicing()
         cls._base.enable_vae_tiling()
         cls._base.enable_vae_slicing()
 
@@ -213,6 +214,7 @@ class SdxlTurboGenerator(Generator):
             except Exception:
                 pass
             cls._base.enable_vae_tiling()
+            cls._base.enable_attention_slicing()
             cls._base.enable_vae_slicing()
             print("[controlnet] enabled")
         
@@ -243,6 +245,7 @@ class SdxlTurboGenerator(Generator):
             cls._refiner.scheduler = DPMSolverMultistepScheduler.from_config(
                 cls._refiner.scheduler.config, use_karras_sigmas=True
             )
+            cls._refiner.enable_attention_slicing()
             cls._refiner.enable_vae_tiling()
             cls._refiner.enable_vae_slicing()
 
@@ -403,6 +406,38 @@ class SdxlTurboGenerator(Generator):
                     **extra,
                 )
                 latents = base_out.images  # latent tensor
+
+                                # --- VRAM relief before refiner ---------------------------------
+                # Share a single VAE (avoid duplicate copy) and keep it tiled.
+                try:
+                    refiner.vae = base.vae
+                    refiner.vae.to(device)
+                    if hasattr(refiner.vae, "enable_tiling"): refiner.vae.enable_tiling()
+                    if hasattr(refiner.vae, "enable_slicing"): refiner.vae.enable_slicing()
+                except Exception as e:
+                    print(f"[mem] VAE share/tiling warn: {e}")
+
+                # Offload heavy base modules to CPU to free space for VAE decode.
+                try:
+                    # unet
+                    if hasattr(base, "unet") and base.unet is not None:
+                        base.unet.to("cpu")
+                    # controlnet (can be a model or a wrapper with .to)
+                    cn = getattr(base, "controlnet", None)
+                    if cn is not None:
+                        try:
+                            cn.to("cpu")
+                        except AttributeError:
+                            # handle list-like just in case
+                            for m in cn if isinstance(cn, (list, tuple)) else []:
+                                try: m.to("cpu")
+                                except Exception: pass
+                    for enc in ("text_encoder", "text_encoder_2"):
+                        mod = getattr(base, enc, None)
+                        if mod is not None: mod.to("cpu")
+                except Exception as e:
+                    print(f"[mem] offload base warn: {e}")
+                gc.collect(); torch.cuda.empty_cache()
 
                 # Refiner → image (split → 1.0)
                 refiner_steps = max(5, int(round(steps * (1.0 - REFINER_SPLIT))))
