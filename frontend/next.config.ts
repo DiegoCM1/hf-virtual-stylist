@@ -1,13 +1,14 @@
 import type { NextConfig } from "next";
 
-const RUNPOD_URL = process.env.NEXT_PUBLIC_RUNPOD_URL; // e.g. https://lnqrev4dnktv7s-8000.proxy.runpod.net
+const RAW_API_BASE = process.env.NEXT_PUBLIC_API_BASE;
+const API_BASE = RAW_API_BASE ? RAW_API_BASE.replace(/\/+$/, "") : undefined;
 
 const nextConfig: NextConfig = {
     async rewrites() {
-    return RUNPOD_URL
+    return API_BASE
       ? [
           // Frontend calls /api/* and Next proxies it to RunPod
-          { source: "/api/:path*", destination: `${RUNPOD_URL}/:path*` },
+          { source: "/api/:path*", destination: `${API_BASE}/:path*` },
         ]
       : [];
   },
