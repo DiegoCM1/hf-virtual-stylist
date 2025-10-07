@@ -304,7 +304,7 @@ class SdxlTurboGenerator(Generator):
 
         # Common product-photo prompt (neutral, high detail, e-comm style)
         base_prompt = (
-            "studio photo of a men's tailored suit on a mannequin, ultra-realistic, "
+            "studio photo of a men's tailored suit on a mannequin, ultra-realistic, white seamless background, "
             "neutral background, soft even lighting, 85mm look, "
             "sharp tailoring, crisp lapels, detailed fabric texture"
         )
