@@ -4,7 +4,6 @@
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "").replace(/\/+$/, "");
 if (!API_BASE) {
-  // eslint-disable-next-line no-console
   console.warn("[apiClient] NEXT_PUBLIC_API_BASE is not set");
 }
 

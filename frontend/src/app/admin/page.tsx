@@ -10,17 +10,17 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const base = process.env.NEXT_PUBLIC_API_BASE;
     if (!base) {
-      setError("Backend caido. Define NEXT_PUBLIC_API_BASE_URL o usa rewrites en vercel.json.");
+      setError("Backend caido. Define NEXT_PUBLIC_API_BASE o usa rewrites en vercel.json.");
       setItems([]);
       return;
     }
 
-    const controller = new AbortController();
     (async () => {
       try {
-        const data = await listFabrics({ limit: 50 });        setItems(data);
+        const data = await listFabrics();
+        setItems(data);
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : "error desconocido";
         setError(`No se pudo conectar al backend: ${msg}`);

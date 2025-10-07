@@ -27,10 +27,9 @@ frontend/
 1. Install dependencies: `npm install`.
 2. Create `.env.local` to point the proxy and admin tooling to your backend:
    ```env
-   NEXT_PUBLIC_RUNPOD_URL=http://localhost:8000
-   NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+   NEXT_PUBLIC_API_BASE=http://localhost:8000
    ```
-   `next.config.ts` rewrites `/api/:path*` to `NEXT_PUBLIC_RUNPOD_URL`, so the catalog and generate calls go straight to FastAPI while keeping relative URLs inside the app.【F:frontend/next.config.ts†L1-L21】【F:frontend/src/lib/apiClient.ts†L1-L38】
+   `next.config.ts` rewrites `/api/:path*` to `NEXT_PUBLIC_API_BASE`, so the catalog and generate calls go straight to FastAPI while keeping relative URLs inside the app.【F:frontend/next.config.ts†L1-L24】【F:frontend/src/lib/apiClient.ts†L1-L38】
 3. Run the dev server: `npm run dev` (defaults to `http://localhost:3000`).
 4. Open `/admin` to access the merchandising console. It relies on the same `/api` proxy for `GET/POST/PATCH /admin/fabrics` requests.【F:frontend/src/lib/adminApi.ts†L1-L39】
 
@@ -45,5 +44,5 @@ npm run lint
 ```
 
 ## Deployment Notes
-- Vercel/Next proxies will automatically forward `/api/*` when `NEXT_PUBLIC_RUNPOD_URL` is set in the environment. For static hosting or custom deployments, configure an equivalent rewrite.
-- Ensure the backend exposes HTTPS asset URLs (or configure `NEXT_PUBLIC_API_BASE_URL`) so that the gallery can display generated images without mixed-content warnings.【F:frontend/src/app/admin/page.tsx†L1-L32】
+- Vercel/Next proxies will automatically forward `/api/*` when `NEXT_PUBLIC_API_BASE` is set in the environment. For static hosting or custom deployments, configure an equivalent rewrite.
+- Ensure the backend exposes HTTPS asset URLs (or configure `NEXT_PUBLIC_API_BASE`) so that the gallery can display generated images without mixed-content warnings.【F:frontend/src/app/admin/page.tsx†L1-L37】

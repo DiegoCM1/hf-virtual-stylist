@@ -6,7 +6,6 @@
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "").replace(/\/+$/, "");
 if (!API_BASE) {
   // Fail fast in dev so you don't silently hit / (current domain) by mistake
-  // eslint-disable-next-line no-console
   console.warn("[adminApi] NEXT_PUBLIC_API_BASE is not set");
 }
 
