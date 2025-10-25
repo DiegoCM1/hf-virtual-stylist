@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import type { FabricRead } from "@/types/admin";
 import {
   createFabric,
-  deactivateFabric,
   listFabrics,
   setFabricStatus,
 } from "@/lib/adminApi";
@@ -107,11 +106,11 @@ export default function AdminTable({
                     <button
                       onClick={() =>
                         start(async () => {
-                          if (f.status === "active") {
-                            await deactivateFabric(f.id);
-                          } else {
-                            await setFabricStatus(f.id, "active");
-                          }
+                           if (f.status === "active") {
+                             await setFabricStatus(f.id, "inactive");
+                           } else {
+                             await setFabricStatus(f.id, "active");
+                           }
                           await refresh(q);
                         })
                       }

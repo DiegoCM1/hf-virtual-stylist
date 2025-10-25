@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { fetchCatalog, generateImages } from "@/lib/apiClient";
+import { getCatalog as fetchCatalog, generateImages } from "@/lib/apiClient";
 import {
   CatalogResponse,
   Family,

@@ -2,7 +2,6 @@
 // Frontend will call the backend directly using an absolute URL from env.
 // Make sure .env.local contains:
 // NEXT_PUBLIC_API_BASE=https://gnmicpjvt9n5dz-8000.proxy.runpod.net
-
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "").replace(/\/+$/, "");
 if (!API_BASE) {
   // Fail fast in dev so you don't silently hit / (current domain) by mistake
@@ -15,6 +14,21 @@ type JsonInit = Omit<RequestInit, "body" | "headers"> & {
   body?: unknown;
   headers?: Record<string, string>;
 };
+
+ export const setFabricStatus = async (
+   id: string,
+   status: "active" | "inactive"
+ ) => {
+   const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "").replace(/\/$/, "");
+   const url = `${API_BASE}/admin/fabrics/${id}/status`;
+   const res = await fetch(url, {
+     method: "PATCH",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify({ status }),
+   });
+   if (!res.ok) throw new Error(await res.text());
+   return res.json();
+ };
 
 async function adminFetch<T>(path: string, init?: JsonInit): Promise<T> {
   const url =

@@ -111,6 +111,7 @@ export type GenerateResponse = {
 
 export const generateImages = (body: GenerateRequest) =>
   apiPost<GenerateResponse>("/generate", body);
+const url = `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
 
 // Health (optional)
 export const getHealth = () => apiGet<{ status: "ok"; version?: string }>("/health");
