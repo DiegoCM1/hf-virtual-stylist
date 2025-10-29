@@ -71,4 +71,4 @@ backend/.env.*
 
 # Test scripts and outputs
 smoke_test.py
-out.json
+out.jsonnul

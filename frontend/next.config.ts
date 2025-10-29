@@ -18,7 +18,8 @@ const nextConfig: NextConfig = {
       { protocol: "http", hostname: "localhost", port: "8000", pathname: "/files/**" },
       { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/files/**" },
       { protocol: "https", hostname: "*.proxy.runpod.net" }, // RunPod images
-
+      { protocol: "https", hostname: "pub-56acd80744c24e2fb1fca9004abce188.r2.dev" }, // Cloudflare R2
+      { protocol: "https", hostname: "*.railway.app" }, // Railway backend
     ],
   },
 };

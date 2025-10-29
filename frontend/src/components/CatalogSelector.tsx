@@ -1,4 +1,5 @@
 import { Family } from "@/types/catalog";
+import Image from "next/image";
 
 type CatalogSelectorProps = {
   families: Family[];
@@ -47,10 +48,22 @@ export function CatalogSelector({
               title={color.name}
               type="button"
             >
-              <div
-                className="w-full h-10 md:h-14 lg:h-16 rounded mb-1"
-                style={{ backgroundColor: color.hex }}
-              />
+              {color.swatch_url ? (
+                <div className="relative w-full h-10 md:h-14 lg:h-16 rounded mb-1 overflow-hidden">
+                  <Image
+                    src={color.swatch_url}
+                    alt={color.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 33vw, (max-width: 1024px) 20vw, 15vw"
+                  />
+                </div>
+              ) : (
+                <div
+                  className="w-full h-10 md:h-14 lg:h-16 rounded mb-1"
+                  style={{ backgroundColor: color.hex }}
+                />
+              )}
               <div className="truncate">{color.name}</div>
             </button>
           ))}
