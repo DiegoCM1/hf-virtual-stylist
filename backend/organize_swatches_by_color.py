@@ -161,8 +161,13 @@ def categorize_color(rgb):
     if v > 0.90 and s < 0.05:  # Very light and unsaturated
         return "neutros", "Blanco"
 
-    # Check grays (low saturation)
-    if s < 0.12:  # Stricter threshold for grays
+    # Check for browns FIRST (before grays) to avoid misclassification
+    # Browns have low-medium saturation but are in the brown hue range
+    if 20 <= h <= 45 and 0.08 <= s < 0.25 and v > 0.15:
+        return "marrones", "Marrón"
+
+    # Check grays (low saturation, but exclude brown hue range)
+    if s < 0.10:  # Very strict threshold for true grays
         if v < 0.25:
             return "neutros", "Negro Carbón"
         elif v > 0.75:

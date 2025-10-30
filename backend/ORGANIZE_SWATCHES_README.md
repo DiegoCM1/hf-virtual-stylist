@@ -43,26 +43,82 @@ python list_r2_swatches.py
 
 ## Step 2: Analyze & Categorize by Color
 
-This downloads each swatch, analyzes the dominant color, and categorizes into families.
+This downloads each swatch, analyzes the dominant color, and categorizes into families using an AI-powered algorithm.
 
 ```bash
 python organize_swatches_by_color.py
 ```
 
-**What it does:**
-- Downloads each swatch image
-- Extracts dominant RGB color
-- Converts to HSV for analysis
-- Categorizes into color families:
-  - **Azules** (Blues)
-  - **Grises** (Grays)
-  - **Marrones y Beiges** (Browns/Tans)
-  - **Negros y Blancos** (Black/White)
-  - **Verdes** (Greens)
-  - **Tonos Cálidos** (Warm tones - reds, oranges)
-  - **Tonos Fríos** (Cool tones - purples, teals)
-- Generates Spanish color names (e.g., "Azul Oscuro", "Gris Claro")
-- Extracts hex color codes
+### Advanced Color Detection Algorithm (v2.0)
+
+**Problem Solved:** Previous version classified 77/82 swatches as "Black/White" due to white borders and backgrounds in product photos.
+
+**Solution:** Multi-stage color extraction with intelligent filtering:
+
+1. **Center Cropping (70%)**
+   - Crops to center 70% of image to avoid borders
+   - Eliminates white backgrounds common in product photography
+   ```python
+   crop_margin = int(sample_size * 0.15)  # 15% margin on each side
+   center_crop = image.crop((margin, margin, size-margin, size-margin))
+   ```
+
+2. **Brightness Filtering**
+   - Filters out pixels with extreme brightness (borders, flash reflections)
+   - Range: 20-235 (out of 255)
+   - Skips pure white borders and pure black shadows
+   ```python
+   if 20 < brightness < 235:  # Keep only mid-range pixels
+       filtered_pixels.append((r, g, b))
+   ```
+
+3. **Top-N Color Sampling**
+   - Analyzes top 10 most frequent colors (increased from 5)
+   - Better statistical representation of fabric texture
+
+4. **Saturation-Weighted Averaging**
+   - Gives more weight to saturated (colorful) pixels
+   - Reduces influence of neutral backgrounds
+   ```python
+   weight = count * (1 + saturation * 2)
+   ```
+
+5. **HSV Color Space Analysis**
+   - Converts to Hue-Saturation-Value for accurate categorization
+   - Hue: Color type (red, blue, green, etc.)
+   - Saturation: Color intensity vs grayness
+   - Value: Brightness (dark to light)
+
+6. **Strict Categorization Thresholds**
+   - **Black:** V < 0.10 (only very dark)
+   - **White:** V > 0.90 AND S < 0.05 (very light + unsaturated)
+   - **Gray:** S < 0.12 (low saturation, strict threshold)
+   - **Colors:** HSV range matching per family
+
+### Color Families & HSV Ranges
+
+| Family | HSV Range | Conditions |
+|--------|-----------|------------|
+| **Azules** (Blues) | H: 190-250° | S > 0.2, V > 0.2 |
+| **Grises** (Grays) | Any H | S < 0.12, 0.25 < V < 0.75 |
+| **Marrones y Beiges** | H: 20-45° | S > 0.15, V > 0.15 |
+| **Negros y Blancos** | Any H | V < 0.10 OR (V > 0.90 AND S < 0.05) |
+| **Verdes** (Greens) | H: 80-170° | S > 0.2, V > 0.2 |
+| **Tonos Cálidos** (Warm) | H: 0-20° | S > 0.3, V > 0.2 |
+| **Tonos Fríos** (Cool) | H: 250-290° | S > 0.2, V > 0.2 |
+
+### Spanish Color Name Generation
+
+Names are generated based on Value (brightness):
+- **Oscuro** (Dark): V < 0.3
+- **Base name**: 0.3 < V < 0.7
+- **Claro** (Light): V > 0.7
+
+Examples:
+- "Azul Oscuro" (Dark Blue)
+- "Azul" (Blue)
+- "Azul Claro" (Light Blue)
+- "Gris 52" (Gray with 52% brightness)
 
 **Output:**
 ```

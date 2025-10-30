@@ -74,7 +74,7 @@ def populate_from_categorization():
                 color = Color(
                     fabric_family_id=family.id,
                     color_id=color_id,
-                    name=color_data['color_name'],
+                    name=color_data['swatch_code'],  # USE SWATCH CODE AS NAME
                     hex_value=color_data['hex'],
                     swatch_code=color_data['swatch_code']
                 )

@@ -1,0 +1,1827 @@
+{
+  "organized_by_family": {
+    "azules": [
+      {
+        "swatch_code": "095T-017B",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#292E34",
+        "rgb": [
+          41,
+          46,
+          52
+        ]
+      },
+      {
+        "swatch_code": "1251-0043",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#1F2536",
+        "rgb": [
+          31,
+          37,
+          54
+        ]
+      },
+      {
+        "swatch_code": "1410-0075",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#202531",
+        "rgb": [
+          32,
+          37,
+          49
+        ]
+      },
+      {
+        "swatch_code": "1410U-0010",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#21242E",
+        "rgb": [
+          33,
+          36,
+          46
+        ]
+      },
+      {
+        "swatch_code": "1410U-0013",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#21232B",
+        "rgb": [
+          33,
+          35,
+          43
+        ]
+      },
+      {
+        "swatch_code": "1420-0042",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#232938",
+        "rgb": [
+          35,
+          41,
+          56
+        ]
+      },
+      {
+        "swatch_code": "1420-0078",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#1F232C",
+        "rgb": [
+          31,
+          35,
+          44
+        ]
+      },
+      {
+        "swatch_code": "1421-0617",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#222939",
+        "rgb": [
+          34,
+          41,
+          57
+        ]
+      },
+      {
+        "swatch_code": "1480-0083",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#232731",
+        "rgb": [
+          35,
+          39,
+          49
+        ]
+      },
+      {
+        "swatch_code": "1480U-0016",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#292F3C",
+        "rgb": [
+          41,
+          47,
+          60
+        ]
+      },
+      {
+        "swatch_code": "1810-0161",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#25282F",
+        "rgb": [
+          37,
+          40,
+          47
+        ]
+      },
+      {
+        "swatch_code": "1880-3824",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#20232C",
+        "rgb": [
+          32,
+          35,
+          44
+        ]
+      },
+      {
+        "swatch_code": "1880-4634",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#2F3C4C",
+        "rgb": [
+          47,
+          60,
+          76
+        ]
+      },
+      {
+        "swatch_code": "1880-4654",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#2D3A49",
+        "rgb": [
+          45,
+          58,
+          73
+        ]
+      },
+      {
+        "swatch_code": "1880-4672",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#252934",
+        "rgb": [
+          37,
+          41,
+          52
+        ]
+      },
+      {
+        "swatch_code": "1880-4682",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#262B38",
+        "rgb": [
+          38,
+          43,
+          56
+        ]
+      },
+      {
+        "swatch_code": "1880-4708",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#232935",
+        "rgb": [
+          35,
+          41,
+          53
+        ]
+      },
+      {
+        "swatch_code": "1880-4775",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#21252F",
+        "rgb": [
+          33,
+          37,
+          47
+        ]
+      },
+      {
+        "swatch_code": "191-5555",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#373F48",
+        "rgb": [
+          55,
+          63,
+          72
+        ]
+      },
+      {
+        "swatch_code": "2540-0059",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#2C343F",
+        "rgb": [
+          44,
+          52,
+          63
+        ]
+      },
+      {
+        "swatch_code": "2790-0013",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#21242A",
+        "rgb": [
+          33,
+          36,
+          42
+        ]
+      },
+      {
+        "swatch_code": "3000-0132",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#222832",
+        "rgb": [
+          34,
+          40,
+          50
+        ]
+      },
+      {
+        "swatch_code": "33125",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#242934",
+        "rgb": [
+          36,
+          41,
+          52
+        ]
+      },
+      {
+        "swatch_code": "33126",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#2A3345",
+        "rgb": [
+          42,
+          51,
+          69
+        ]
+      },
+      {
+        "swatch_code": "33127",
+        "family_id": "azules",
+        "color_name": "Azule",
+        "hex": "#353E4E",
+        "rgb": [
+          53,
+          62,
+          78
+        ]
+      },
+      {
+        "swatch_code": "33142",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#222530",
+        "rgb": [
+          34,
+          37,
+          48
+        ]
+      },
+      {
+        "swatch_code": "33144",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#29354A",
+        "rgb": [
+          41,
+          53,
+          74
+        ]
+      },
+      {
+        "swatch_code": "4300-0054",
+        "family_id": "azules",
+        "color_name": "Azule",
+        "hex": "#2E384E",
+        "rgb": [
+          46,
+          56,
+          78
+        ]
+      },
+      {
+        "swatch_code": "4530T-0153",
+        "family_id": "azules",
+        "color_name": "Azule",
+        "hex": "#333E58",
+        "rgb": [
+          51,
+          62,
+          88
+        ]
+      },
+      {
+        "swatch_code": "4710-0024",
+        "family_id": "azules",
+        "color_name": "Azule",
+        "hex": "#4B6772",
+        "rgb": [
+          75,
+          103,
+          114
+        ]
+      },
+      {
+        "swatch_code": "4860-0002",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#1F242C",
+        "rgb": [
+          31,
+          36,
+          44
+        ]
+      },
+      {
+        "swatch_code": "5320-0002",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#20272F",
+        "rgb": [
+          32,
+          39,
+          47
+        ]
+      },
+      {
+        "swatch_code": "567-0003",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#1A1D22",
+        "rgb": [
+          26,
+          29,
+          34
+        ]
+      },
+      {
+        "swatch_code": "88080-0003",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#21262D",
+        "rgb": [
+          33,
+          38,
+          45
+        ]
+      },
+      {
+        "swatch_code": "9432-0083",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#252B38",
+        "rgb": [
+          37,
+          43,
+          56
+        ]
+      },
+      {
+        "swatch_code": "9481-1622",
+        "family_id": "azules",
+        "color_name": "Azule",
+        "hex": "#2D3E58",
+        "rgb": [
+          45,
+          62,
+          88
+        ]
+      },
+      {
+        "swatch_code": "9529-0522",
+        "family_id": "azules",
+        "color_name": "Azule",
+        "hex": "#434C5C",
+        "rgb": [
+          67,
+          76,
+          92
+        ]
+      },
+      {
+        "swatch_code": "P993N-913P",
+        "family_id": "azules",
+        "color_name": "Azule Oscuro",
+        "hex": "#1C1F24",
+        "rgb": [
+          28,
+          31,
+          36
+        ]
+      }
+    ],
+    "grises": [
+      {
+        "swatch_code": "095T-B22D",
+        "family_id": "grises",
+        "color_name": "Gris 62",
+        "hex": "#9F989D",
+        "rgb": [
+          159,
+          152,
+          157
+        ]
+      },
+      {
+        "swatch_code": "1251-0042",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#373941",
+        "rgb": [
+          55,
+          57,
+          65
+        ]
+      },
+      {
+        "swatch_code": "1410U-0001",
+        "family_id": "grises",
+        "color_name": "Gris 43",
+        "hex": "#68676E",
+        "rgb": [
+          104,
+          103,
+          110
+        ]
+      },
+      {
+        "swatch_code": "1410U-0004",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#2E3036",
+        "rgb": [
+          46,
+          48,
+          54
+        ]
+      },
+      {
+        "swatch_code": "1410U-0022",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#453D3F",
+        "rgb": [
+          69,
+          61,
+          63
+        ]
+      },
+      {
+        "swatch_code": "1480-0041",
+        "family_id": "grises",
+        "color_name": "Gris 49",
+        "hex": "#78787F",
+        "rgb": [
+          120,
+          120,
+          127
+        ]
+      },
+      {
+        "swatch_code": "1880-3602",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#3A3B42",
+        "rgb": [
+          58,
+          59,
+          66
+        ]
+      },
+      {
+        "swatch_code": "1880-3621",
+        "family_id": "grises",
+        "color_name": "Gris 42",
+        "hex": "#66656C",
+        "rgb": [
+          102,
+          101,
+          108
+        ]
+      },
+      {
+        "swatch_code": "1880-3821",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#23252A",
+        "rgb": [
+          35,
+          37,
+          42
+        ]
+      },
+      {
+        "swatch_code": "1880-4633",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#5D606A",
+        "rgb": [
+          93,
+          96,
+          106
+        ]
+      },
+      {
+        "swatch_code": "1880-4678",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#27282D",
+        "rgb": [
+          39,
+          40,
+          45
+        ]
+      },
+      {
+        "swatch_code": "1880-4707",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#6B7282",
+        "rgb": [
+          107,
+          114,
+          130
+        ]
+      },
+      {
+        "swatch_code": "1880-4771",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#232529",
+        "rgb": [
+          35,
+          37,
+          41
+        ]
+      },
+      {
+        "swatch_code": "191-2252",
+        "family_id": "grises",
+        "color_name": "Gris 36",
+        "hex": "#53555C",
+        "rgb": [
+          83,
+          85,
+          92
+        ]
+      },
+      {
+        "swatch_code": "191-5558",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#A79691",
+        "rgb": [
+          167,
+          150,
+          145
+        ]
+      },
+      {
+        "swatch_code": "1990-0151",
+        "family_id": "grises",
+        "color_name": "Gris 56",
+        "hex": "#908E91",
+        "rgb": [
+          144,
+          142,
+          145
+        ]
+      },
+      {
+        "swatch_code": "226-1502",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#24262C",
+        "rgb": [
+          36,
+          38,
+          44
+        ]
+      },
+      {
+        "swatch_code": "2540-0037",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#26272D",
+        "rgb": [
+          38,
+          39,
+          45
+        ]
+      },
+      {
+        "swatch_code": "2590-0601",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#24262B",
+        "rgb": [
+          36,
+          38,
+          43
+        ]
+      },
+      {
+        "swatch_code": "2960-6326",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#25272D",
+        "rgb": [
+          37,
+          39,
+          45
+        ]
+      },
+      {
+        "swatch_code": "2970-0016",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#282B31",
+        "rgb": [
+          40,
+          43,
+          49
+        ]
+      },
+      {
+        "swatch_code": "33129",
+        "family_id": "grises",
+        "color_name": "Gris 30",
+        "hex": "#46464D",
+        "rgb": [
+          70,
+          70,
+          77
+        ]
+      },
+      {
+        "swatch_code": "33130",
+        "family_id": "grises",
+        "color_name": "Gris 43",
+        "hex": "#6E6C70",
+        "rgb": [
+          110,
+          108,
+          112
+        ]
+      },
+      {
+        "swatch_code": "33139",
+        "family_id": "grises",
+        "color_name": "Gris 29",
+        "hex": "#46484B",
+        "rgb": [
+          70,
+          72,
+          75
+        ]
+      },
+      {
+        "swatch_code": "33147",
+        "family_id": "grises",
+        "color_name": "Gris 47",
+        "hex": "#706F78",
+        "rgb": [
+          112,
+          111,
+          120
+        ]
+      },
+      {
+        "swatch_code": "33149",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#3C3D45",
+        "rgb": [
+          60,
+          61,
+          69
+        ]
+      },
+      {
+        "swatch_code": "33150",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#2D2E34",
+        "rgb": [
+          45,
+          46,
+          52
+        ]
+      },
+      {
+        "swatch_code": "5310-0003",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#7F716E",
+        "rgb": [
+          127,
+          113,
+          110
+        ]
+      },
+      {
+        "swatch_code": "5310-0126",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#383744",
+        "rgb": [
+          56,
+          55,
+          68
+        ]
+      },
+      {
+        "swatch_code": "5600-0018",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#241E22",
+        "rgb": [
+          36,
+          30,
+          34
+        ]
+      },
+      {
+        "swatch_code": "574-2587",
+        "family_id": "grises",
+        "color_name": "Gris 62",
+        "hex": "#A09193",
+        "rgb": [
+          160,
+          145,
+          147
+        ]
+      },
+      {
+        "swatch_code": "70423-0021",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#564543",
+        "rgb": [
+          86,
+          69,
+          67
+        ]
+      },
+      {
+        "swatch_code": "9352-0291",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#33343A",
+        "rgb": [
+          51,
+          52,
+          58
+        ]
+      },
+      {
+        "swatch_code": "9468-0083",
+        "family_id": "grises",
+        "color_name": "Gris 38",
+        "hex": "#5B5B62",
+        "rgb": [
+          91,
+          91,
+          98
+        ]
+      },
+      {
+        "swatch_code": "I4020-0068",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#6A8072",
+        "rgb": [
+          106,
+          128,
+          114
+        ]
+      }
+    ],
+    "marrones": [
+      {
+        "swatch_code": "191-5558",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#A79691",
+        "rgb": [
+          167,
+          150,
+          145
+        ]
+      },
+      {
+        "swatch_code": "095U-0037",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#433837",
+        "rgb": [
+          67,
+          56,
+          55
+        ]
+      },
+      {
+        "swatch_code": "095U-0205",
+        "family_id": "grises",
+        "color_name": "Gris 63",
+        "hex": "#A29493",
+        "rgb": [
+          162,
+          148,
+          147
+        ]
+      },
+      {
+        "swatch_code": "095T-0132",
+        "family_id": "grises",
+        "color_name": "Gris Neutro",
+        "hex": "#7F665B",
+        "rgb": [
+          127,
+          102,
+          91
+        ]
+      },
+      {
+        "swatch_code": "095U-0219",
+        "family_id": "marrones",
+        "color_name": "Marrone",
+        "hex": "#9D7F6F",
+        "rgb": [
+          157,
+          127,
+          111
+        ]
+      },
+      {
+        "swatch_code": "11170-0008",
+        "family_id": "marrones",
+        "color_name": "Marrón",
+        "hex": "#CAB8A2",
+        "rgb": [
+          202,
+          184,
+          162
+        ]
+      },
+      {
+        "swatch_code": "4020T-0030",
+        "family_id": "marrones",
+        "color_name": "Marrón",
+        "hex": "#C2ACA1",
+        "rgb": [
+          194,
+          172,
+          161
+        ]
+      }
+    ],
+    "neutros": [
+      {
+        "swatch_code": "095T-0121",
+        "family_id": "neutros",
+        "color_name": "Negro Carbón",
+        "hex": "#2F3432",
+        "rgb": [
+          47,
+          52,
+          50
+        ]
+      },
+      {
+        "swatch_code": "162-4035",
+        "family_id": "neutros",
+        "color_name": "Negro Carbón",
+        "hex": "#3E383C",
+        "rgb": [
+          62,
+          56,
+          60
+        ]
+      },
+      {
+        "swatch_code": "2390-4481",
+        "family_id": "neutros",
+        "color_name": "Negro Carbón",
+        "hex": "#3D3A3D",
+        "rgb": [
+          61,
+          58,
+          61
+        ]
+      }
+    ],
+    "verdes": [],
+    "tonos-calidos": [],
+    "tonos-frios": []
+  },
+  "all_results": [
+    {
+      "swatch_code": "095T-0121",
+      "family_id": "neutros",
+      "color_name": "Negro Carbón",
+      "hex": "#2F3432",
+      "rgb": [
+        47,
+        52,
+        50
+      ]
+    },
+    {
+      "swatch_code": "095T-0132",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#7F665B",
+      "rgb": [
+        127,
+        102,
+        91
+      ]
+    },
+    {
+      "swatch_code": "095T-017B",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#292E34",
+      "rgb": [
+        41,
+        46,
+        52
+      ]
+    },
+    {
+      "swatch_code": "095T-B22D",
+      "family_id": "grises",
+      "color_name": "Gris 62",
+      "hex": "#9F989D",
+      "rgb": [
+        159,
+        152,
+        157
+      ]
+    },
+    {
+      "swatch_code": "095U-0037",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#433837",
+      "rgb": [
+        67,
+        56,
+        55
+      ]
+    },
+    {
+      "swatch_code": "095U-0205",
+      "family_id": "grises",
+      "color_name": "Gris 63",
+      "hex": "#A29493",
+      "rgb": [
+        162,
+        148,
+        147
+      ]
+    },
+    {
+      "swatch_code": "095U-0219",
+      "family_id": "marrones",
+      "color_name": "Marrone",
+      "hex": "#9D7F6F",
+      "rgb": [
+        157,
+        127,
+        111
+      ]
+    },
+    {
+      "swatch_code": "11170-0008",
+      "family_id": "marrones",
+      "color_name": "Marrón",
+      "hex": "#CAB8A2",
+      "rgb": [
+        202,
+        184,
+        162
+      ]
+    },
+    {
+      "swatch_code": "1251-0042",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#373941",
+      "rgb": [
+        55,
+        57,
+        65
+      ]
+    },
+    {
+      "swatch_code": "1251-0043",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#1F2536",
+      "rgb": [
+        31,
+        37,
+        54
+      ]
+    },
+    {
+      "swatch_code": "1410-0075",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#202531",
+      "rgb": [
+        32,
+        37,
+        49
+      ]
+    },
+    {
+      "swatch_code": "1410U-0001",
+      "family_id": "grises",
+      "color_name": "Gris 43",
+      "hex": "#68676E",
+      "rgb": [
+        104,
+        103,
+        110
+      ]
+    },
+    {
+      "swatch_code": "1410U-0004",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#2E3036",
+      "rgb": [
+        46,
+        48,
+        54
+      ]
+    },
+    {
+      "swatch_code": "1410U-0010",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#21242E",
+      "rgb": [
+        33,
+        36,
+        46
+      ]
+    },
+    {
+      "swatch_code": "1410U-0013",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#21232B",
+      "rgb": [
+        33,
+        35,
+        43
+      ]
+    },
+    {
+      "swatch_code": "1410U-0022",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#453D3F",
+      "rgb": [
+        69,
+        61,
+        63
+      ]
+    },
+    {
+      "swatch_code": "1420-0042",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#232938",
+      "rgb": [
+        35,
+        41,
+        56
+      ]
+    },
+    {
+      "swatch_code": "1420-0078",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#1F232C",
+      "rgb": [
+        31,
+        35,
+        44
+      ]
+    },
+    {
+      "swatch_code": "1421-0617",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#222939",
+      "rgb": [
+        34,
+        41,
+        57
+      ]
+    },
+    {
+      "swatch_code": "1480-0041",
+      "family_id": "grises",
+      "color_name": "Gris 49",
+      "hex": "#78787F",
+      "rgb": [
+        120,
+        120,
+        127
+      ]
+    },
+    {
+      "swatch_code": "1480-0083",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#232731",
+      "rgb": [
+        35,
+        39,
+        49
+      ]
+    },
+    {
+      "swatch_code": "1480U-0016",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#292F3C",
+      "rgb": [
+        41,
+        47,
+        60
+      ]
+    },
+    {
+      "swatch_code": "162-4035",
+      "family_id": "neutros",
+      "color_name": "Negro Carbón",
+      "hex": "#3E383C",
+      "rgb": [
+        62,
+        56,
+        60
+      ]
+    },
+    {
+      "swatch_code": "1810-0161",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#25282F",
+      "rgb": [
+        37,
+        40,
+        47
+      ]
+    },
+    {
+      "swatch_code": "1880-3602",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#3A3B42",
+      "rgb": [
+        58,
+        59,
+        66
+      ]
+    },
+    {
+      "swatch_code": "1880-3621",
+      "family_id": "grises",
+      "color_name": "Gris 42",
+      "hex": "#66656C",
+      "rgb": [
+        102,
+        101,
+        108
+      ]
+    },
+    {
+      "swatch_code": "1880-3821",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#23252A",
+      "rgb": [
+        35,
+        37,
+        42
+      ]
+    },
+    {
+      "swatch_code": "1880-3824",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#20232C",
+      "rgb": [
+        32,
+        35,
+        44
+      ]
+    },
+    {
+      "swatch_code": "1880-4633",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#5D606A",
+      "rgb": [
+        93,
+        96,
+        106
+      ]
+    },
+    {
+      "swatch_code": "1880-4634",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#2F3C4C",
+      "rgb": [
+        47,
+        60,
+        76
+      ]
+    },
+    {
+      "swatch_code": "1880-4654",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#2D3A49",
+      "rgb": [
+        45,
+        58,
+        73
+      ]
+    },
+    {
+      "swatch_code": "1880-4672",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#252934",
+      "rgb": [
+        37,
+        41,
+        52
+      ]
+    },
+    {
+      "swatch_code": "1880-4678",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#27282D",
+      "rgb": [
+        39,
+        40,
+        45
+      ]
+    },
+    {
+      "swatch_code": "1880-4682",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#262B38",
+      "rgb": [
+        38,
+        43,
+        56
+      ]
+    },
+    {
+      "swatch_code": "1880-4707",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#6B7282",
+      "rgb": [
+        107,
+        114,
+        130
+      ]
+    },
+    {
+      "swatch_code": "1880-4708",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#232935",
+      "rgb": [
+        35,
+        41,
+        53
+      ]
+    },
+    {
+      "swatch_code": "1880-4771",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#232529",
+      "rgb": [
+        35,
+        37,
+        41
+      ]
+    },
+    {
+      "swatch_code": "1880-4775",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#21252F",
+      "rgb": [
+        33,
+        37,
+        47
+      ]
+    },
+    {
+      "swatch_code": "191-2252",
+      "family_id": "grises",
+      "color_name": "Gris 36",
+      "hex": "#53555C",
+      "rgb": [
+        83,
+        85,
+        92
+      ]
+    },
+    {
+      "swatch_code": "191-5555",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#373F48",
+      "rgb": [
+        55,
+        63,
+        72
+      ]
+    },
+    {
+      "swatch_code": "1990-0151",
+      "family_id": "grises",
+      "color_name": "Gris 56",
+      "hex": "#908E91",
+      "rgb": [
+        144,
+        142,
+        145
+      ]
+    },
+    {
+      "swatch_code": "226-1502",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#24262C",
+      "rgb": [
+        36,
+        38,
+        44
+      ]
+    },
+    {
+      "swatch_code": "2390-4481",
+      "family_id": "neutros",
+      "color_name": "Negro Carbón",
+      "hex": "#3D3A3D",
+      "rgb": [
+        61,
+        58,
+        61
+      ]
+    },
+    {
+      "swatch_code": "2540-0037",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#26272D",
+      "rgb": [
+        38,
+        39,
+        45
+      ]
+    },
+    {
+      "swatch_code": "2540-0059",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#2C343F",
+      "rgb": [
+        44,
+        52,
+        63
+      ]
+    },
+    {
+      "swatch_code": "2590-0601",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#24262B",
+      "rgb": [
+        36,
+        38,
+        43
+      ]
+    },
+    {
+      "swatch_code": "2790-0013",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#21242A",
+      "rgb": [
+        33,
+        36,
+        42
+      ]
+    },
+    {
+      "swatch_code": "2960-6326",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#25272D",
+      "rgb": [
+        37,
+        39,
+        45
+      ]
+    },
+    {
+      "swatch_code": "2970-0016",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#282B31",
+      "rgb": [
+        40,
+        43,
+        49
+      ]
+    },
+    {
+      "swatch_code": "3000-0132",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#222832",
+      "rgb": [
+        34,
+        40,
+        50
+      ]
+    },
+    {
+      "swatch_code": "33125",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#242934",
+      "rgb": [
+        36,
+        41,
+        52
+      ]
+    },
+    {
+      "swatch_code": "33126",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#2A3345",
+      "rgb": [
+        42,
+        51,
+        69
+      ]
+    },
+    {
+      "swatch_code": "33127",
+      "family_id": "azules",
+      "color_name": "Azule",
+      "hex": "#353E4E",
+      "rgb": [
+        53,
+        62,
+        78
+      ]
+    },
+    {
+      "swatch_code": "33129",
+      "family_id": "grises",
+      "color_name": "Gris 30",
+      "hex": "#46464D",
+      "rgb": [
+        70,
+        70,
+        77
+      ]
+    },
+    {
+      "swatch_code": "33130",
+      "family_id": "grises",
+      "color_name": "Gris 43",
+      "hex": "#6E6C70",
+      "rgb": [
+        110,
+        108,
+        112
+      ]
+    },
+    {
+      "swatch_code": "33139",
+      "family_id": "grises",
+      "color_name": "Gris 29",
+      "hex": "#46484B",
+      "rgb": [
+        70,
+        72,
+        75
+      ]
+    },
+    {
+      "swatch_code": "33142",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#222530",
+      "rgb": [
+        34,
+        37,
+        48
+      ]
+    },
+    {
+      "swatch_code": "33144",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#29354A",
+      "rgb": [
+        41,
+        53,
+        74
+      ]
+    },
+    {
+      "swatch_code": "33147",
+      "family_id": "grises",
+      "color_name": "Gris 47",
+      "hex": "#706F78",
+      "rgb": [
+        112,
+        111,
+        120
+      ]
+    },
+    {
+      "swatch_code": "33149",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#3C3D45",
+      "rgb": [
+        60,
+        61,
+        69
+      ]
+    },
+    {
+      "swatch_code": "33150",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#2D2E34",
+      "rgb": [
+        45,
+        46,
+        52
+      ]
+    },
+    {
+      "swatch_code": "4020T-0030",
+      "family_id": "marrones",
+      "color_name": "Marrón",
+      "hex": "#C2ACA1",
+      "rgb": [
+        194,
+        172,
+        161
+      ]
+    },
+    {
+      "swatch_code": "4300-0054",
+      "family_id": "azules",
+      "color_name": "Azule",
+      "hex": "#2E384E",
+      "rgb": [
+        46,
+        56,
+        78
+      ]
+    },
+    {
+      "swatch_code": "4530T-0153",
+      "family_id": "azules",
+      "color_name": "Azule",
+      "hex": "#333E58",
+      "rgb": [
+        51,
+        62,
+        88
+      ]
+    },
+    {
+      "swatch_code": "4710-0024",
+      "family_id": "azules",
+      "color_name": "Azule",
+      "hex": "#4B6772",
+      "rgb": [
+        75,
+        103,
+        114
+      ]
+    },
+    {
+      "swatch_code": "4860-0002",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#1F242C",
+      "rgb": [
+        31,
+        36,
+        44
+      ]
+    },
+    {
+      "swatch_code": "5310-0003",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#7F716E",
+      "rgb": [
+        127,
+        113,
+        110
+      ]
+    },
+    {
+      "swatch_code": "5310-0126",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#383744",
+      "rgb": [
+        56,
+        55,
+        68
+      ]
+    },
+    {
+      "swatch_code": "5320-0002",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#20272F",
+      "rgb": [
+        32,
+        39,
+        47
+      ]
+    },
+    {
+      "swatch_code": "5600-0018",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#241E22",
+      "rgb": [
+        36,
+        30,
+        34
+      ]
+    },
+    {
+      "swatch_code": "567-0003",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#1A1D22",
+      "rgb": [
+        26,
+        29,
+        34
+      ]
+    },
+    {
+      "swatch_code": "574-2587",
+      "family_id": "grises",
+      "color_name": "Gris 62",
+      "hex": "#A09193",
+      "rgb": [
+        160,
+        145,
+        147
+      ]
+    },
+    {
+      "swatch_code": "70423-0021",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#564543",
+      "rgb": [
+        86,
+        69,
+        67
+      ]
+    },
+    {
+      "swatch_code": "88080-0003",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#21262D",
+      "rgb": [
+        33,
+        38,
+        45
+      ]
+    },
+    {
+      "swatch_code": "9352-0291",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#33343A",
+      "rgb": [
+        51,
+        52,
+        58
+      ]
+    },
+    {
+      "swatch_code": "9432-0083",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#252B38",
+      "rgb": [
+        37,
+        43,
+        56
+      ]
+    },
+    {
+      "swatch_code": "9468-0083",
+      "family_id": "grises",
+      "color_name": "Gris 38",
+      "hex": "#5B5B62",
+      "rgb": [
+        91,
+        91,
+        98
+      ]
+    },
+    {
+      "swatch_code": "9481-1622",
+      "family_id": "azules",
+      "color_name": "Azule",
+      "hex": "#2D3E58",
+      "rgb": [
+        45,
+        62,
+        88
+      ]
+    },
+    {
+      "swatch_code": "9529-0522",
+      "family_id": "azules",
+      "color_name": "Azule",
+      "hex": "#434C5C",
+      "rgb": [
+        67,
+        76,
+        92
+      ]
+    },
+    {
+      "swatch_code": "I4020-0068",
+      "family_id": "grises",
+      "color_name": "Gris Neutro",
+      "hex": "#6A8072",
+      "rgb": [
+        106,
+        128,
+        114
+      ]
+    },
+    {
+      "swatch_code": "P993N-913P",
+      "family_id": "azules",
+      "color_name": "Azule Oscuro",
+      "hex": "#1C1F24",
+      "rgb": [
+        28,
+        31,
+        36
+      ]
+    }
+  ],
+  "summary": {
+    "azules": 38,
+    "grises": 38,
+    "marrones": 3,
+    "neutros": 3
+  }
+}
