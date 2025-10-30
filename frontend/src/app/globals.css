@@ -71,3 +71,19 @@ body {
   transform: translateY(-3px);
   box-shadow: var(--shadow-elevated);
 }
+
+/* Animations */
+@keyframes slide-up {
+  from {
+    transform: translate(-50%, 20px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}

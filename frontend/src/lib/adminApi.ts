@@ -6,7 +6,6 @@ import type {
   FabricRead,
   ColorRead,
   FabricCreate,
-  ColorCreate,
   ColorUpdate,
   GenerationJobRead
 } from "@/types/admin";

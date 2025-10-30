@@ -169,6 +169,7 @@ function QuickCreate({ onCreate }: { onCreate: () => void }) {
                 color_id: `demo-${Math.random().toString(36).slice(2, 7)}`,
                 name: colorName || "Demo",
                 hex_value: hex,
+                status: "active",
               },
             ],
           });

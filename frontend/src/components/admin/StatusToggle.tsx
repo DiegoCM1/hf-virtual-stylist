@@ -21,15 +21,15 @@ export function StatusToggle({
   const sizes = {
     sm: {
       container: "w-10 h-5",
-      circle: "w-3 h-3 top-1",
-      activeTransform: "translateX(20px)",
-      inactiveTransform: "translateX(4px)",
+      circle: "w-3 h-3 top-1 left-1",
+      activeTransform: "translateX(0px)",
+      inactiveTransform: "translateX(16px)",
     },
     md: {
       container: "w-12 h-6",
-      circle: "w-4 h-4 top-1",
-      activeTransform: "translateX(28px)",
-      inactiveTransform: "translateX(4px)",
+      circle: "w-4 h-4 top-1 left-1",
+      activeTransform: "translateX(0px)",
+      inactiveTransform: "translateX(20px)",
     },
   };
 
