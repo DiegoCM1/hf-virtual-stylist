@@ -1,0 +1,81 @@
+"use client";
+
+interface StatusToggleProps {
+  status: "active" | "inactive";
+  onChange: (status: "active" | "inactive") => void;
+  disabled?: boolean;
+  label?: boolean;
+  size?: "sm" | "md";
+}
+
+export function StatusToggle({
+  status,
+  onChange,
+  disabled = false,
+  label = false,
+  size = "md",
+}: StatusToggleProps) {
+  const isActive = status === "active";
+
+  // Size configurations
+  const sizes = {
+    sm: {
+      container: "w-10 h-5",
+      circle: "w-3 h-3 top-1",
+      activeTransform: "translateX(20px)",
+      inactiveTransform: "translateX(4px)",
+    },
+    md: {
+      container: "w-12 h-6",
+      circle: "w-4 h-4 top-1",
+      activeTransform: "translateX(28px)",
+      inactiveTransform: "translateX(4px)",
+    },
+  };
+
+  const config = sizes[size];
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={isActive}
+        aria-label={`Toggle status: ${status}`}
+        onClick={() => onChange(isActive ? "inactive" : "active")}
+        disabled={disabled}
+        className={`
+          relative rounded-full transition-colors duration-150
+          ${config.container}
+          ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:brightness-110"}
+        `}
+        style={{
+          backgroundColor: isActive
+            ? "var(--color-active)"
+            : "var(--color-inactive)",
+        }}
+      >
+        <span
+          className={`
+            absolute bg-white rounded-full transition-transform duration-150
+            ${config.circle}
+          `}
+          style={{
+            transform: isActive ? config.activeTransform : config.inactiveTransform,
+          }}
+        />
+      </button>
+
+      {label && (
+        <span
+          className="font-body text-xs font-medium"
+          style={{
+            color: isActive ? "var(--color-active)" : "var(--color-inactive)",
+          }}
+        >
+          {isActive ? "Activo" : "Inactivo"}
+        </span>
+      )}
+    </div>
+  );
+}
