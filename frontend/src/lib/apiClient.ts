@@ -24,7 +24,6 @@ async function withTimeout<T>(promise: Promise<T>, ms = 60000): Promise<T> {
   const ctrl = new AbortController();
   const id = setTimeout(() => ctrl.abort(), ms);
   try {
-    // @ts-expect-error signal is fine to pass; caller attaches it
     const result = await promise;
     clearTimeout(id);
     return result;

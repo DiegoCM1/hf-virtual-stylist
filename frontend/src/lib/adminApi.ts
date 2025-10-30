@@ -2,6 +2,8 @@
 // Frontend will call the backend directly using an absolute URL from env.
 // Make sure .env.local contains:
 // NEXT_PUBLIC_API_BASE=https://gnmicpjvt9n5dz-8000.proxy.runpod.net
+import type { FabricRead, ColorRead, FabricCreate, ColorCreate } from "@/types/admin";
+
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "").replace(/\/+$/, "");
 if (!API_BASE) {
   // Fail fast in dev so you don't silently hit / (current domain) by mistake
@@ -16,7 +18,7 @@ type JsonInit = Omit<RequestInit, "body" | "headers"> & {
 };
 
  export const setFabricStatus = async (
-   id: string,
+   id: string | number,
    status: "active" | "inactive"
  ) => {
    const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "").replace(/\/$/, "");
@@ -63,27 +65,10 @@ async function adminFetch<T>(path: string, init?: JsonInit): Promise<T> {
 }
 
 /* =========================
-   Example Types (adjust to your BE)
+   Types - Export from admin types
    ========================= */
-export type Fabric = {
-  id: string;
-  name: string;
-  code?: string;
-  family?: string;
-  preview_url?: string;
-  created_at?: string;
-  updated_at?: string;
-};
-
-export type Variant = {
-  id: string;
-  fabric_id: string;
-  name: string;
-  color_hex?: string;
-  texture_url?: string;
-  created_at?: string;
-  updated_at?: string;
-};
+export type Fabric = FabricRead;
+export type Variant = ColorRead;
 
 /* =========================
    Generic Helpers (use these anywhere)
@@ -104,16 +89,22 @@ export const adminDelete = <T>(path: string) =>
    ========================= */
 
 // Fabrics
-export const listFabrics = () => adminGet<Fabric[]>("/fabrics");
-export const getFabric = (id: string) => adminGet<Fabric>(`/fabrics/${id}`);
-export const createFabric = (data: Partial<Fabric>) =>
+export const listFabrics = (params?: { q?: string; limit?: number }) => {
+  const query = new URLSearchParams();
+  if (params?.q) query.set("q", params.q);
+  if (params?.limit) query.set("limit", params.limit.toString());
+  const queryString = query.toString();
+  return adminGet<Fabric[]>(`/fabrics${queryString ? `?${queryString}` : ""}`);
+};
+export const getFabric = (id: string | number) => adminGet<Fabric>(`/fabrics/${id}`);
+export const createFabric = (data: FabricCreate) =>
   adminPost<Fabric>("/fabrics", data);
-export const updateFabric = (id: string, data: Partial<Fabric>) =>
+export const updateFabric = (id: string | number, data: Partial<Fabric>) =>
   adminPatch<Fabric>(`/fabrics/${id}`, data);
-export const deleteFabric = (id: string) => adminDelete<void>(`/fabrics/${id}`);
+export const deleteFabric = (id: string | number) => adminDelete<void>(`/fabrics/${id}`);
 
 // Optional: upload a preview image for a fabric (multipart)
-export const uploadFabricPreview = (id: string, file: File) => {
+export const uploadFabricPreview = (id: string | number, file: File) => {
   const fd = new FormData();
   fd.append("file", file);
   return adminFetch<Fabric>(`/fabrics/${id}/preview`, {
@@ -124,15 +115,15 @@ export const uploadFabricPreview = (id: string, file: File) => {
 
 // Variants (two common styles; keep whichever your backend supports)
 export const listVariants = () => adminGet<Variant[]>("/variants");
-export const listFabricVariants = (fabricId: string) =>
+export const listFabricVariants = (fabricId: string | number) =>
   adminGet<Variant[]>(`/fabrics/${fabricId}/variants`);
-export const createVariant = (data: Partial<Variant>) =>
+export const createVariant = (data: ColorCreate) =>
   adminPost<Variant>("/variants", data);
-export const createVariantForFabric = (fabricId: string, data: Partial<Variant>) =>
+export const createVariantForFabric = (fabricId: string | number, data: ColorCreate) =>
   adminPost<Variant>(`/fabrics/${fabricId}/variants`, data);
-export const updateVariant = (id: string, data: Partial<Variant>) =>
+export const updateVariant = (id: string | number, data: Partial<Variant>) =>
   adminPatch<Variant>(`/variants/${id}`, data);
-export const deleteVariant = (id: string) => adminDelete<void>(`/variants/${id}`);
+export const deleteVariant = (id: string | number) => adminDelete<void>(`/variants/${id}`);
 
 /* =========================
    Health / Ops (optional)
