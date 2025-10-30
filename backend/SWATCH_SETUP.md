@@ -7,13 +7,12 @@ This guide helps you configure fabric swatch images to display in the color sele
 
 ### R2 Bucket Structure
 ```
-harris-and-frank/
-└── ZEGNA 2025-26/
-    ├── 095T-0121.png
-    ├── 095T-0132.png
-    ├── 095T-017B.png
-    ├── 095T-B22D.png
-    └── ... (more swatch images)
+ZEGNA 2025-26/
+├── 095T-0121.png
+├── 095T-0132.png
+├── 095T-017B.png
+├── 095T-B22D.png
+└── ... (more swatch images)
 ```
 
 ### Database Fields
@@ -27,12 +26,12 @@ Each `Color` record has:
 ### URL Generation
 The catalog API automatically builds swatch URLs:
 ```
-{R2_PUBLIC_URL}/harris-and-frank/ZEGNA%202025-26/{swatch_code}.png
+{R2_PUBLIC_URL}/ZEGNA%202025-26/{swatch_code}.png
 ```
 
 Example:
 ```
-https://pub-56acd80744c24e2fb1fca9004abce188.r2.dev/harris-and-frank/ZEGNA%202025-26/095T-0121.png
+https://pub-56acd80744c24e2fb1fca9004abce188.r2.dev/ZEGNA%202025-26/095T-0121.png
 ```
 
 ## Setup Steps

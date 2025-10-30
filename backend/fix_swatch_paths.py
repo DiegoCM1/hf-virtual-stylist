@@ -2,7 +2,7 @@
 Quick fix script to update swatch URLs to correct R2 path.
 
 Current (wrong):  https://pub-.../fabrics/095T-0121.png
-Correct (right):  https://pub-.../harris-and-frank/ZEGNA%202025-26/095T-0121.png
+Correct (right):  https://pub-.../ZEGNA%202025-26/095T-0121.png
 """
 
 from sqlalchemy.orm import Session
@@ -25,7 +25,7 @@ def fix_swatch_urls():
                 filename = color.swatch_url.split("/fabrics/")[-1]
 
                 # Build new URL with correct path
-                swatch_path = f"harris-and-frank/ZEGNA%202025-26/{filename}"
+                swatch_path = f"ZEGNA%202025-26/{filename}"
                 new_url = f"{settings.r2_public_url}/{swatch_path}"
 
                 print(f"✅ {color.color_id}: {color.swatch_url}")

@@ -52,7 +52,7 @@ def get_catalog(db: Session = Depends(get_db)):
             # Build swatch_url from swatch_code if available
             if c.swatch_code and settings.r2_public_url:
                 # URL encode the path components for spaces and special chars
-                swatch_path = f"harris-and-frank/ZEGNA%202025-26/{quote(c.swatch_code)}.png"
+                swatch_path = f"ZEGNA%202025-26/{quote(c.swatch_code)}.png"
                 color_dict["swatch_url"] = f"{settings.r2_public_url}/{swatch_path}"
             elif c.swatch_url:
                 # Use explicit swatch_url if set
