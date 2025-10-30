@@ -6,6 +6,8 @@ import os
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from app.admin.router import router as admin_fabrics_router
+from app.admin.colors_router import router as admin_colors_router
+from app.admin.generations_router import router as admin_generations_router
 
 
 
@@ -40,6 +42,8 @@ app.add_middleware(
 )
 
 app.include_router(admin_fabrics_router)
+app.include_router(admin_colors_router)
+app.include_router(admin_generations_router)
 
 @app.get("/healthz")
 def healthz():

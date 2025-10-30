@@ -16,6 +16,8 @@ class FabricFamily(Base):
     family_id = Column(String, unique=True, nullable=False, index=True)
     display_name = Column(String, nullable=False)
     status = Column(String, nullable=False, default="active")
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     colors = relationship(
         "Color",
@@ -39,6 +41,9 @@ class Color(Base):
     hex_value = Column(String, nullable=False)
     swatch_code = Column(String, nullable=True)  # R2 swatch filename (e.g., "095T-0121")
     swatch_url = Column(String, nullable=True)
+    status = Column(String, nullable=False, default="active", index=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     fabric_family = relationship("FabricFamily", back_populates="colors")
 
