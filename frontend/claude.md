@@ -4,6 +4,15 @@
 
 The Harris & Frank Virtual Stylist is an AI-powered digital suit styling and visualization application for a luxury menswear brand. This Next.js 15 application provides an interactive, mobile-friendly interface that allows customers and sales associates to visualize suits in different fabrics and colors using AI-generated photorealistic images.
 
+**Design Philosophy:**
+Inspired by the Harris & Frank website aesthetic, the application follows a minimalist luxury design system featuring:
+- Soft white backgrounds (#f9f9f9)
+- Near-black text (#1c1d1d)
+- Sharp border radius (3px)
+- Generous whitespace
+- Smooth micro-interactions (200ms transitions)
+- Figtree (headers) and Jost (body) typography
+
 **Tech Stack:**
 - Next.js 15.5.3 with App Router
 - React 19.1.0
@@ -64,20 +73,46 @@ frontend/
 ## Key Features
 
 ### 1. Stylist Experience (Customer-Facing)
-- **Catalog Selection**: Browse fabric families and color variants
-- **Image Upload**: Capture from camera or upload from gallery
-- **AI Generation**: Generate photorealistic suit visualizations in different poses (recto/front and cruzado/side)
-- **Gallery View**: View generated images in a responsive grid
+- **Full-Screen Layout**: No vertical scroll, optimized viewport usage with max-w-7xl container
+- **Centered Logo Header**: Dark background (gray-900) with centered white logo
+- **Compact Controls**: Family selector and fabric search in same row
+- **Scrollable Fabric Grid**:
+  - Fixed-height container with internal scroll
+  - 4-column grid on desktop (2 on mobile, 3 on tablet)
+  - Large square fabric swatches with hover effects (scale + shadow)
+  - Shows ~8 fabrics visible (2 rows)
+- **Image Upload**: Elegant white buttons with icons (📁 Elegir Foto, 📷 Tomar Foto)
+- **Generate Button**: Premium black button with uppercase text, loading spinner, and lift effect
+- **AI Generation**: Generate photorealistic suit visualizations in different poses
+- **Gallery View**: View generated images in a responsive grid with independent scroll
 - **Fullscreen Modal**: Click to zoom images with keyboard support (Escape to close)
-- **Search**: Find fabrics by ID (e.g., "navy-001")
+- **Search**: Find fabrics by ID integrated in top row
 
-### 2. Admin Dashboard
-- **Fabric Management**: View, create, edit, and delete fabrics
-- **Status Management**: Toggle active/inactive status for fabrics
-- **Color Management**: Add and manage color variants for each fabric
-- **Preview Upload**: Upload preview images for fabrics
-- **Search & Filter**: Search by family ID or name
-- **Quick Create**: Fast form for adding new fabrics
+### 2. Admin Dashboard (Phase 5 - COMPLETED)
+- **Luxury Design System**: Consistent 3px borders, gray color palette, Figtree/Jost fonts
+- **Fabric Management Grid**:
+  - Responsive 1/2/3 column layout
+  - 4:3 aspect ratio preview cards
+  - Hover overlays with fabric names
+  - Status badges (active/inactive)
+- **Status Management**: Toggle switches with smooth transitions (active=left, inactive=right)
+- **Bulk Operations**:
+  - Multi-select mode with checkboxes
+  - Bulk activate/deactivate
+  - Bulk delete with confirmation
+  - Floating action bar
+- **Advanced Filtering**:
+  - Collapsible filter panel
+  - Filter by status (all/active/inactive)
+  - Sort by: name, date, fabric count, recent updates
+  - Ascending/descending order
+- **Fabric Cards**:
+  - Expandable color grids (3 columns)
+  - Drag-and-drop color moving between families
+  - Individual status toggles
+  - Edit/Delete actions (UI ready, modals pending)
+- **Search Bar**: Real-time search by family ID, name, or fabric colors
+- **Footer Statistics**: Total families and fabrics count
 
 ## Architecture & Design Patterns
 
@@ -266,6 +301,71 @@ images: {
 3. Deploy `.next` directory
 4. Start with `npm start`
 
+## Design System (Harris & Frank Inspired)
+
+### Color Palette
+```css
+/* Backgrounds */
+--color-bg-light: #f9f9f9;    /* Soft white - main background */
+--color-white: #ffffff;        /* Pure white - cards, buttons */
+
+/* Text */
+--color-dark: #1c1d1d;        /* Near-black - primary text */
+--color-charcoal: #222222;     /* Dark charcoal - accents */
+
+/* Borders & Shadows */
+--color-border: #e5e5e5;       /* Subtle borders */
+--color-shadow: rgba(0, 0, 0, 0.08);
+
+/* Status Colors */
+--color-active: #10b981;       /* Green for active */
+--color-inactive: #6b7280;     /* Gray for inactive */
+```
+
+### Typography
+- **Headers**: Figtree, 0.2em letter-spacing (elegant elongation)
+- **Body**: Jost, 14px, 1.6 line-height
+- **Buttons**: Uppercase with tracking-wide
+
+### Spacing & Layout
+- **Max Width**: 1280px (max-w-7xl)
+- **Card Padding**: 24px
+- **Border Radius**: 3px (sharp, not rounded)
+- **Grid Gaps**: 24px (gap-6)
+
+### Interactive Elements
+- **Transitions**: 200ms ease-out
+- **Hover Effects**:
+  - Lift: `translateY(-0.5px)` or `translateY(-2px)` for buttons
+  - Shadow: Subtle elevation increase
+  - Border: Gray → Black
+- **Focus States**: 2px ring with offset
+- **Active States**: Return to neutral position
+
+### Button Styles
+1. **Primary (Black)**:
+   - `bg-gray-900 text-white`
+   - Uppercase with tracking
+   - Hover: lift + shadow
+   - Example: "Generar Imágenes"
+
+2. **Secondary (White)**:
+   - `bg-white border-gray-300 text-gray-900`
+   - Icon + text
+   - Hover: border-gray-900 + lift
+   - Example: "Elegir Foto"
+
+3. **Danger (Red)**:
+   - `bg-red-600 text-white`
+   - Used for delete actions
+   - Hover: bg-red-700
+
+### Component Patterns
+- **Cards**: White background, gray border, subtle shadow
+- **Inputs**: White background, focus ring, 3px radius
+- **Toggles**: Smooth transitions, clear states
+- **Modals**: Centered, backdrop blur, smooth enter/exit
+
 ## TypeScript Types
 
 ### Core Types
@@ -404,10 +504,118 @@ interface Fabric {
 - Use Next.js Image component for images
 - Avoid unnecessary re-renders
 
+## Recent Updates (Latest Session - 2025-01-XX)
+
+### ✅ Completed
+1. **User Experience Redesign**:
+   - Full-screen layout without vertical page scroll
+   - Centered logo header with dark background
+   - Family selector and fabric search in same row (2-column grid)
+   - Scrollable fabric grid reduced by 33% height
+   - 4-column fabric grid on desktop (responsive: 2/3/4)
+   - Large square swatches with hover scale effect
+
+2. **Button Styling (Harris & Frank aesthetic)**:
+   - "Generar Imágenes": Black button with uppercase text, lift hover, loading spinner
+   - "Elegir Foto"/"Tomar Foto": White buttons with icons, border transitions
+   - Consistent 3px border radius, 200ms transitions
+
+3. **Admin Panel Enhancements**:
+   - Fixed StatusToggle direction (active=left, inactive=right)
+   - Resolved FabricCard z-index issues (checkbox vs status badge)
+   - Changed terminology from "colores" to "telas" throughout admin
+   - Fabric grid shows actual fabric images (3 columns)
+   - Improved fallback for missing swatch images (elegant hex display)
+
+4. **Backend Integration**:
+   - Added `build_swatch_url()` function in admin router
+   - Constructs swatch URLs dynamically using `swatch_code` field
+   - Updated seed script to populate `swatch_code` instead of `swatch_url`
+   - Created `update_swatch_codes.py` utility script
+
+### ⚠️ Pending Tasks
+
+#### High Priority (Critical for Production)
+1. **Admin CRUD Modals** (UI exists, handlers need implementation):
+   - [ ] CreateFabricModal - New family creation form
+   - [ ] EditFabricModal - Edit existing family
+   - [ ] DeleteConfirmationModal - Safe deletion with confirmation
+   - [ ] ColorManagementModal - Add/edit/remove fabrics within families
+   - [ ] ImageUploadModal - Upload swatch images with preview
+
+2. **Backend Data Migration**:
+   - [ ] Create new seed script using `swatch_categorization.json`
+   - [ ] Migrate to color-based families: azules, grises, marrones, neutros
+   - [ ] Remove old fabric families (lana-cachemir, algodon-tech, etc.)
+   - [ ] Populate `swatch_code` field for all existing fabrics
+   - [ ] Run seed: `python seed.py` or `python update_swatch_codes.py`
+
+3. **Authentication & Authorization**:
+   - [ ] Admin login page
+   - [ ] Protected routes with JWT validation
+   - [ ] Session management
+   - [ ] Logout functionality
+
+4. **Validation & Error Handling**:
+   - [ ] Client-side form validation (Zod or Yup)
+   - [ ] Toast notifications (replace `alert()`)
+   - [ ] HTTP error handling by status code
+   - [ ] Retry logic for network failures
+
+#### Medium Priority (UX Improvements)
+5. **Visual Feedback**:
+   - [ ] Success toasts after operations
+   - [ ] Undo functionality for bulk actions
+   - [ ] Loading skeletons (replace spinners)
+   - [ ] Optimistic UI updates
+
+6. **Image Management**:
+   - [ ] Drag-and-drop file upload
+   - [ ] Image preview before upload
+   - [ ] Crop/resize functionality
+   - [ ] Bulk image upload
+
+7. **Search & Filtering**:
+   - [ ] Persist filters in localStorage or URL params
+   - [ ] Search by hex color code
+   - [ ] Save custom filter views
+   - [ ] Export catalog to CSV/Excel
+
+8. **Performance**:
+   - [ ] Pagination for large catalogs (100+ families)
+   - [ ] Virtual scrolling for long lists
+   - [ ] Debounce search input
+   - [ ] Memoization for heavy components
+   - [ ] Code splitting and lazy loading
+
+#### Low Priority (Nice to Have)
+9. **Keyboard Shortcuts**:
+   - [ ] Ctrl+A (select all)
+   - [ ] Delete key (bulk delete)
+   - [ ] Escape (close modals)
+   - [ ] Arrow keys (navigate grid)
+
+10. **Audit & History**:
+    - [ ] Change tracking (who changed what)
+    - [ ] Version history
+    - [ ] Rollback capability
+
+11. **Testing**:
+    - [ ] Unit tests (Jest + React Testing Library)
+    - [ ] Integration tests (API mocking)
+    - [ ] E2E tests (Playwright)
+    - [ ] Storybook component documentation
+
+12. **Accessibility**:
+    - [ ] ARIA labels and roles
+    - [ ] Keyboard navigation
+    - [ ] Screen reader optimization
+    - [ ] WCAG AA/AAA compliance
+
 ## Future Enhancements
 
 ### Potential Features
-1. **User Authentication**: Add login/logout for admin
+1. **User Authentication**: Add login/logout for admin (PENDING - High Priority)
 2. **Image History**: Save generated images to user account
 3. **Batch Generation**: Generate multiple variations at once
 4. **Analytics**: Track fabric popularity and usage
@@ -416,9 +624,9 @@ interface Fabric {
 7. **Mobile App**: React Native version
 
 ### Technical Improvements
-1. **Testing**: Add Jest + React Testing Library
-2. **E2E Tests**: Playwright or Cypress
-3. **Storybook**: Component documentation
+1. **Testing**: Add Jest + React Testing Library (PENDING)
+2. **E2E Tests**: Playwright or Cypress (PENDING)
+3. **Storybook**: Component documentation (PENDING)
 4. **CI/CD**: Automated testing and deployment
 5. **Monitoring**: Error tracking (Sentry)
 6. **Analytics**: User behavior tracking
