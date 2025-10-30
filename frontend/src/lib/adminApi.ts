@@ -2,7 +2,14 @@
 // Frontend will call the backend directly using an absolute URL from env.
 // Make sure .env.local contains:
 // NEXT_PUBLIC_API_BASE=https://gnmicpjvt9n5dz-8000.proxy.runpod.net
-import type { FabricRead, ColorRead, FabricCreate, ColorCreate } from "@/types/admin";
+import type {
+  FabricRead,
+  ColorRead,
+  FabricCreate,
+  ColorCreate,
+  ColorUpdate,
+  GenerationJobRead
+} from "@/types/admin";
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "").replace(/\/+$/, "");
 if (!API_BASE) {
@@ -113,17 +120,94 @@ export const uploadFabricPreview = (id: string | number, file: File) => {
   });
 };
 
-// Variants (two common styles; keep whichever your backend supports)
-export const listVariants = () => adminGet<Variant[]>("/variants");
-export const listFabricVariants = (fabricId: string | number) =>
-  adminGet<Variant[]>(`/fabrics/${fabricId}/variants`);
-export const createVariant = (data: ColorCreate) =>
-  adminPost<Variant>("/variants", data);
-export const createVariantForFabric = (fabricId: string | number, data: ColorCreate) =>
-  adminPost<Variant>(`/fabrics/${fabricId}/variants`, data);
-export const updateVariant = (id: string | number, data: Partial<Variant>) =>
-  adminPatch<Variant>(`/variants/${id}`, data);
-export const deleteVariant = (id: string | number) => adminDelete<void>(`/variants/${id}`);
+// Colors (new color management endpoints)
+export const listColors = (params?: {
+  q?: string;
+  family_id?: string;
+  status_filter?: "active" | "inactive";
+  limit?: number;
+}) => {
+  const query = new URLSearchParams();
+  if (params?.q) query.set("q", params.q);
+  if (params?.family_id) query.set("family_id", params.family_id);
+  if (params?.status_filter) query.set("status_filter", params.status_filter);
+  if (params?.limit) query.set("limit", params.limit.toString());
+  const queryString = query.toString();
+  return adminGet<ColorRead[]>(`/colors${queryString ? `?${queryString}` : ""}`);
+};
+
+export const getColor = (id: string | number) =>
+  adminGet<ColorRead>(`/colors/${id}`);
+
+export const updateColor = (id: string | number, data: ColorUpdate) =>
+  adminPatch<ColorRead>(`/colors/${id}`, data);
+
+export const setColorStatus = async (
+  id: string | number,
+  status: "active" | "inactive"
+) => {
+  const url = `${ADMIN_BASE}/colors/${id}/status`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+};
+
+export const moveColorToFamily = async (
+  colorId: string | number,
+  fabricFamilyId: number
+) => {
+  const url = `${ADMIN_BASE}/colors/${colorId}/move`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fabric_family_id: fabricFamilyId }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+};
+
+export const deleteColor = (id: string | number) =>
+  adminDelete<void>(`/colors/${id}`);
+
+// Generated Images / Generation Jobs
+export const listGenerations = (params?: {
+  family_id?: string;
+  color_id?: string;
+  status_filter?: "pending" | "processing" | "completed" | "failed";
+  limit?: number;
+}) => {
+  const query = new URLSearchParams();
+  if (params?.family_id) query.set("family_id", params.family_id);
+  if (params?.color_id) query.set("color_id", params.color_id);
+  if (params?.status_filter) query.set("status_filter", params.status_filter);
+  if (params?.limit) query.set("limit", params.limit.toString());
+  const queryString = query.toString();
+  return adminGet<GenerationJobRead[]>(`/generations${queryString ? `?${queryString}` : ""}`);
+};
+
+export const getGenerationsByFabric = (familyId: string, colorId: string, limit = 20) => {
+  return adminGet<GenerationJobRead[]>(
+    `/generations/by-fabric/${familyId}/${colorId}?limit=${limit}`
+  );
+};
+
+export const getGenerationStats = () =>
+  adminGet<{
+    total_generations: number;
+    by_status: Record<string, number>;
+    by_family: Array<{ family_id: string; count: number }>;
+    last_24_hours: number;
+  }>("/generations/stats");
+
+export const getGeneration = (jobId: string) =>
+  adminGet<GenerationJobRead>(`/generations/${jobId}`);
+
+export const deleteGeneration = (jobId: string) =>
+  adminDelete<void>(`/generations/${jobId}`);
 
 /* =========================
    Health / Ops (optional)

@@ -1,26 +1,73 @@
 @import "tailwindcss";
 
+/* Luxury Design System - Harris & Frank Inspired */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Colors - Sophisticated Neutral Palette */
+  --color-dark: #1c1d1d;           /* Near-black for premium text */
+  --color-charcoal: #222222;        /* Dark charcoal for accents */
+  --color-bg-light: #f9f9f9;        /* Soft white backgrounds */
+  --color-white: #ffffff;
+  --color-border: #e5e5e5;          /* Subtle borders */
+  --color-shadow: rgba(0, 0, 0, 0.08);
+
+  /* Status Colors */
+  --color-active: #10b981;          /* Green for active */
+  --color-inactive: #6b7280;        /* Gray for inactive */
+  --color-danger: #ef4444;          /* Red for delete/danger */
+
+  /* Typography */
+  --font-header: var(--font-figtree);
+  --font-body: var(--font-jost);
+  --letter-spacing-header: 0.2em;   /* Elegant elongation */
+  --letter-spacing-normal: 0em;
+  --line-height-relaxed: 1.6;
+
+  /* Spacing */
+  --spacing-card: 24px;
+  --spacing-section: 64px;
+  --max-width: 1200px;
+
+  /* Borders & Shadows */
+  --border-radius: 3px;             /* Sharp, not rounded */
+  --shadow-subtle: 0 1px 3px var(--color-shadow);
+  --shadow-elevated: 0 4px 12px var(--color-shadow);
+
+  /* Transitions */
+  --transition-smooth: transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
+  --transition-fast: all 0.15s ease;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: var(--color-bg-light);
+  --color-foreground: var(--color-dark);
+  --font-sans: var(--font-jost);
+  --font-serif: var(--font-figtree);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg-light);
+  color: var(--color-dark);
+  font-family: var(--font-jost), system-ui, sans-serif;
+  line-height: var(--line-height-relaxed);
+  font-size: 14px;
+}
+
+/* Luxury Typography Utilities */
+.font-header {
+  font-family: var(--font-figtree), system-ui, sans-serif;
+  letter-spacing: var(--letter-spacing-header);
+}
+
+.font-body {
+  font-family: var(--font-jost), system-ui, sans-serif;
+}
+
+/* Luxury Button Hover Effect */
+.btn-luxury {
+  transition: var(--transition-smooth);
+}
+
+.btn-luxury:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-elevated);
 }
