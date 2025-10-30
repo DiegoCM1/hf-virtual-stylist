@@ -86,32 +86,89 @@ export const apiDelete = <T>(path: string, init?: JsonInit) =>
    (adjust to your backend paths)
    ========================= */
 
-// Public catalog
-export type FabricFamily = {
-  id: string;
+// Public catalog (must match backend CatalogResponse type)
+export type Color = {
+  color_id: string;
   name: string;
-  preview_url?: string;
+  hex: string;
+  swatch_url?: string | null;
 };
 
-export const getCatalog = () => apiGet<FabricFamily[]>("/catalog");
+export type FabricFamily = {
+  family_id: string;
+  display_name: string;
+  status: "active" | "inactive";
+  sort: number;
+  colors: Color[];
+  lora_id?: string | null;
+  default_recipe?: string | null;
+};
 
-// Generation (returns URLs or ids as your BE defines)
+export type CatalogResponse = {
+  families: FabricFamily[];
+};
+
+export const getCatalog = () => apiGet<CatalogResponse>("/catalog");
+
+// Generation types matching backend API
+export type Cut = "recto" | "cruzado";
+
 export type GenerateRequest = {
-  prompt?: string;               // optional, depending on your flow
-  fabric_id?: string;            // selected fabric/variant
-  pose?: "recto" | "cruzado";    // optional if BE makes both
-  // ...add any other fields your /generate expects
+  family_id: string;
+  color_id: string;
+  cuts?: Cut[];
+  seed?: number;
+  quality?: "preview" | "final";
+};
+
+export type ImageResult = {
+  cut: Cut;
+  url: string;
+  width: number;
+  height: number;
+  watermark?: boolean;
+  meta?: Record<string, string>;
 };
 
 export type GenerateResponse = {
-  recto_url?: string;
-  cruzado_url?: string;
-  // or: { images: string[] } based on your BE
+  request_id: string;
+  status: "completed" | "pending" | "failed";
+  images: ImageResult[];
+  duration_ms?: number;
+  meta?: Record<string, string>;
 };
 
 export const generateImages = (body: GenerateRequest) =>
   apiPost<GenerateResponse>("/generate", body);
-const url = `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+
+// Poll for job status
+export const getJobStatus = (jobId: string) =>
+  apiGet<GenerateResponse>(`/jobs/${jobId}`);
+
+// Helper: Poll job until completion or failure
+export async function waitForJobCompletion(
+  jobId: string,
+  options: { pollIntervalMs?: number; maxWaitMs?: number } = {}
+): Promise<GenerateResponse> {
+  const { pollIntervalMs = 2000, maxWaitMs = 300000 } = options; // 2s poll, 5min max
+  const startTime = Date.now();
+
+  while (true) {
+    const response = await getJobStatus(jobId);
+
+    if (response.status === "completed" || response.status === "failed") {
+      return response;
+    }
+
+    // Check timeout
+    if (Date.now() - startTime > maxWaitMs) {
+      throw new Error(`Job ${jobId} timed out after ${maxWaitMs}ms`);
+    }
+
+    // Wait before next poll
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+  }
+}
 
 // Health (optional)
 export const getHealth = () => apiGet<{ status: "ok"; version?: string }>("/health");

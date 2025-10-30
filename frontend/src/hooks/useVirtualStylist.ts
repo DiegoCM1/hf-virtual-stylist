@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getCatalog as fetchCatalog, generateImages } from "@/lib/apiClient";
+import { getCatalog as fetchCatalog, generateImages, waitForJobCompletion, type ImageResult } from "@/lib/apiClient";
 import {
   CatalogResponse,
   Family,
@@ -128,15 +128,37 @@ export function useVirtualStylist() {
     setImages([]);
 
     try {
-      const { images: generatedImages } = await generateImages({
-        familyId,
-        colorId,
+      // Step 1: Create the generation job
+      const jobResponse = await generateImages({
+        family_id: familyId,
+        color_id: colorId,
+        cuts: ["recto", "cruzado"],
       });
-      setImages(generatedImages ?? []);
+
+      // Step 2: Poll for completion
+      const finalResponse = await waitForJobCompletion(jobResponse.request_id, {
+        pollIntervalMs: 2000,
+        maxWaitMs: 300000, // 5 minutes
+      });
+
+      // Step 3: Check if generation succeeded
+      if (finalResponse.status === "failed") {
+        throw new Error(finalResponse.meta?.error || "Generation failed");
+      }
+
+      // Step 4: Convert ImageResult to GeneratedImage
+      const generatedImages: GeneratedImage[] = finalResponse.images.map((img: ImageResult) => ({
+        cut: img.cut,
+        url: img.url,
+        width: img.width,
+        height: img.height,
+      }));
+
+      setImages(generatedImages);
     } catch (error) {
       console.error(error);
       setGenerationError(
-        "No pudimos generar las imágenes. Probemos otra combinación.",
+        error instanceof Error ? error.message : "No pudimos generar las imágenes. Probemos otra combinación.",
       );
     } finally {
       setIsGenerating(false);
