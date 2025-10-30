@@ -77,26 +77,71 @@ def download_swatch_from_r2(key):
     return Image.open(io.BytesIO(image_data))
 
 
-def get_dominant_color(image, sample_size=100):
-    """Extract dominant color from image using color quantization."""
+def get_dominant_color(image, sample_size=150):
+    """Extract dominant color from image using center-weighted sampling."""
     # Resize for faster processing
     image = image.resize((sample_size, sample_size))
     image = image.convert("RGB")
 
+    # Crop to center 70% to avoid borders/backgrounds
+    crop_margin = int(sample_size * 0.15)
+    center_crop = image.crop((
+        crop_margin,
+        crop_margin,
+        sample_size - crop_margin,
+        sample_size - crop_margin
+    ))
+
     # Get all colors and count frequency
-    pixels = list(image.getdata())
-    color_counter = Counter(pixels)
+    pixels = list(center_crop.getdata())
 
-    # Get top 5 most common colors
-    top_colors = color_counter.most_common(5)
+    # Filter out extreme values (pure white/black borders)
+    filtered_pixels = []
+    for r, g, b in pixels:
+        # Skip pixels that are too white or too black (likely borders)
+        brightness = (r + g + b) / 3
+        if 20 < brightness < 235:  # Exclude extreme values
+            filtered_pixels.append((r, g, b))
 
-    # Calculate average of top colors (weighted by frequency)
-    total_weight = sum(count for _, count in top_colors)
-    avg_r = sum(r * count for (r, g, b), count in top_colors) / total_weight
-    avg_g = sum(g * count for (r, g, b), count in top_colors) / total_weight
-    avg_b = sum(b * count for (r, g, b), count in top_colors) / total_weight
+    # If we filtered out too much, use original
+    if len(filtered_pixels) < len(pixels) * 0.3:
+        filtered_pixels = pixels
 
-    return (int(avg_r), int(avg_g), int(avg_b))
+    color_counter = Counter(filtered_pixels)
+
+    # Get top 10 most common colors (more samples for better accuracy)
+    top_colors = color_counter.most_common(10)
+
+    # Calculate weighted average, giving more weight to saturated colors
+    total_weight = 0
+    weighted_r = 0
+    weighted_g = 0
+    weighted_b = 0
+
+    for (r, g, b), count in top_colors:
+        # Calculate saturation
+        max_rgb = max(r, g, b)
+        min_rgb = min(r, g, b)
+        saturation = (max_rgb - min_rgb) / max_rgb if max_rgb > 0 else 0
+
+        # Weight by both count and saturation (prefer more colorful pixels)
+        weight = count * (1 + saturation * 2)
+        total_weight += weight
+        weighted_r += r * weight
+        weighted_g += g * weight
+        weighted_b += b * weight
+
+    if total_weight > 0:
+        avg_r = int(weighted_r / total_weight)
+        avg_g = int(weighted_g / total_weight)
+        avg_b = int(weighted_b / total_weight)
+    else:
+        # Fallback
+        avg_r = sum(r for (r, g, b), _ in top_colors) // len(top_colors)
+        avg_g = sum(g for (r, g, b), _ in top_colors) // len(top_colors)
+        avg_b = sum(b for (r, g, b), _ in top_colors) // len(top_colors)
+
+    return (avg_r, avg_g, avg_b)
 
 
 def rgb_to_hsv(r, g, b):
@@ -110,17 +155,17 @@ def categorize_color(rgb):
     r, g, b = rgb
     h, s, v = rgb_to_hsv(r, g, b)
 
-    # Check for black/white first
-    if v < 0.15:
+    # Check for true black/white (very strict thresholds)
+    if v < 0.10:  # Very dark
         return "neutros", "Negro"
-    if v > 0.85 and s < 0.1:
+    if v > 0.90 and s < 0.05:  # Very light and unsaturated
         return "neutros", "Blanco"
 
-    # Check grays
-    if s < 0.15:
-        if v < 0.3:
+    # Check grays (low saturation)
+    if s < 0.12:  # Stricter threshold for grays
+        if v < 0.25:
             return "neutros", "Negro Carbón"
-        elif v > 0.7:
+        elif v > 0.75:
             return "grises", "Gris Claro"
         else:
             return "grises", f"Gris {int(v * 100)}"
