@@ -110,7 +110,7 @@ def deactivate_fabric(fabric_id: int, db: Session = Depends(get_db)):
 @router.patch("/{fabric_id}/status", response_model=schemas.FabricRead)
 def set_fabric_status(
     fabric_id: int,
-    status_data: dict,
+    status_data: schemas.StatusUpdate,
     db: Session = Depends(get_db)
 ):
     """Toggle fabric family status between active/inactive."""
@@ -118,11 +118,7 @@ def set_fabric_status(
     if not fam:
         raise HTTPException(404, "Fabric not found")
 
-    new_status = status_data.get("status")
-    if new_status not in ("active", "inactive"):
-        raise HTTPException(400, "Status must be 'active' or 'inactive'")
-
-    fam.status = new_status
+    fam.status = status_data.status
     db.commit()
     db.refresh(fam)
     return fam

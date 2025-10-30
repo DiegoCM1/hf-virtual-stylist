@@ -69,6 +69,11 @@ class FabricRead(FabricBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class StatusUpdate(BaseModel):
+    """Schema for status toggle endpoints."""
+    status: str = Field(..., pattern="^(active|inactive)$")
+
+
 # Generation Job schemas
 class GenerationJobRead(BaseModel):
     id: int

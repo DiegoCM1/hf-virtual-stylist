@@ -47,13 +47,9 @@ export function StatusToggle({
         className={`
           relative rounded-full transition-colors duration-150
           ${config.container}
+          ${isActive ? "bg-green-500" : "bg-gray-500"}
           ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:brightness-110"}
         `}
-        style={{
-          backgroundColor: isActive
-            ? "var(--color-active)"
-            : "var(--color-inactive)",
-        }}
       >
         <span
           className={`
@@ -68,10 +64,9 @@ export function StatusToggle({
 
       {label && (
         <span
-          className="font-body text-xs font-medium"
-          style={{
-            color: isActive ? "var(--color-active)" : "var(--color-inactive)",
-          }}
+          className={`font-body text-xs font-medium ${
+            isActive ? "text-green-500" : "text-gray-500"
+          }`}
         >
           {isActive ? "Activo" : "Inactivo"}
         </span>

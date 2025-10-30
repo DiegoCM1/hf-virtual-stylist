@@ -72,14 +72,14 @@ export function SearchBar({
         className="
           w-full
           px-4 py-3 pl-12 pr-10
-          border border-[var(--color-border)]
+          border border-gray-200
           rounded-[3px]
           font-body text-sm
           bg-white
           focus:outline-none
-          focus:border-[var(--color-dark)]
+          focus:border-gray-900
           focus:ring-1
-          focus:ring-[var(--color-dark)]
+          focus:ring-gray-900
           transition-colors duration-150
           placeholder:text-gray-400
         "

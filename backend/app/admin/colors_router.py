@@ -101,7 +101,7 @@ def update_color(
 @router.patch("/{color_id}/status", response_model=schemas.ColorRead)
 def set_color_status(
     color_id: int,
-    status_data: dict,
+    status_data: schemas.StatusUpdate,
     db: Session = Depends(get_db)
 ):
     """Toggle color status between active/inactive."""
@@ -109,11 +109,7 @@ def set_color_status(
     if not color:
         raise HTTPException(404, "Color not found")
 
-    new_status = status_data.get("status")
-    if new_status not in ("active", "inactive"):
-        raise HTTPException(400, "Status must be 'active' or 'inactive'")
-
-    color.status = new_status
+    color.status = status_data.status
     db.commit()
     db.refresh(color)
     return color

@@ -89,12 +89,12 @@ export default function AdminPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--color-bg-light)] py-8 px-6">
+    <main className="min-h-screen bg-gray-50 py-8 px-6">
       {/* Container */}
       <div className="max-w-[1200px] mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="font-header text-2xl tracking-[0.2em] text-[var(--color-dark)] mb-2">
+          <h1 className="font-header text-2xl tracking-[0.2em] text-gray-900 mb-2">
             FAMILIAS DE TELAS
           </h1>
           <p className="font-body text-sm text-gray-600">
@@ -141,7 +141,7 @@ export default function AdminPage() {
         {/* Loading State */}
         {items === null ? (
           <div className="py-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-dark)]"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
             <p className="font-body text-sm text-gray-600 mt-4">Cargando familias...</p>
           </div>
         ) : filteredItems && filteredItems.length === 0 ? (
@@ -168,7 +168,7 @@ export default function AdminPage() {
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="mt-4 font-body text-sm text-[var(--color-dark)] hover:underline"
+                className="mt-4 font-body text-sm text-gray-900 hover:underline"
               >
                 Limpiar búsqueda
               </button>

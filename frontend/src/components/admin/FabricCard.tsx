@@ -40,9 +40,9 @@ export function FabricCard({
     <div
       className="
         bg-white rounded-[3px] overflow-hidden
-        shadow-[var(--shadow-sm)]
+        shadow-sm
         transition-all duration-[280ms] ease-[cubic-bezier(0.2,0.7,0.2,1)]
-        hover:shadow-[var(--shadow-elevated)]
+        hover:shadow-lg
         group
       "
     >
@@ -92,8 +92,8 @@ export function FabricCard({
               font-body text-xs font-medium backdrop-blur-sm
               ${
                 fabric.status === "active"
-                  ? "bg-[var(--color-active)]/90 text-white"
-                  : "bg-[var(--color-inactive)]/90 text-white"
+                  ? "bg-green-500/90 text-white"
+                  : "bg-gray-500/90 text-white"
               }
             `}
           >
@@ -107,7 +107,7 @@ export function FabricCard({
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-header text-lg tracking-[0.1em] text-[var(--color-dark)] truncate">
+            <h3 className="font-header text-lg tracking-[0.1em] text-gray-900 truncate">
               {fabric.display_name}
             </h3>
             <p className="font-body text-sm text-gray-600 mt-1">
@@ -119,7 +119,7 @@ export function FabricCard({
         {/* Stats */}
         <div className="flex items-center gap-4 mb-4 text-sm">
           <div className="font-body text-gray-600">
-            <span className="font-medium text-[var(--color-dark)]">
+            <span className="font-medium text-gray-900">
               {activeColorsCount}
             </span>{" "}
             {activeColorsCount === 1 ? "color activo" : "colores activos"}
