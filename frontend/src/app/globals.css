@@ -45,11 +45,13 @@
 }
 
 body {
-  background: var(--color-bg-light);
+  background: #f9f9f9;
   color: var(--color-dark);
   font-family: var(--font-jost), system-ui, sans-serif;
   line-height: var(--line-height-relaxed);
   font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Luxury Typography Utilities */

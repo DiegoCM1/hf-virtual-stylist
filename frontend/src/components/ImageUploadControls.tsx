@@ -42,26 +42,45 @@ export function ImageUploadControls({
           event.target.value = "";
         }}
       />
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <button
           type="button"
-          className="w-full rounded border border-white/20 bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20"
+          className="
+            flex-1 bg-white border border-gray-300
+            px-6 py-3 rounded-[3px]
+            font-body text-sm font-medium text-gray-900
+            shadow-sm
+            transition-all duration-200
+            hover:bg-gray-50 hover:border-gray-900 hover:shadow-md hover:-translate-y-0.5
+            active:translate-y-0
+            focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2
+          "
           onClick={onOpenGallery}
         >
-          Elegir foto
+          📁 Elegir Foto
         </button>
         <button
           type="button"
-          className="w-full rounded border border-white/20 bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20 md:hidden"
+          className="
+            flex-1 bg-white border border-gray-300
+            px-6 py-3 rounded-[3px]
+            font-body text-sm font-medium text-gray-900
+            shadow-sm
+            transition-all duration-200
+            hover:bg-gray-50 hover:border-gray-900 hover:shadow-md hover:-translate-y-0.5
+            active:translate-y-0
+            focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2
+            md:hidden
+          "
           onClick={onOpenCamera}
         >
-          Tomar foto
+          📷 Tomar Foto
         </button>
       </div>
       {preview && (
-        <div className="space-y-2">
-          <div className="text-sm text-white/70">Vista previa</div>
-          <div className="overflow-hidden rounded border border-white/10 bg-black/20">
+        <div className="space-y-2 mt-4">
+          <div className="text-sm font-body text-gray-700 font-medium">Vista previa</div>
+          <div className="overflow-hidden rounded-[3px] border border-gray-300 bg-white shadow-sm">
             <Image
               src={preview.url}
               alt={`Vista previa de ${preview.name}`}

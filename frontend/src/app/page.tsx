@@ -40,11 +40,42 @@ export default function Home() {
   const showEmptyState = images.length === 0 && !isGenerating;
 
   return (
-    <main className="min-h-screen max-w-4xl mx-auto p-6">
-      <LogoHeader />
+    <main className="h-screen w-full px-4 sm:px-6 lg:px-8 py-6 overflow-hidden flex flex-col">
+      <div className="max-w-7xl mx-auto w-full">
+        <LogoHeader />
+      </div>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <div className="md:col-span-1 space-y-4">
+      <div className="max-w-7xl mx-auto w-full flex-1 overflow-hidden flex flex-col">
+        <section className="grid gap-6 lg:grid-cols-12 flex-1 overflow-hidden">
+          <div className="lg:col-span-4 space-y-4 overflow-y-auto pr-2">
+          {/* Family Selector and Search in same row */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm block mb-2 font-body text-gray-700 font-medium">Familia de tela</label>
+              <select
+                className="border border-gray-300 rounded-[3px] px-4 py-3 w-full bg-white text-gray-900 font-body text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                value={familyId}
+                onChange={(event) => selectFamily(event.target.value)}
+              >
+                {families.map((family) => (
+                  <option key={family.family_id} value={family.family_id}>
+                    {family.display_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <SearchTela
+              catalog={catalog}
+              currentFamilyId={familyId}
+              currentColorId={colorId}
+              onSelect={(nextFamilyId, nextColorId) => {
+                selectFamily(nextFamilyId);
+                selectColor(nextColorId);
+              }}
+            />
+          </div>
+
           <CatalogSelector
             families={families}
             selectedFamilyId={familyId}
@@ -57,18 +88,6 @@ export default function Home() {
 
           {errorMessage && <div className="text-red-600 text-sm">{errorMessage}</div>}
 
-          <div className="w-full flex text-white py-2 justify-center">O</div>
-
-          <SearchTela
-            catalog={catalog}
-            currentFamilyId={familyId}
-            currentColorId={colorId}
-            onSelect={(nextFamilyId, nextColorId) => {
-              selectFamily(nextFamilyId);
-              selectColor(nextColorId);
-            }}
-          />
-
           <ImageUploadControls
             galleryInputRef={galleryInputRef}
             cameraInputRef={cameraInputRef}
@@ -79,14 +98,15 @@ export default function Home() {
           />
         </div>
 
-        <div className="md:col-span-2 space-y-4">
-          {showEmptyState && <EmptyState />}
+          <div className="lg:col-span-8 space-y-4 overflow-y-auto pl-2">
+            {showEmptyState && <EmptyState />}
 
-          {isGenerating && <LoadingState />}
+            {isGenerating && <LoadingState />}
 
-          <GeneratedImageGallery images={images} onSelect={openImage} />
-        </div>
-      </section>
+            <GeneratedImageGallery images={images} onSelect={openImage} />
+          </div>
+        </section>
+      </div>
 
       <ImageModal image={selectedImage} onClose={closeImage} />
     </main>
