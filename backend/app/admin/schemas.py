@@ -10,6 +10,7 @@ class ColorBase(BaseModel):
     color_id: str
     name: str
     hex_value: str
+    swatch_code: Optional[str] = None  # R2 swatch filename
     swatch_url: Optional[str] = None
 
 

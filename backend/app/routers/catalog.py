@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session, joinedload
+from urllib.parse import quote
 
 from app.admin.dependencies import get_db
 from app.admin import models
 from app.services.catalog import load_catalog  # we reuse this to pull JSON-only extras
+from app.core.config import settings
 
 router = APIRouter(tags=["public"])
 
@@ -37,19 +39,36 @@ def get_catalog(db: Session = Depends(get_db)):
     shaped = []
     for f in families:
         extras = extras_by_family_id.get(f.family_id, {})
+
+        # Build color responses with swatch URLs
+        colors_response = []
+        for c in f.colors:
+            color_dict = {
+                "color_id": c.color_id,
+                "name": c.name,
+                "hex": c.hex_value,      # <-- FE expects "hex"
+            }
+
+            # Build swatch_url from swatch_code if available
+            if c.swatch_code and settings.r2_public_url:
+                # URL encode the path components for spaces and special chars
+                swatch_path = f"harris-and-frank/ZEGNA%202025-26/{quote(c.swatch_code)}.png"
+                color_dict["swatch_url"] = f"{settings.r2_public_url}/{swatch_path}"
+            elif c.swatch_url:
+                # Use explicit swatch_url if set
+                color_dict["swatch_url"] = c.swatch_url
+            else:
+                # No swatch available
+                color_dict["swatch_url"] = None
+
+            colors_response.append(color_dict)
+
         shaped.append({
             "family_id": f.family_id,
             "display_name": f.display_name,
             "lora_id": extras.get("lora_id"),
             "default_recipe": extras.get("default_recipe"),
-            "colors": [
-                {
-                    "color_id": c.color_id,
-                    "name": c.name,
-                    "hex": c.hex_value,      # <-- FE expects "hex"
-                }
-                for c in f.colors
-            ],
+            "colors": colors_response,
             "status": f.status,              # harmless for FE, but matches your JSON
             "sort": extras.get("sort"),
         })

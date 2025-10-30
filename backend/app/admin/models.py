@@ -37,6 +37,7 @@ class Color(Base):
     color_id = Column(String, nullable=False, unique=True, index=True)
     name = Column(String, nullable=False)
     hex_value = Column(String, nullable=False)
+    swatch_code = Column(String, nullable=True)  # R2 swatch filename (e.g., "095T-0121")
     swatch_url = Column(String, nullable=True)
 
     fabric_family = relationship("FabricFamily", back_populates="colors")
