@@ -2,11 +2,22 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
+from urllib.parse import quote
 
 from app.admin import models, schemas
 from app.admin.dependencies import get_db
+from app.core.config import settings
 
 router = APIRouter(prefix="/admin/fabrics", tags=["admin:fabrics"])
+
+def build_swatch_url(color: models.Color) -> str | None:
+    """Build swatch URL using the same logic as public catalog endpoint."""
+    if color.swatch_code and settings.r2_public_url:
+        swatch_path = f"ZEGNA%202025-26/{quote(color.swatch_code)}.png"
+        return f"{settings.r2_public_url}/{swatch_path}"
+    elif color.swatch_url:
+        return color.swatch_url
+    return None
 
 @router.get("", response_model=list[schemas.FabricRead])
 def list_fabrics(
@@ -31,6 +42,12 @@ def list_fabrics(
         query.order_by(models.FabricFamily.display_name.asc())
              .offset(offset).limit(limit).all()
     )
+
+    # Build swatch URLs for all colors
+    for fabric in items:
+        for color in fabric.colors:
+            color.swatch_url = build_swatch_url(color)
+
     return items
 
 @router.post("", response_model=schemas.FabricRead, status_code=status.HTTP_201_CREATED)
@@ -121,4 +138,9 @@ def set_fabric_status(
     fam.status = status_data.status
     db.commit()
     db.refresh(fam)
+
+    # Build swatch URLs
+    for color in fam.colors:
+        color.swatch_url = build_swatch_url(color)
+
     return fam

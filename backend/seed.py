@@ -51,25 +51,27 @@ with SessionLocal() as db:
                 ))
     db.commit()
 
-    # --- PART 2: UPDATE SWATCH URLS FROM CSV (New logic) ---
-    print("\n--- Processing swatch_mapping.csv to update URLs ---")
+    # --- PART 2: UPDATE SWATCH CODES FROM CSV (New logic) ---
+    print("\n--- Processing swatch_mapping.csv to update swatch codes ---")
     mapping_path = Path('app/data/swatch_mapping.csv')
     if not mapping_path.exists():
-        print(f"⚠️  Warning: {mapping_path} not found. Skipping URL updates.")
+        print(f"⚠️  Warning: {mapping_path} not found. Skipping swatch code updates.")
     else:
         with open(mapping_path, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 color_id = row['color_id']
                 image_filename = row['image_filename']
-                
+
+                # Extract swatch code (filename without .png extension)
+                swatch_code = image_filename.replace('.png', '').replace('.jpg', '').replace('.jpeg', '')
+
                 color_record = db.query(models.Color).filter(models.Color.color_id == color_id).first()
-                
+
                 if color_record:
-                    full_url = f"{R2_BASE_URL.rstrip('/')}/{image_filename}"
-                    if color_record.swatch_url != full_url:
-                        color_record.swatch_url = full_url
-                        print(f"  Updating URL for {color_id}")
+                    if color_record.swatch_code != swatch_code:
+                        color_record.swatch_code = swatch_code
+                        print(f"  Updating swatch_code for {color_id} -> {swatch_code}")
                 else:
                     print(f"  ⚠️  Warning: Color ID '{color_id}' from CSV not found in database.")
         db.commit()
