@@ -322,7 +322,7 @@ def main():
 
     # Import storage only when actually generating
     from app.services.storage import LocalStorage
-    storage = LocalStorage(base_dir=str(OUTPUT_DIR), public_base_url="file://")
+    storage = LocalStorage(base_dir=str(OUTPUT_DIR), base_url="file://")
 
     cuts = [c.strip() for c in args.cuts.split(',')]
     seed = args.seed if args.seed is not None else int(time.time())
