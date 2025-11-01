@@ -195,8 +195,8 @@ def generate_with_preset(
     start_time = time.time()
 
     try:
-        generator = SdxlTurboGenerator()
-        response = generator.generate(request, storage)
+        generator = SdxlTurboGenerator(storage=storage)
+        response = generator.generate(request)
 
         elapsed = time.time() - start_time
 
