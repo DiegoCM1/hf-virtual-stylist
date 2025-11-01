@@ -97,26 +97,54 @@ python -m scripts.quick_gen \
   --fabric=algodon-tech
 ```
 
+### 8. Download Outputs to Local Machine
+
+**Open a NEW terminal on your local Windows machine** (keep RunPod SSH open):
+
+```bash
+# Navigate to backend directory
+cd /d/OneDrive/Escritorio/Dev/hf-virtual-stylist/backend
+
+# Download all outputs (replace IP and port with your RunPod details)
+scp -i ~/.ssh/id_ed25519 -P 10079 -r root@203.57.40.119:/workspace/app/backend/outputs/ ./runpod_outputs/
+
+# View images
+explorer runpod_outputs/generated/
+```
+
+**Important:**
+- Use uppercase `-P` for scp (lowercase `-p` is for ssh)
+- Ensure there's a **space** between `outputs/` and `./runpod_outputs/`
+- Type the command manually if copy-paste removes the space
+
+**Download specific generation only:**
+```bash
+# Replace the run ID with yours (e.g., 2253b3fece)
+scp -i ~/.ssh/id_ed25519 -P 10079 -r root@203.57.40.119:/workspace/app/backend/outputs/generated/algodon-tech/negro-001/2253b3fece/ ./test1/
+```
+
 ---
 
 ## Workflow: Finding Optimal Parameters
 
 ### Phase 1: Baseline Testing (15 minutes)
 
-Test current production config vs speed-optimized variants:
+Test current production config vs speed-optimized variants **with fixed seeds for reproducibility**:
 
 ```bash
-# Test baseline vs no-refiner
-python -m scripts.quick_gen --compare baseline,fast-no-refiner
+# Test baseline vs no-refiner (seed 42)
+python -m scripts.quick_gen --compare baseline,fast-no-refiner --seed=42
 
 # Test step counts
-python -m scripts.quick_gen --compare balanced-60,baseline,quality-100
+python -m scripts.quick_gen --compare balanced-60,baseline,quality-100 --seed=42
 
 # Test single ControlNets
-python -m scripts.quick_gen --compare depth-only,canny-only,baseline
+python -m scripts.quick_gen --compare depth-only,canny-only,baseline --seed=42
 ```
 
 **Goal**: Determine if refiner is worth the time, optimal step count, ControlNet impact.
+
+**Why use `--seed=42`?** Same seed = same base randomness across all presets, isolating the effect of parameter changes.
 
 ### Phase 2: ControlNet Weight Tuning (10 minutes)
 
@@ -161,6 +189,75 @@ Edit `quick_defaults.json` to add winning configs:
 ```
 
 Commit to git for team sharing.
+
+---
+
+## Using Fixed Seeds for Reproducibility
+
+### Why Use Seeds?
+
+**Fixed seeds enable:**
+- ✅ **A/B testing** - Isolate parameter changes
+- ✅ **Reproducibility** - Same seed = same image structure
+- ✅ **Systematic comparison** - Test multiple presets on same base image
+
+### Recommended Workflow
+
+#### Step 1: Find Good Seeds (5 minutes)
+
+```bash
+# Try different seeds to find good base images
+python -m scripts.quick_gen --preset=baseline --seed=42
+python -m scripts.quick_gen --preset=baseline --seed=1234
+python -m scripts.quick_gen --preset=baseline --seed=9999
+```
+
+Pick 2-3 seeds that produce good starting points (clean background, good pose, etc.)
+
+#### Step 2: Test All Presets with Fixed Seeds
+
+```bash
+# Test all presets with your chosen seed
+python -m scripts.quick_gen \
+  --compare baseline,aggressive-depth,fast-no-refiner,ultra-fast \
+  --seed=42
+
+# Verify consistency with second seed
+python -m scripts.quick_gen \
+  --compare baseline,aggressive-depth,fast-no-refiner,ultra-fast \
+  --seed=1234
+```
+
+#### Step 3: Fine-tune Winners
+
+```bash
+# Found aggressive-depth looks best? Tweak it with same seed
+python -m scripts.quick_gen --preset=aggressive-depth --seed=42 --override guidance=5.5
+python -m scripts.quick_gen --preset=aggressive-depth --seed=42 --override guidance=6.0
+python -m scripts.quick_gen --preset=aggressive-depth --seed=42 --override depth_weight=1.3
+
+# Verify on second seed
+python -m scripts.quick_gen --preset=aggressive-depth --seed=1234 --override guidance=5.5
+```
+
+### Seed Tips
+
+**Use meaningful seeds:**
+```bash
+--seed=20241101  # Today's date
+--seed=42        # The answer to everything
+--seed=100       # Simple incrementing numbers
+```
+
+**Batch testing:**
+```bash
+# Test 3 seeds × 4 presets = 12 images
+for seed in 42 1234 9999; do
+  python -m scripts.quick_gen \
+    --compare baseline,aggressive-depth,fast-no-refiner,ultra-fast \
+    --seed=$seed
+done
+```
 
 ---
 
@@ -298,30 +395,47 @@ Once you've found optimal parameters:
 
 ## Example Session
 
+**On RunPod (SSH terminal):**
+
 ```bash
 # Start RunPod, SSH in
-ssh root@<pod> -p <port>
+ssh -i ~/.ssh/id_ed25519 root@203.57.40.119 -p 10079
 source /workspace/py311/bin/activate
 cd /workspace/app/backend
 
 # List presets
 python -m scripts.quick_gen --list-presets
 
-# Test baseline (first run, loads models ~10s)
-python -m scripts.quick_gen --preset=baseline
+# Test baseline with fixed seed (first run, loads models ~55s)
+python -m scripts.quick_gen --preset=baseline --seed=42
 
-# Compare 3 presets (~6s total, models already loaded)
-python -m scripts.quick_gen --compare baseline,fast-no-refiner,ultra-fast
+# Compare 3 presets with same seed (~80s total, models already loaded)
+python -m scripts.quick_gen --compare baseline,fast-no-refiner,ultra-fast --seed=42
 
-# Tweak winner
-python -m scripts.quick_gen --preset=fast-no-refiner --override guidance=5.5,steps=70
+# Tweak winner with same seed
+python -m scripts.quick_gen --preset=fast-no-refiner --seed=42 --override guidance=5.5,steps=70
 
-# Test with different fabric
-python -m scripts.quick_gen --preset=fast-no-refiner --fabric=lana-super-150 --color=azul-marino
+# Test with different fabric (still using seed 42)
+python -m scripts.quick_gen --preset=fast-no-refiner --seed=42 --fabric=lana-super-150 --color=azul-marino
 
-# View outputs
-ls -lh outputs/
-# Copy best preset to quick_defaults.json as "production-v2"
+# Verify with different seed
+python -m scripts.quick_gen --preset=fast-no-refiner --seed=1234 --override guidance=5.5,steps=70
 ```
 
-**Total time**: ~2 minutes for 6+ test iterations 🚀
+**On Windows (new terminal, keep RunPod SSH open):**
+
+```bash
+# Navigate to backend
+cd /d/OneDrive/Escritorio/Dev/hf-virtual-stylist/backend
+
+# Download all outputs (note: uppercase -P, space before ./runpod_outputs/)
+scp -i ~/.ssh/id_ed25519 -P 10079 -r root@203.57.40.119:/workspace/app/backend/outputs/ ./runpod_outputs/
+
+# View images
+explorer runpod_outputs/generated/
+
+# Compare images side-by-side, document findings
+# Update quick_defaults.json with winning preset
+```
+
+**Total time**: ~3 minutes for complete testing + download cycle 🚀
