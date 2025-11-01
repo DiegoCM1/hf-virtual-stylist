@@ -1,0 +1,193 @@
+{
+  "baseline": {
+    "description": "Current production config - dual ControlNet with refiner",
+    "guidance": 4.3,
+    "total_steps": 80,
+    "use_refiner": true,
+    "refiner_split": 0.7,
+    "controlnet_enabled": true,
+    "controlnet_weight": 0.9,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": true,
+    "controlnet2_weight": 0.65,
+    "controlnet2_guidance_start": 0.05,
+    "controlnet2_guidance_end": 0.88,
+    "ip_adapter_enabled": false
+  },
+
+  "fast-no-refiner": {
+    "description": "Skip refiner for speed - test if quality is acceptable",
+    "guidance": 4.3,
+    "total_steps": 80,
+    "use_refiner": false,
+    "controlnet_enabled": true,
+    "controlnet_weight": 0.9,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": true,
+    "controlnet2_weight": 0.65,
+    "controlnet2_guidance_start": 0.05,
+    "controlnet2_guidance_end": 0.88,
+    "ip_adapter_enabled": false
+  },
+
+  "aggressive-depth": {
+    "description": "Heavy depth ControlNet for stronger pose guidance",
+    "guidance": 5.0,
+    "total_steps": 60,
+    "use_refiner": false,
+    "controlnet_enabled": true,
+    "controlnet_weight": 1.2,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.6,
+    "controlnet2_enabled": true,
+    "controlnet2_weight": 0.5,
+    "controlnet2_guidance_start": 0.05,
+    "controlnet2_guidance_end": 0.7,
+    "ip_adapter_enabled": false
+  },
+
+  "aggressive-canny": {
+    "description": "Heavy canny ControlNet for sharper lapel/button edges",
+    "guidance": 5.0,
+    "total_steps": 60,
+    "use_refiner": false,
+    "controlnet_enabled": true,
+    "controlnet_weight": 0.7,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": true,
+    "controlnet2_weight": 0.95,
+    "controlnet2_guidance_start": 0.0,
+    "controlnet2_guidance_end": 0.95,
+    "ip_adapter_enabled": false
+  },
+
+  "balanced-60": {
+    "description": "Balanced config with reduced steps for speed",
+    "guidance": 4.5,
+    "total_steps": 60,
+    "use_refiner": true,
+    "refiner_split": 0.7,
+    "controlnet_enabled": true,
+    "controlnet_weight": 0.9,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": true,
+    "controlnet2_weight": 0.65,
+    "controlnet2_guidance_start": 0.05,
+    "controlnet2_guidance_end": 0.88,
+    "ip_adapter_enabled": false
+  },
+
+  "ultra-fast": {
+    "description": "Minimal steps for rapid testing - quality may suffer",
+    "guidance": 6.0,
+    "total_steps": 40,
+    "use_refiner": false,
+    "controlnet_enabled": true,
+    "controlnet_weight": 1.0,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": false,
+    "ip_adapter_enabled": false
+  },
+
+  "depth-only": {
+    "description": "Single ControlNet (depth) for testing impact",
+    "guidance": 4.3,
+    "total_steps": 80,
+    "use_refiner": true,
+    "refiner_split": 0.7,
+    "controlnet_enabled": true,
+    "controlnet_weight": 1.0,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": false,
+    "ip_adapter_enabled": false
+  },
+
+  "canny-only": {
+    "description": "Single ControlNet (canny) for testing impact",
+    "guidance": 4.3,
+    "total_steps": 80,
+    "use_refiner": true,
+    "refiner_split": 0.7,
+    "controlnet_enabled": false,
+    "controlnet2_enabled": true,
+    "controlnet2_weight": 0.85,
+    "controlnet2_guidance_start": 0.0,
+    "controlnet2_guidance_end": 0.9,
+    "ip_adapter_enabled": false
+  },
+
+  "high-cfg": {
+    "description": "High guidance scale for more adherence to prompt",
+    "guidance": 7.0,
+    "total_steps": 80,
+    "use_refiner": true,
+    "refiner_split": 0.7,
+    "controlnet_enabled": true,
+    "controlnet_weight": 0.9,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": true,
+    "controlnet2_weight": 0.65,
+    "controlnet2_guidance_start": 0.05,
+    "controlnet2_guidance_end": 0.88,
+    "ip_adapter_enabled": false
+  },
+
+  "low-cfg": {
+    "description": "Low guidance for more creative freedom",
+    "guidance": 2.5,
+    "total_steps": 80,
+    "use_refiner": true,
+    "refiner_split": 0.7,
+    "controlnet_enabled": true,
+    "controlnet_weight": 0.9,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": true,
+    "controlnet2_weight": 0.65,
+    "controlnet2_guidance_start": 0.05,
+    "controlnet2_guidance_end": 0.88,
+    "ip_adapter_enabled": false
+  },
+
+  "quality-100": {
+    "description": "Maximum steps for best possible quality",
+    "guidance": 4.3,
+    "total_steps": 100,
+    "use_refiner": true,
+    "refiner_split": 0.7,
+    "controlnet_enabled": true,
+    "controlnet_weight": 0.9,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": true,
+    "controlnet2_weight": 0.65,
+    "controlnet2_guidance_start": 0.05,
+    "controlnet2_guidance_end": 0.88,
+    "ip_adapter_enabled": false
+  },
+
+  "with-ip-adapter": {
+    "description": "Baseline + IP-Adapter for fabric texture transfer",
+    "guidance": 4.3,
+    "total_steps": 80,
+    "use_refiner": true,
+    "refiner_split": 0.7,
+    "controlnet_enabled": true,
+    "controlnet_weight": 0.9,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": true,
+    "controlnet2_weight": 0.65,
+    "controlnet2_guidance_start": 0.05,
+    "controlnet2_guidance_end": 0.88,
+    "ip_adapter_enabled": true,
+    "ip_adapter_scale": 0.7
+  }
+}
