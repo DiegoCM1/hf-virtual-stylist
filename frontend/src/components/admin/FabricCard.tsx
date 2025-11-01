@@ -107,15 +107,22 @@ export function FabricCard({
       `}
     >
       {/* Image Section - 4:3 Aspect Ratio */}
-      <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+      <div className="relative aspect-[4/2] bg-gray-100 overflow-hidden">
         {previewFabric?.swatch_url ? (
-          <Image
-            src={previewFabric.swatch_url}
-            alt={`${fabric.display_name} swatch preview`}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          />
+          <>
+            <Image
+              src={previewFabric.swatch_url}
+              alt={`${fabric.display_name} swatch preview`}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="font-header text-white tracking-[0.2em] text-lg px-4 text-center">
+                {fabric.display_name}
+              </span>
+            </div>
+          </>
         ) : previewFabric?.hex_value ? (
           // Fallback to hex color for category indication
           <div
