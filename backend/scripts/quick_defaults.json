@@ -189,5 +189,76 @@
     "controlnet2_guidance_end": 0.88,
     "ip_adapter_enabled": true,
     "ip_adapter_scale": 0.7
+  },
+
+  "ultra-quality-ip": {
+    "description": "ULTRA QUALITY - IP-Adapter for precise fabric texture transfer from catalog photos",
+    "guidance": 7.0,
+    "total_steps": 100,
+    "use_refiner": true,
+    "refiner_split": 0.7,
+    "controlnet_enabled": true,
+    "controlnet_weight": 1.0,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": true,
+    "controlnet2_weight": 0.7,
+    "controlnet2_guidance_start": 0.05,
+    "controlnet2_guidance_end": 0.88,
+    "ip_adapter_enabled": true,
+    "ip_adapter_scale": 0.8
+  },
+
+  "max-quality": {
+    "description": "MAXIMUM QUALITY - 120 steps, high guidance, no IP-Adapter (baseline for comparison)",
+    "guidance": 7.5,
+    "total_steps": 120,
+    "use_refiner": true,
+    "refiner_split": 0.7,
+    "controlnet_enabled": true,
+    "controlnet_weight": 1.0,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": true,
+    "controlnet2_weight": 0.7,
+    "controlnet2_guidance_start": 0.05,
+    "controlnet2_guidance_end": 0.88,
+    "ip_adapter_enabled": false
+  },
+
+  "quality-ip-heavy": {
+    "description": "Heavy IP-Adapter (0.95 scale) for strongest fabric texture transfer",
+    "guidance": 6.0,
+    "total_steps": 100,
+    "use_refiner": true,
+    "refiner_split": 0.7,
+    "controlnet_enabled": true,
+    "controlnet_weight": 0.9,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": true,
+    "controlnet2_weight": 0.65,
+    "controlnet2_guidance_start": 0.05,
+    "controlnet2_guidance_end": 0.88,
+    "ip_adapter_enabled": true,
+    "ip_adapter_scale": 0.95
+  },
+
+  "quality-balanced": {
+    "description": "Quality optimized for 90s budget on 4090 - professional results, no deformation",
+    "guidance": 6.5,
+    "total_steps": 100,
+    "use_refiner": true,
+    "refiner_split": 0.7,
+    "controlnet_enabled": true,
+    "controlnet_weight": 1.1,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": true,
+    "controlnet2_weight": 0.75,
+    "controlnet2_guidance_start": 0.05,
+    "controlnet2_guidance_end": 0.88,
+    "ip_adapter_enabled": true,
+    "ip_adapter_scale": 0.8
   }
 }

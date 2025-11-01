@@ -1,16 +1,34 @@
-# Quick Generation Scripts for Rapid SDXL Testing
+# Quick Generation Scripts for Maximum Quality SDXL Testing
 
-This directory contains tools for **fast iteration** on SDXL generation parameters without the overhead of the full API/DB stack.
+This directory contains tools for **rapid iteration** on SDXL parameters to achieve **maximum quality fabric-accurate suit generation**.
 
-## Speed Comparison
+## 🎯 Primary Goal: QUALITY FIRST
 
-| Workflow | Time per Test | Notes |
-|----------|---------------|-------|
-| **Full Stack** (Frontend → Railway → RunPod) | ~25-30s | Includes API, DB, polling delays |
-| **API Only** (curl → worker.py) | ~20-25s | 5s polling delay + generation |
-| **quick_gen.py** | **~2-3s** | Direct generation, models stay in RAM ⚡ |
+**Objective**: Generate photorealistic suit images with **precise fabric texture transfer** from catalog photos.
 
-**~8-10x faster iteration** for parameter testing!
+**Key Requirements**:
+- ✅ **Maximum quality** - Realistic fabric patterns, forms, and textures
+- ✅ **No deformation** - Professional suit structure (lapels, buttons, tailoring)
+- ✅ **Fast iteration** - Quick parameter testing (NOT optimizing generation speed)
+- ✅ **Budget**: <90 seconds per image on 4090 GPU
+
+**Critical Technology**: **IP-Adapter** for direct fabric texture transfer from catalog product photos.
+
+---
+
+## Iteration Speed Comparison
+
+| Workflow | Setup Time | Iteration Speed | Use Case |
+|----------|------------|-----------------|----------|
+| **Full Stack** (Frontend → Railway → RunPod) | N/A | One test every 2-3 min | End-to-end validation |
+| **API Only** (curl → worker.py) | ~10s | One test every 90-120s | API testing |
+| **quick_gen.py** | ~55s (first run) | **New test every 60-90s** | **Quality parameter tuning** ⚡ |
+
+**Why quick_gen.py is faster for iteration:**
+- Models load once (~55s), stay in VRAM
+- No API/DB overhead
+- Direct parameter changes via CLI
+- **Result**: Test 10+ parameter combinations in 15 minutes
 
 ---
 
@@ -19,6 +37,55 @@ This directory contains tools for **fast iteration** on SDXL generation paramete
 - **`quick_defaults.json`** - Preset configurations (version controlled)
 - **`quick_gen.py`** - Standalone generation script
 - **`README.md`** - This file
+
+---
+
+## 🔑 IP-Adapter: Key Technology for Fabric Texture Transfer
+
+**What is IP-Adapter?**
+IP-Adapter allows SDXL to use a reference image (your fabric catalog photo) as an "image prompt" to guide texture/pattern generation. This is **far more precise** than text prompts for capturing fabric details.
+
+**Why It's Critical for Your Use Case:**
+- ✅ **Direct texture transfer** from catalog photos to generated suits
+- ✅ **Captures subtle patterns** (weaves, threads, texture) that text can't describe
+- ✅ **Consistent fabric appearance** across different suit styles
+
+**How It Works:**
+1. You provide a high-res fabric catalog photo as input
+2. IP-Adapter extracts visual features from the photo
+3. These features guide SDXL to replicate the fabric texture on the generated suit
+4. **IP-Adapter scale** (0.0-1.0) controls how strongly the fabric texture is applied
+
+**IP-Adapter Scale Guide:**
+- `0.5-0.7` - Subtle fabric influence, more creative freedom
+- `0.7-0.8` - **Recommended** - Strong fabric transfer, balanced with suit structure
+- `0.8-0.95` - Very strong fabric transfer, may override some prompt details
+- `0.95-1.0` - Maximum fabric similarity, minimal deviation
+
+**Setup:**
+Currently, IP-Adapter reads fabric images from the path set in `IP_ADAPTER_IMAGE` environment variable. To use with your catalog photos:
+
+```bash
+# In your .env file on RunPod
+IP_ADAPTER_ENABLED=1
+IP_ADAPTER_IMAGE=/workspace/app/backend/assets/fabric_swatches/algodon-tech-negro-001.jpg
+IP_ADAPTER_SCALE=0.8
+```
+
+**Testing IP-Adapter Impact:**
+```bash
+# Compare without vs with IP-Adapter
+python -m scripts.quick_gen --preset=quality-100 --seed=42  # No IP-Adapter
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42  # With IP-Adapter
+
+# Test different IP-Adapter strengths
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --override ip_scale=0.7
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --override ip_scale=0.9
+```
+
+**Expected Results:**
+- **Without IP-Adapter**: SDXL guesses fabric texture from text prompts
+- **With IP-Adapter**: Fabric texture closely matches your catalog photo
 
 ---
 
@@ -125,50 +192,90 @@ scp -i ~/.ssh/id_ed25519 -P 10079 -r root@203.57.40.119:/workspace/app/backend/o
 
 ---
 
-## Workflow: Finding Optimal Parameters
+## Workflow: Quality-First Testing Plan
 
-### Phase 1: Baseline Testing (15 minutes)
+**Budget**: 90 seconds per image on 4090 GPU
+**Goal**: Maximum quality with precise fabric texture transfer
+**Use fixed seeds** (42, 1234) for all tests to isolate parameter effects
 
-Test current production config vs speed-optimized variants **with fixed seeds for reproducibility**:
+---
 
-```bash
-# Test baseline vs no-refiner (seed 42)
-python -m scripts.quick_gen --compare baseline,fast-no-refiner --seed=42
+### Test 1: IP-Adapter Baseline (MOST CRITICAL - 15 minutes)
 
-# Test step counts
-python -m scripts.quick_gen --compare balanced-60,baseline,quality-100 --seed=42
-
-# Test single ControlNets
-python -m scripts.quick_gen --compare depth-only,canny-only,baseline --seed=42
-```
-
-**Goal**: Determine if refiner is worth the time, optimal step count, ControlNet impact.
-
-**Why use `--seed=42`?** Same seed = same base randomness across all presets, isolating the effect of parameter changes.
-
-### Phase 2: ControlNet Weight Tuning (10 minutes)
+**Goal**: Verify IP-Adapter improves fabric texture accuracy
 
 ```bash
-# Test depth weights
-python -m scripts.quick_gen --preset=baseline --override depth_weight=0.7
-python -m scripts.quick_gen --preset=baseline --override depth_weight=1.0
-python -m scripts.quick_gen --preset=baseline --override depth_weight=1.3
+# Single cut for faster iteration
+--cuts=recto
 
-# Test canny weights
-python -m scripts.quick_gen --preset=baseline --override canny_weight=0.5
-python -m scripts.quick_gen --preset=baseline --override canny_weight=0.8
-python -m scripts.quick_gen --preset=baseline --override canny_weight=1.0
+# Without IP-Adapter (baseline)
+python -m scripts.quick_gen --preset=quality-100 --seed=42 --cuts=recto
+python -m scripts.quick_gen --preset=quality-100 --seed=1234 --cuts=recto
+
+# With IP-Adapter (recommended strength)
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=1234 --cuts=recto
+
+# Heavy IP-Adapter (stronger texture transfer)
+python -m scripts.quick_gen --preset=quality-ip-heavy --seed=42 --cuts=recto
+python -m scripts.quick_gen --preset=quality-ip-heavy --seed=1234 --cuts=recto
 ```
 
-**Goal**: Find sweet spot for pose guidance vs fabric flexibility.
+**Download and compare**: Does IP-Adapter accurately transfer fabric pattern? Which scale is optimal?
 
-### Phase 3: Guidance Scale Testing (5 minutes)
+---
+
+### Test 2: Steps & Refiner for Quality Ceiling (10 minutes)
+
+**Goal**: Find quality ceiling within 90s budget
 
 ```bash
-python -m scripts.quick_gen --compare low-cfg,baseline,high-cfg
+# Test step counts (with IP-Adapter enabled)
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override steps=80
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override steps=100
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override steps=120
+
+# Test refiner impact
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override refiner=false
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override refiner=true
 ```
 
-**Goal**: Balance prompt adherence vs creative freedom.
+**Decision**: Optimal steps for best texture? Does refiner help or blur fabric details?
+
+---
+
+### Test 3: Guidance Scale for Quality (10 minutes)
+
+**Goal**: Balance fabric texture detail vs professional suit structure
+
+```bash
+# Test guidance scales (higher = more prompt adherence, sharper details)
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override guidance=5.0
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override guidance=6.5
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override guidance=8.0
+```
+
+**Decision**: Which guidance gives cleanest fabric texture + best suit structure?
+
+---
+
+### Test 4: ControlNet Tuning to Prevent Deformation (10 minutes)
+
+**Goal**: Maintain suit structure without deformation while preserving fabric accuracy
+
+```bash
+# Test depth ControlNet weights (pose/structure guidance)
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override depth_weight=1.0
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override depth_weight=1.3
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override depth_weight=1.6
+
+# Test canny ControlNet (sharp edges for lapels/buttons)
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override canny_weight=0.5
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override canny_weight=0.8
+python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override canny_weight=1.0
+```
+
+**Decision**: Optimal ControlNet weights for structure without warping?
 
 ### Phase 4: Document Findings (5 minutes)
 
@@ -367,6 +474,67 @@ Should contain:
 ### Models downloading slowly
 
 **Fix**: First run downloads ~12GB of models from HuggingFace. Subsequent runs use cache at `/workspace/.cache/huggingface`.
+
+---
+
+## 📊 Quality Evaluation Criteria
+
+Use these criteria when comparing test outputs to systematically evaluate quality:
+
+### ⭐⭐⭐⭐⭐ Excellent (Production Ready)
+- ✅ **Fabric Texture**: Precisely matches catalog photo - pattern, weave, and material texture clearly visible
+- ✅ **Suit Structure**: Perfect tailoring - sharp lapels, aligned buttons, crisp edges, professional drape
+- ✅ **No Deformation**: Zero warping or distortion in suit shape, lapels, or sleeves
+- ✅ **Background**: Pure white seamless background, no artifacts or shadows
+- ✅ **Lighting**: Consistent, professional studio lighting with subtle shadows
+- ✅ **Overall**: Indistinguishable from professional product photography
+
+### ⭐⭐⭐⭐ Good (Acceptable)
+- ✅ **Fabric Texture**: Clearly recognizable from catalog photo, minor detail differences acceptable
+- ✅ **Suit Structure**: Professional tailoring, sharp details, minimal imperfections
+- ✅ **No Deformation**: Slight geometric inconsistencies but not noticeable without zooming
+- ⚠️ **Background**: Clean white but may have very subtle artifacts
+- ✅ **Lighting**: Professional, minor shadow variations acceptable
+
+### ⭐⭐⭐ Acceptable (Needs Improvement)
+- ⚠️ **Fabric Texture**: Fabric type recognizable but pattern/texture not precise
+- ⚠️ **Suit Structure**: Generally good but some details blurry or soft
+- ⚠️ **Minor Deformation**: Some warping visible (lapel edges, button rows) but within tolerance
+- ⚠️ **Background**: Some artifacts or light inconsistencies
+- ⚠️ **Lighting**: Usable but not perfect
+
+### ⭐⭐ Poor (Not Production Ready)
+- ❌ **Fabric Texture**: Pattern doesn't match catalog, texture generic
+- ❌ **Suit Structure**: Blurry details, soft edges, unprofessional look
+- ❌ **Deformation**: Visible warping in suit shape or structural elements
+- ❌ **Background**: Noticeable artifacts, shadows, or color inconsistencies
+- ❌ **Lighting**: Flat or inconsistent
+
+### ⭐ Unusable
+- ❌ **Severe Issues**: Major deformation, unrecognizable fabric, background ruined, severe artifacts
+
+---
+
+## Systematic Quality Comparison
+
+When comparing outputs from different presets:
+
+1. **Open images side-by-side** in image viewer (Windows Photos, IrfanView, etc.)
+2. **Zoom to 100%** to check fabric detail and texture accuracy
+3. **Check against catalog photo**: Does fabric pattern/texture match?
+4. **Inspect suit structure**: Are lapels sharp? Buttons aligned? No warping?
+5. **Check background**: Pure white? No artifacts?
+6. **Document findings**: Note which preset scores highest on each criterion
+
+**Quick quality checklist:**
+```
+[ ] Fabric texture matches catalog photo (most important!)
+[ ] No deformation in suit structure
+[ ] Sharp lapels and crisp tailoring
+[ ] Clean white background
+[ ] Professional lighting
+[ ] Within 90s generation budget on 4090
+```
 
 ---
 
