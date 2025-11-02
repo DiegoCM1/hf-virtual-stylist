@@ -169,10 +169,16 @@ def generate_with_preset(
         gen_module.SdxlTurboGenerator._refiner = None
         gen_module.SdxlTurboGenerator._device = "cpu"
 
-    # Clear CUDA cache
+    # Clear CUDA cache aggressively
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
+        torch.cuda.synchronize()  # Wait for all GPU operations to finish
+        torch.cuda.ipc_collect()  # Clean up inter-process communication
     gc.collect()
+
+    print(f"[DEBUG quick_gen] After clearing cache, env vars are:")
+    print(f"  CONTROLNET_WEIGHT={os.environ.get('CONTROLNET_WEIGHT', 'NOT SET')}")
+    print(f"  CONTROLNET2_WEIGHT={os.environ.get('CONTROLNET2_WEIGHT', 'NOT SET')}")
 
     # Reload generator module (re-executes os.getenv() calls with new env values)
     importlib.reload(gen_module)

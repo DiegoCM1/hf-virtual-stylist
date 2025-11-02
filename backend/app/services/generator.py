@@ -405,6 +405,10 @@ class SdxlTurboGenerator(Generator):
                         control_guidance_start=s,
                         control_guidance_end=e,
                     )
+                    print(f"[DEBUG pipeline] Passing ControlNet params to base pipeline:")
+                    print(f"  controlnet_conditioning_scale={w}")
+                    print(f"  control_guidance_start={s}")
+                    print(f"  control_guidance_end={e}")
                 # Base → latent (0 → split)
                 ip_kwargs = dict(ip_kwargs_base)
                 base_out = base(
@@ -487,6 +491,10 @@ class SdxlTurboGenerator(Generator):
                         control_guidance_start=s,
                         control_guidance_end=e,
                     )
+                    print(f"[DEBUG pipeline] Passing ControlNet params to base pipeline (no refiner):")
+                    print(f"  controlnet_conditioning_scale={w}")
+                    print(f"  control_guidance_start={s}")
+                    print(f"  control_guidance_end={e}")
                 ip_kwargs = dict(ip_kwargs_base)
                 img: Image.Image = base(
                     prompt=pos,
