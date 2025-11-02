@@ -155,12 +155,12 @@ def generate_with_preset(
     # Apply preset to environment variables
     apply_preset_to_env(preset_config)
 
-    # CRITICAL FIX: Reload config AND generator to pick up env var changes
-    # The config module caches env vars at import time, so we must reload it first
+    # CRITICAL FIX: Reload generator module to pick up env var changes
+    # Generator reads env vars directly via os.getenv() at module load time
+    # Reloading the module re-executes those lines with new env values
     import importlib
     import torch
     import gc
-    from app.core import config as config_module
     from app.services import generator as gen_module
 
     # Clear the class-level singletons BEFORE reload
@@ -174,10 +174,7 @@ def generate_with_preset(
         torch.cuda.empty_cache()
     gc.collect()
 
-    # Reload config module FIRST (picks up new env vars from apply_preset_to_env)
-    importlib.reload(config_module)
-
-    # Now reload generator (will re-import fresh constants from reloaded config)
+    # Reload generator module (re-executes os.getenv() calls with new env values)
     importlib.reload(gen_module)
     from app.services.generator import SdxlTurboGenerator
 

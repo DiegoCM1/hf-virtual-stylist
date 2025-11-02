@@ -14,7 +14,6 @@ import hashlib
 from app.core.config import (
     PUBLIC_BASE_URL,
     CONTROLNET_ENABLED, CONTROLNET_MODEL,
-    CONTROLNET_WEIGHT, CONTROLNET_GUIDANCE_START, CONTROLNET_GUIDANCE_END,
     CONTROL_IMAGE_RECTO, CONTROL_IMAGE_CRUZADO
 )
 import base64, io, time, uuid
@@ -40,6 +39,13 @@ MAX_CUTS = int(os.getenv("MAX_CUTS", "2"))
 USE_REFINER = os.getenv("USE_REFINER", "1") == "1"
 TOTAL_STEPS = int(os.getenv("TOTAL_STEPS", "80"))
 REFINER_SPLIT = float(os.getenv("REFINER_SPLIT", "0.70"))
+
+# --- PRIMARY CONTROLNET (DEPTH) - read from env for testing flexibility -----
+# CRITICAL: Read directly from os.getenv() instead of importing from config.py
+# This allows quick_gen.py overrides to work correctly after module reload
+CONTROLNET_WEIGHT = float(os.getenv("CONTROLNET_WEIGHT", "0.9"))
+CONTROLNET_GUIDANCE_START = float(os.getenv("CONTROLNET_GUIDANCE_START", "0.0"))
+CONTROLNET_GUIDANCE_END = float(os.getenv("CONTROLNET_GUIDANCE_END", "0.5"))
 
 # --- SECOND CONTROLNET (CANNY) via env (kept local to this module) ----------
 CONTROLNET2_ENABLED = os.getenv("CONTROLNET2_ENABLED", "0") == "1"
@@ -292,6 +298,16 @@ class SdxlTurboGenerator(Generator):
         return images, scales, starts, ends
 
     def generate(self, req: GenerationRequest) -> GenerationResponse:
+        # DEBUG: Print actual values being used (helps verify overrides work)
+        print(f"[DEBUG] ControlNet weights from module variables:")
+        print(f"  CONTROLNET_WEIGHT = {CONTROLNET_WEIGHT}")
+        print(f"  CONTROLNET2_WEIGHT = {CONTROLNET2_WEIGHT}")
+        print(f"  CONTROLNET_GUIDANCE_START = {CONTROLNET_GUIDANCE_START}")
+        print(f"  CONTROLNET_GUIDANCE_END = {CONTROLNET_GUIDANCE_END}")
+        print(f"[DEBUG] Direct env check:")
+        print(f"  os.getenv('CONTROLNET_WEIGHT') = {os.getenv('CONTROLNET_WEIGHT', 'NOT SET')}")
+        print(f"  os.getenv('CONTROLNET2_WEIGHT') = {os.getenv('CONTROLNET2_WEIGHT', 'NOT SET')}")
+
         t0 = time.time()
         base, refiner = self._get_pipes()
         device = self._device
