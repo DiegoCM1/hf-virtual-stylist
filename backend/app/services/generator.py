@@ -273,27 +273,53 @@ class SdxlTurboGenerator(Generator):
         Returns (images, scales, starts, ends) for enabled controlnets, resized to size.
         Each list can have length 0, 1, or 2 depending on what is enabled/available.
         """
+        print(f"[DEBUG _control_images_for_cut] Called for cut='{cut}', size={size}")
+        print(f"[DEBUG] CONTROLNET_ENABLED={CONTROLNET_ENABLED}")
+        print(f"[DEBUG] CONTROLNET_WEIGHT={CONTROLNET_WEIGHT}")
+        print(f"[DEBUG] CONTROLNET2_ENABLED={CONTROLNET2_ENABLED}")
+
         images, scales, starts, ends = [], [], [], []
 
         # Depth (primary)
         if CONTROLNET_ENABLED:
             dpath = CONTROL_IMAGE_RECTO if cut == "recto" else CONTROL_IMAGE_CRUZADO
+            print(f"[DEBUG] Depth ControlNet: checking path '{dpath}'")
+            print(f"  Path exists: {os.path.exists(dpath) if dpath else 'dpath is None/empty'}")
+
             if dpath and os.path.exists(dpath):
                 img = Image.open(dpath).convert("RGB").resize(size, Image.BICUBIC)
                 images.append(img)
                 scales.append(CONTROLNET_WEIGHT)
                 starts.append(CONTROLNET_GUIDANCE_START)
                 ends.append(CONTROLNET_GUIDANCE_END)
+                print(f"[DEBUG] ✅ Depth ControlNet image loaded, weight={CONTROLNET_WEIGHT}")
+            else:
+                print(f"[DEBUG] ❌ Depth ControlNet NOT loaded (path invalid or missing)")
+        else:
+            print(f"[DEBUG] Depth ControlNet DISABLED (CONTROLNET_ENABLED=False)")
 
         # Canny (secondary)
         if CONTROLNET2_ENABLED:
             cpath = CONTROL_IMAGE_RECTO_CANNY if cut == "recto" else CONTROL_IMAGE_CRUZADO_CANNY
+            print(f"[DEBUG] Canny ControlNet: checking path '{cpath}'")
+            print(f"  Path exists: {os.path.exists(cpath) if cpath else 'cpath is None/empty'}")
+
             if cpath and os.path.exists(cpath):
                 img = Image.open(cpath).convert("RGB").resize(size, Image.BICUBIC)
                 images.append(img)
                 scales.append(CONTROLNET2_WEIGHT)
                 starts.append(CONTROLNET2_GUIDANCE_START)
                 ends.append(CONTROLNET2_GUIDANCE_END)
+                print(f"[DEBUG] ✅ Canny ControlNet image loaded, weight={CONTROLNET2_WEIGHT}")
+            else:
+                print(f"[DEBUG] ❌ Canny ControlNet NOT loaded (path invalid or missing)")
+        else:
+            print(f"[DEBUG] Canny ControlNet DISABLED (CONTROLNET2_ENABLED=False)")
+
+        print(f"[DEBUG _control_images_for_cut] Returning {len(images)} control image(s)")
+        print(f"  scales={scales}")
+        print(f"  starts={starts}")
+        print(f"  ends={ends}")
 
         return images, scales, starts, ends
 
@@ -392,6 +418,7 @@ class SdxlTurboGenerator(Generator):
             if refiner:
                 # Optional ControlNet kwargs (apply only on base stage)
                 imgs, scales, starts, ends = self._control_images_for_cut(cut, (width, height))
+                print(f"[DEBUG] After _control_images_for_cut: got {len(imgs)} images")
                 extra = {}
                 if imgs:
                     # Support 1 or 2 controlnets transparently
@@ -479,6 +506,7 @@ class SdxlTurboGenerator(Generator):
             else:
                 # Optional ControlNet kwargs (no refiner path)
                 imgs, scales, starts, ends = self._control_images_for_cut(cut, (width, height))
+                print(f"[DEBUG] After _control_images_for_cut (no refiner): got {len(imgs)} images")
                 extra = {}
                 if imgs:
                     payload = imgs if len(imgs) > 1 else imgs[0]
