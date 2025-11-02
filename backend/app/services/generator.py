@@ -3,7 +3,6 @@ import io, os, time, uuid, random, gc
 from dataclasses import dataclass
 from typing import List
 from PIL import Image, ImageDraw, ImageFont
-from fastapi import HTTPException
 from app.models.generate import GenerationRequest, GenerationResponse, ImageResult
 from app.services.storage import Storage, LocalStorage
 from app.services.watermark import apply_watermark_image
