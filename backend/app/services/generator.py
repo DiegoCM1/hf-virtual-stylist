@@ -12,8 +12,6 @@ import urllib.request
 import hashlib
 from app.core.config import (
     PUBLIC_BASE_URL,
-    CONTROLNET_ENABLED, CONTROLNET_MODEL,
-    CONTROL_IMAGE_RECTO, CONTROL_IMAGE_CRUZADO
 )
 import base64, io, time, uuid
 from typing import List
@@ -42,9 +40,13 @@ REFINER_SPLIT = float(os.getenv("REFINER_SPLIT", "0.70"))
 # --- PRIMARY CONTROLNET (DEPTH) - read from env for testing flexibility -----
 # CRITICAL: Read directly from os.getenv() instead of importing from config.py
 # This allows quick_gen.py overrides to work correctly after module reload
+CONTROLNET_ENABLED = os.getenv("CONTROLNET_ENABLED", "0") == "1"
+CONTROLNET_MODEL = os.getenv("CONTROLNET_MODEL", "")
 CONTROLNET_WEIGHT = float(os.getenv("CONTROLNET_WEIGHT", "0.9"))
 CONTROLNET_GUIDANCE_START = float(os.getenv("CONTROLNET_GUIDANCE_START", "0.0"))
 CONTROLNET_GUIDANCE_END = float(os.getenv("CONTROLNET_GUIDANCE_END", "0.5"))
+CONTROL_IMAGE_RECTO = os.getenv("CONTROL_IMAGE_RECTO", "")
+CONTROL_IMAGE_CRUZADO = os.getenv("CONTROL_IMAGE_CRUZADO", "")
 
 # --- SECOND CONTROLNET (CANNY) via env (kept local to this module) ----------
 CONTROLNET2_ENABLED = os.getenv("CONTROLNET2_ENABLED", "0") == "1"
