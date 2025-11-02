@@ -155,10 +155,25 @@ def generate_with_preset(
     # Apply preset to environment variables
     apply_preset_to_env(preset_config)
 
-    # Force reload of generator module to pick up new env vars
-    # Note: SdxlTurboGenerator uses class-level caching, so we need to clear it
+    # CRITICAL FIX: Clear class-level model cache to allow fresh env var loading
+    # This forces the generator to reload models with new parameters
     import importlib
+    import torch
+    import gc
     from app.services import generator as gen_module
+
+    # Clear the class-level singletons BEFORE reload
+    if hasattr(gen_module, 'SdxlTurboGenerator'):
+        gen_module.SdxlTurboGenerator._base = None
+        gen_module.SdxlTurboGenerator._refiner = None
+        gen_module.SdxlTurboGenerator._device = "cpu"
+
+    # Clear CUDA cache
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    gc.collect()
+
+    # Now reload the module with fresh env vars
     importlib.reload(gen_module)
     from app.services.generator import SdxlTurboGenerator
 
@@ -282,6 +297,12 @@ def main():
         '--list-presets',
         action='store_true',
         help='List available presets and exit'
+    )
+
+    parser.add_argument(
+        '--no-reload',
+        action='store_true',
+        help='Skip model reload (faster but ignores env var changes - use only when testing different seeds with same config)'
     )
 
     args = parser.parse_args()
