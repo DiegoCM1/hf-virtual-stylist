@@ -12,7 +12,7 @@ This directory contains tools for **rapid iteration** on SDXL parameters to achi
 - ✅ **Fast iteration** - Quick parameter testing (NOT optimizing generation speed)
 - ✅ **Budget**: <90 seconds per image on 4090 GPU
 
-**Critical Technology**: **IP-Adapter** for direct fabric texture transfer from catalog product photos.
+**Critical Technology**: **ControlNet** for structural control + **LoRA** for precise fabric texture transfer.
 
 ---
 
@@ -40,52 +40,73 @@ This directory contains tools for **rapid iteration** on SDXL parameters to achi
 
 ---
 
-## 🔑 IP-Adapter: Key Technology for Fabric Texture Transfer
+## 🔑 Technology Stack: ControlNet → Quality Tuning → LoRA
 
-**What is IP-Adapter?**
-IP-Adapter allows SDXL to use a reference image (your fabric catalog photo) as an "image prompt" to guide texture/pattern generation. This is **far more precise** than text prompts for capturing fabric details.
+**The Right Approach for Fabric-Accurate Suit Generation:**
 
-**Why It's Critical for Your Use Case:**
-- ✅ **Direct texture transfer** from catalog photos to generated suits
-- ✅ **Captures subtle patterns** (weaves, threads, texture) that text can't describe
-- ✅ **Consistent fabric appearance** across different suit styles
+### Phase 1: ControlNet Baseline (Foundation)
+**Goal**: Establish zero-deformation structural control FIRST
 
-**How It Works:**
-1. You provide a high-res fabric catalog photo as input
-2. IP-Adapter extracts visual features from the photo
-3. These features guide SDXL to replicate the fabric texture on the generated suit
-4. **IP-Adapter scale** (0.0-1.0) controls how strongly the fabric texture is applied
+**What ControlNet Does:**
+- **Depth ControlNet**: Controls pose/body geometry (prevents warping)
+- **Canny ControlNet**: Controls sharp edges (lapels, buttons, seams)
+- These work TOGETHER to maintain professional suit structure
 
-**IP-Adapter Scale Guide:**
-- `0.5-0.7` - Subtle fabric influence, more creative freedom
-- `0.7-0.8` - **Recommended** - Strong fabric transfer, balanced with suit structure
-- `0.8-0.95` - Very strong fabric transfer, may override some prompt details
-- `0.95-1.0` - Maximum fabric similarity, minimal deviation
+**Why Start Here:**
+- ✅ If suit structure is deformed, fabric texture is irrelevant
+- ✅ ControlNet provides the geometric foundation
+- ✅ Allows isolated testing of structural controls before adding texture
 
-**Setup:**
-Currently, IP-Adapter reads fabric images from the path set in `IP_ADAPTER_IMAGE` environment variable. To use with your catalog photos:
-
+**Testing ControlNet:**
 ```bash
-# In your .env file on RunPod
-IP_ADAPTER_ENABLED=1
-IP_ADAPTER_IMAGE=/workspace/app/backend/assets/fabric_swatches/algodon-tech-negro-001.jpg
-IP_ADAPTER_SCALE=0.8
+# Test depth ControlNet weights (prevent pose deformation)
+python -m scripts.quick_gen --preset=baseline --seed=42 --override depth_weight=1.0
+python -m scripts.quick_gen --preset=baseline --seed=42 --override depth_weight=1.2
+python -m scripts.quick_gen --preset=baseline --seed=42 --override depth_weight=1.5
+
+# Test canny ControlNet weights (sharp lapels/buttons)
+python -m scripts.quick_gen --preset=baseline --seed=42 --override canny_weight=0.5
+python -m scripts.quick_gen --preset=baseline --seed=42 --override canny_weight=0.7
+python -m scripts.quick_gen --preset=baseline --seed=42 --override canny_weight=0.9
 ```
 
-**Testing IP-Adapter Impact:**
-```bash
-# Compare without vs with IP-Adapter
-python -m scripts.quick_gen --preset=quality-100 --seed=42  # No IP-Adapter
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42  # With IP-Adapter
+**Success Criteria**: Zero deformation, sharp professional tailoring, clean suit structure
 
-# Test different IP-Adapter strengths
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --override ip_scale=0.7
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --override ip_scale=0.9
-```
+---
 
-**Expected Results:**
-- **Without IP-Adapter**: SDXL guesses fabric texture from text prompts
-- **With IP-Adapter**: Fabric texture closely matches your catalog photo
+### Phase 2: Quality Tuning (Polish the Foundation)
+**Goal**: Maximize quality within 90s budget on 4090 GPU
+
+**Parameters to Test:**
+- **Steps** (60-120): More steps = smoother details, diminishing returns after 100
+- **Guidance** (4.0-8.0): Higher = more prompt adherence, sharper details
+- **Refiner**: SDXL refinement stage for quality boost
+
+**Success Criteria**: Best quality achievable without fabric-specific textures
+
+---
+
+### Phase 3: LoRA Training (Precise Fabric Texture Transfer)
+**Goal**: Teach SDXL specific fabric patterns/textures from catalog photos
+
+**Why LoRA Instead of IP-Adapter:**
+- ❌ **IP-Adapter**: Transfers visual style, FIGHTS with ControlNet, causes deformation
+  - High scale (0.8+) = all texture, deformed suit structure
+  - Low scale (0.3) = better structure but no precise pattern matching
+  - Cannot balance both structure AND precise texture
+
+- ✅ **LoRA**: Learns new concepts, WORKS WITH ControlNet
+  - Teaches SDXL: "this is what 'algodon-tech-negro-001' looks like"
+  - Works harmoniously with ControlNet structural controls
+  - Precise pattern/texture replication from catalog photos
+
+**LoRA Workflow** (detailed plan below):
+1. Collect catalog photos per fabric (10-20 images minimum)
+2. Train LoRA on each fabric family
+3. Generate with: `<lora:algodon-tech:0.8>` in prompt
+4. LoRA adds texture, ControlNet maintains structure
+
+**Success Criteria**: Fabric texture matches catalog photo + zero deformation
 
 ---
 
@@ -198,104 +219,470 @@ scp -i ~/.ssh/id_ed25519 -P 10079 -r root@203.57.40.119:/workspace/app/backend/o
 **Goal**: Maximum quality with precise fabric texture transfer
 **Use fixed seeds** (42, 1234) for all tests to isolate parameter effects
 
+**CRITICAL**: Test in this EXACT order - each phase builds on the previous
+
 ---
 
-### Test 1: IP-Adapter Baseline (MOST CRITICAL - 15 minutes)
+### Phase 1: ControlNet Baseline - Zero Deformation (20 minutes)
 
-**Goal**: Verify IP-Adapter improves fabric texture accuracy
+**Goal**: Find ControlNet weights that produce PERFECT suit structure with ZERO deformation
+
+**Why First**: If suit structure is deformed, nothing else matters. This is the foundation.
 
 ```bash
-# Single cut for faster iteration
+# Use single cut for faster iteration
 --cuts=recto
 
-# Without IP-Adapter (baseline)
-python -m scripts.quick_gen --preset=quality-100 --seed=42 --cuts=recto
-python -m scripts.quick_gen --preset=quality-100 --seed=1234 --cuts=recto
+# Test 1.1: Depth ControlNet (prevents body/pose warping)
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override depth_weight=0.8
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override depth_weight=1.0
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override depth_weight=1.2
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override depth_weight=1.5
 
-# With IP-Adapter (recommended strength)
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=1234 --cuts=recto
+# Test 1.2: Canny ControlNet (sharp lapels/buttons)
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override canny_weight=0.5
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override canny_weight=0.7
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override canny_weight=0.9
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override canny_weight=1.1
 
-# Heavy IP-Adapter (stronger texture transfer)
-python -m scripts.quick_gen --preset=quality-ip-heavy --seed=42 --cuts=recto
-python -m scripts.quick_gen --preset=quality-ip-heavy --seed=1234 --cuts=recto
+# Test 1.3: Verify winning combo with second seed
+python -m scripts.quick_gen --preset=baseline --seed=1234 --cuts=recto --override depth_weight=<WINNER>,canny_weight=<WINNER>
 ```
 
-**Download and compare**: Does IP-Adapter accurately transfer fabric pattern? Which scale is optimal?
+**Evaluation Criteria:**
+- ✅ Zero warping in suit body/sleeves
+- ✅ Sharp, straight lapel edges
+- ✅ Aligned button rows
+- ✅ Professional tailoring drape
+
+**Decision**: Document winning weights (e.g., depth=1.2, canny=0.7) - this becomes your new baseline
 
 ---
 
-### Test 2: Steps & Refiner for Quality Ceiling (10 minutes)
+### Phase 2: Quality Ceiling - Maximum Quality (15 minutes)
 
-**Goal**: Find quality ceiling within 90s budget
+**Goal**: Find best quality settings within 90s budget
+
+**Starting Config**: Use winning ControlNet weights from Phase 1
 
 ```bash
-# Test step counts (with IP-Adapter enabled)
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override steps=80
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override steps=100
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override steps=120
+# Test 2.1: Step counts (quality vs time tradeoff)
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override steps=60
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override steps=80
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override steps=100
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override steps=120
 
-# Test refiner impact
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override refiner=false
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override refiner=true
+# Test 2.2: Refiner impact (quality boost vs time cost)
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override refiner=false
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override refiner=true,refiner_split=0.7
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override refiner=true,refiner_split=0.8
+
+# Test 2.3: Guidance scale (prompt adherence vs creativity)
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override guidance=4.5
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override guidance=6.0
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override guidance=7.5
+
+# Test 2.4: Verify timing with full config
+# (Ensure total generation time < 90s on 4090)
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override steps=<WINNER>,guidance=<WINNER>,refiner=<WINNER>
 ```
 
-**Decision**: Optimal steps for best texture? Does refiner help or blur fabric details?
+**Evaluation Criteria:**
+- ✅ Best overall image quality (sharpness, detail, coherence)
+- ✅ Clean white background
+- ✅ Professional studio lighting
+- ✅ Within 90s budget
+
+**Decision**: Document optimal quality config (e.g., steps=100, guidance=6.5, refiner=true)
 
 ---
 
-### Test 3: Guidance Scale for Quality (10 minutes)
+### Phase 3: Identify the Gap - Fabric Texture Analysis (5 minutes)
 
-**Goal**: Balance fabric texture detail vs professional suit structure
+**Goal**: Confirm that quality baseline has generic (not fabric-specific) textures
 
 ```bash
-# Test guidance scales (higher = more prompt adherence, sharper details)
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override guidance=5.0
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override guidance=6.5
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override guidance=8.0
+# Generate with 2-3 different fabrics using optimized config
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --fabric=algodon-tech --color=negro-001
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --fabric=lana-super-150 --color=azul-marino
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --fabric=cashmere-blend --color=gris-carbon
 ```
 
-**Decision**: Which guidance gives cleanest fabric texture + best suit structure?
+**Compare against catalog photos:**
+- ❌ Fabric patterns DON'T match catalog (as expected)
+- ❌ Textures are generic SDXL "suit fabric"
+- ✅ Suit structure is perfect (from Phase 1)
+- ✅ Overall quality is excellent (from Phase 2)
+
+**The Gap**: We have perfect structure + quality, but generic textures. This is where LoRA comes in.
 
 ---
 
-### Test 4: ControlNet Tuning to Prevent Deformation (10 minutes)
+### Phase 4: LoRA Training Setup (See LoRA Plan Below)
 
-**Goal**: Maintain suit structure without deformation while preserving fabric accuracy
+**Goal**: Train fabric-specific LoRAs to close the texture gap
 
-```bash
-# Test depth ControlNet weights (pose/structure guidance)
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override depth_weight=1.0
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override depth_weight=1.3
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override depth_weight=1.6
+This phase requires:
+1. Collecting 10-20 catalog photos per fabric
+2. Training LoRA models (external tool: Kohya_ss or similar)
+3. Integrating LoRAs into generation pipeline
+4. Testing LoRA + ControlNet combination
 
-# Test canny ControlNet (sharp edges for lapels/buttons)
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override canny_weight=0.5
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override canny_weight=0.8
-python -m scripts.quick_gen --preset=ultra-quality-ip --seed=42 --cuts=recto --override canny_weight=1.0
-```
+**See "Comprehensive LoRA Training Plan" section below for detailed workflow**
 
-**Decision**: Optimal ControlNet weights for structure without warping?
+---
 
-### Phase 4: Document Findings (5 minutes)
+### Phase 5: Document Winning Config (5 minutes)
 
-Edit `quick_defaults.json` to add winning configs:
+Edit `quick_defaults.json` to add your optimized baseline:
 
 ```json
 {
-  "production-v2": {
-    "description": "Optimized config after testing - faster, better quality",
-    "guidance": 5.5,
-    "total_steps": 60,
-    "use_refiner": false,
-    "controlnet_weight": 1.1,
+  "production-baseline": {
+    "description": "Optimized ControlNet baseline - zero deformation, max quality",
+    "guidance": 6.5,
+    "total_steps": 100,
+    "use_refiner": true,
+    "refiner_split": 0.7,
+    "controlnet_enabled": true,
+    "controlnet_weight": 1.2,
+    "controlnet_guidance_start": 0.0,
+    "controlnet_guidance_end": 0.5,
+    "controlnet2_enabled": true,
     "controlnet2_weight": 0.7,
-    ...
+    "controlnet2_guidance_start": 0.05,
+    "controlnet2_guidance_end": 0.88,
+    "ip_adapter_enabled": false
   }
 }
 ```
 
+**Important**: This baseline should produce **perfect images with generic fabric textures**. Once you have this, you're ready for LoRA training.
+
 Commit to git for team sharing.
+
+---
+
+## 🎓 Comprehensive LoRA Training Plan
+
+**Prerequisites**: You MUST complete Phases 1-3 first and have a **perfect baseline** before starting LoRA training.
+
+**Your baseline should:**
+- ✅ Have ZERO deformation (suit structure is perfect)
+- ✅ Have maximum quality within 90s budget
+- ❌ Have generic fabric textures (this is expected and what LoRA will fix)
+
+---
+
+### What LoRA Does (and Doesn't Do)
+
+**LoRA Teaches New Concepts:**
+- "This is what 'algodon-tech-negro-001' fabric looks like"
+- "This is the specific weave pattern of 'lana-super-150'"
+- "This is the unique texture of 'cashmere-blend-gris'"
+
+**LoRA Does NOT Fix:**
+- ❌ Deformation (ControlNet's job)
+- ❌ Poor quality (Steps/Guidance/Refiner's job)
+- ❌ Bad lighting or backgrounds (Baseline config's job)
+
+**Think of LoRA as:** Teaching SDXL a new vocabulary word with visual examples.
+
+---
+
+### LoRA Training Workflow
+
+### Step 1: Data Collection (Per Fabric Family)
+
+**Goal**: Collect 10-20 high-quality catalog photos of each fabric
+
+**Requirements for Training Images:**
+```
+Minimum: 10 images per fabric
+Recommended: 15-20 images per fabric
+Optimal: 25-30 images per fabric
+
+Image Quality:
+- High resolution (1024px minimum, 2048px+ preferred)
+- Clear fabric texture visible
+- Good lighting (consistent across images)
+- Minimal background (crop to fabric if needed)
+- Various angles/folds showing fabric behavior
+```
+
+**Example Directory Structure:**
+```
+/workspace/lora_training/
+├── algodon-tech-negro-001/
+│   ├── IMG_0001.jpg
+│   ├── IMG_0002.jpg
+│   ├── ... (15-20 images)
+├── lana-super-150-azul-marino/
+│   ├── IMG_0001.jpg
+│   ├── ... (15-20 images)
+└── cashmere-blend-gris-carbon/
+    ├── ... (15-20 images)
+```
+
+**Data Collection Tips:**
+- Photograph fabric swatches from multiple angles
+- Include close-ups showing weave/texture detail
+- Include medium shots showing drape/fold behavior
+- Maintain consistent lighting across all photos
+- Use same camera/settings for consistency
+
+---
+
+### Step 2: Training Environment Setup
+
+**Option A: Kohya_ss (Recommended for SDXL LoRA)**
+
+Install Kohya_ss on RunPod or local machine with GPU:
+
+```bash
+# On RunPod
+cd /workspace
+git clone https://github.com/bmaltais/kohya_ss
+cd kohya_ss
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# GUI mode
+python kohya_gui.py
+# Access at http://localhost:7860
+```
+
+**Option B: Auto1111 WebUI with Dreambooth/LoRA Extension**
+
+```bash
+cd /workspace
+git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui
+cd stable-diffusion-webui
+./webui.sh --listen --port 7860
+```
+
+---
+
+### Step 3: LoRA Training Configuration
+
+**Recommended SDXL LoRA Training Parameters:**
+
+```yaml
+# Basic Settings
+base_model: stabilityai/stable-diffusion-xl-base-1.0
+output_name: algodon-tech-negro-001
+resolution: 1024  # SDXL native resolution
+
+# Training Parameters
+learning_rate: 1e-4
+batch_size: 1  # Adjust based on VRAM
+num_epochs: 10-15
+save_every_n_epochs: 5
+
+# LoRA Specific
+network_dim: 64  # LoRA rank (64-128 for fabric textures)
+network_alpha: 32  # Typically half of network_dim
+optimizer: AdamW8bit  # Memory efficient
+
+# Regularization
+clip_skip: 2
+noise_offset: 0.05  # Helps with contrast/detail
+
+# Captions
+caption_extension: .txt  # Descriptive captions for each image
+```
+
+**Example Caption for Training Image:**
+```
+# algodon-tech-negro-001_001.txt
+algodon-tech-negro-001, black technical cotton fabric, fine weave texture, matte finish, professional suit material
+```
+
+**Caption Guidelines:**
+- Start with fabric ID (your trigger word)
+- Describe texture (weave, knit, smooth, textured)
+- Describe color (black, navy blue, charcoal grey)
+- Describe material (cotton, wool, cashmere blend)
+- Describe appearance (matte, subtle sheen, professional)
+
+---
+
+### Step 4: Training Process (Example with Kohya_ss)
+
+```bash
+# Navigate to Kohya_ss directory
+cd /workspace/kohya_ss
+source venv/bin/activate
+
+# Launch GUI
+python kohya_gui.py
+
+# In GUI:
+# 1. Source tab: Point to /workspace/lora_training/algodon-tech-negro-001/
+# 2. Parameters tab: Set SDXL LoRA parameters (above)
+# 3. Training tab: Start training
+
+# Training time estimate:
+# - 4090 GPU: ~20-30 minutes for 15 images, 10 epochs
+# - L4 GPU: ~40-60 minutes for 15 images, 10 epochs
+```
+
+**Monitor Training:**
+- Watch loss values (should decrease steadily)
+- Check sample images (generated every N steps)
+- Stop if overfitting (samples lose variety)
+
+**Optimal Training Signs:**
+- Loss converges to 0.05-0.15
+- Sample images show fabric texture clearly
+- Samples still maintain variety (not memorizing)
+
+---
+
+### Step 5: LoRA Integration with Generator
+
+**After training, you'll have:** `algodon-tech-negro-001.safetensors` (~100-200MB)
+
+**Integration Steps:**
+
+1. **Copy LoRA to models directory:**
+```bash
+mkdir -p /workspace/app/backend/models/lora
+cp /workspace/kohya_ss/output/algodon-tech-negro-001.safetensors /workspace/app/backend/models/lora/
+```
+
+2. **Update generator to load LoRA:**
+
+Edit `app/services/generator.py` to add LoRA loading:
+
+```python
+# Add at the top
+from diffusers import StableDiffusionXLPipeline
+
+# In SdxlTurboGenerator class, after loading ControlNet
+if USE_LORA:
+    lora_path = os.getenv("LORA_PATH", None)
+    lora_scale = float(os.getenv("LORA_SCALE", "0.8"))
+
+    if lora_path and os.path.exists(lora_path):
+        cls._base.load_lora_weights(lora_path)
+        print(f"[lora] loaded {lora_path} with scale {lora_scale}")
+```
+
+3. **Add to .env:**
+```bash
+USE_LORA=1
+LORA_PATH=/workspace/app/backend/models/lora/algodon-tech-negro-001.safetensors
+LORA_SCALE=0.8
+```
+
+4. **Update prompt construction in generator:**
+```python
+# Add LoRA trigger to prompt
+if USE_LORA:
+    prompt = f"algodon-tech-negro-001, {prompt}"
+```
+
+---
+
+### Step 6: Testing LoRA + ControlNet Baseline
+
+**Test with your optimized baseline config:**
+
+```bash
+# Test with LoRA enabled
+export USE_LORA=1
+export LORA_PATH=/workspace/app/backend/models/lora/algodon-tech-negro-001.safetensors
+export LORA_SCALE=0.8
+
+python -m scripts.quick_gen --preset=production-baseline --seed=42 --cuts=recto --fabric=algodon-tech --color=negro-001
+
+# Test different LoRA strengths
+python -m scripts.quick_gen --preset=production-baseline --seed=42 --override lora_scale=0.6
+python -m scripts.quick_gen --preset=production-baseline --seed=42 --override lora_scale=0.8
+python -m scripts.quick_gen --preset=production-baseline --seed=42 --override lora_scale=1.0
+```
+
+**Evaluation:**
+- ✅ Fabric texture should now match catalog photo
+- ✅ Suit structure should remain perfect (ControlNet unchanged)
+- ✅ Overall quality should remain high
+
+**If texture is too weak:** Increase `LORA_SCALE` (try 0.9-1.0)
+**If structure starts deforming:** Decrease `LORA_SCALE` (try 0.6-0.7)
+**Optimal range:** Usually 0.7-0.85 for fabric LoRAs
+
+---
+
+### Step 7: Production Deployment
+
+Once you've trained and tested all 5 required fabric LoRAs:
+
+1. **Organize LoRA models:**
+```bash
+/workspace/app/backend/models/lora/
+├── algodon-tech-negro-001.safetensors
+├── lana-super-150-azul-marino.safetensors
+├── cashmere-blend-gris-carbon.safetensors
+├── ... (5 total)
+```
+
+2. **Update generator to dynamically load LoRA based on fabric_id:**
+
+```python
+# In generate() method
+lora_filename = f"{fabric_id}_{color_id}.safetensors"
+lora_path = f"/workspace/app/backend/models/lora/{lora_filename}"
+
+if os.path.exists(lora_path):
+    self._base.load_lora_weights(lora_path)
+    prompt = f"{fabric_id}-{color_id}, {prompt}"
+else:
+    print(f"[lora] not found for {fabric_id}_{color_id}, using baseline")
+```
+
+3. **Test end-to-end:** Frontend → Railway → RunPod with LoRA
+
+---
+
+### LoRA Training Tips
+
+**Data Quality > Quantity:**
+- 15 excellent photos > 30 mediocre photos
+- Consistent lighting across all images
+- High resolution (2048px+ preferred)
+
+**Prevent Overfitting:**
+- Use regularization images (generic fabric photos)
+- Don't train for too many epochs (10-15 usually enough)
+- Monitor sample outputs during training
+
+**Optimal LoRA Settings for Fabrics:**
+- Network Dim: 64-96 (captures texture detail without overfitting)
+- Learning Rate: 1e-4 (conservative, prevents mode collapse)
+- Batch Size: 1-2 (fabric details need careful learning)
+
+**Training Multiple LoRAs:**
+- Train sequentially, not in parallel (resource management)
+- Use same base settings for all fabrics (consistency)
+- Document training notes per fabric in version control
+
+---
+
+### Expected Results
+
+**Before LoRA (Phase 1-3 Baseline):**
+- ✅ Perfect suit structure
+- ✅ Professional quality
+- ❌ Generic fabric texture (SDXL's default "suit fabric" concept)
+
+**After LoRA (Phase 4):**
+- ✅ Perfect suit structure (maintained)
+- ✅ Professional quality (maintained)
+- ✅ **Precise fabric texture matching catalog photo**
+
+**This is the holy grail:** Structure + Quality + Specific Texture
 
 ---
 
