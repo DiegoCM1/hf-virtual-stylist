@@ -155,6 +155,17 @@ def generate_with_preset(
     # Apply preset to environment variables
     apply_preset_to_env(preset_config)
 
+    # DEBUG: Verify env vars were set correctly
+    print(f"[DEBUG quick_gen.generate_with_preset] After apply_preset_to_env():")
+    print(f"  os.environ['CONTROLNET_WEIGHT'] = {os.environ.get('CONTROLNET_WEIGHT', 'NOT SET')}")
+    print(f"  os.environ['CONTROLNET2_WEIGHT'] = {os.environ.get('CONTROLNET2_WEIGHT', 'NOT SET')}")
+    print(f"  os.environ['GUIDANCE'] = {os.environ.get('GUIDANCE', 'NOT SET')}")
+    print(f"  os.environ['TOTAL_STEPS'] = {os.environ.get('TOTAL_STEPS', 'NOT SET')}")
+    print(f"  os.environ['CONTROLNET_GUIDANCE_START'] = {os.environ.get('CONTROLNET_GUIDANCE_START', 'NOT SET')}")
+    print(f"  os.environ['CONTROLNET_GUIDANCE_END'] = {os.environ.get('CONTROLNET_GUIDANCE_END', 'NOT SET')}")
+    print(f"  os.environ['CONTROLNET2_GUIDANCE_START'] = {os.environ.get('CONTROLNET2_GUIDANCE_START', 'NOT SET')}")
+    print(f"  os.environ['CONTROLNET2_GUIDANCE_END'] = {os.environ.get('CONTROLNET2_GUIDANCE_END', 'NOT SET')}")
+
     # CRITICAL FIX: Reload generator module to pick up env var changes
     # Generator reads env vars directly via os.getenv() at module load time
     # Reloading the module re-executes those lines with new env values
@@ -181,8 +192,24 @@ def generate_with_preset(
     print(f"  CONTROLNET2_WEIGHT={os.environ.get('CONTROLNET2_WEIGHT', 'NOT SET')}")
 
     # Reload generator module (re-executes os.getenv() calls with new env values)
+    print(f"[DEBUG quick_gen.generate_with_preset] Reloading generator module...")
     importlib.reload(gen_module)
-    from app.services.generator import SdxlTurboGenerator
+
+    # CRITICAL BUG FIX: Use reloaded module, not cached import
+    # OLD (WRONG): from app.services.generator import SdxlTurboGenerator  # Uses cached import!
+    # NEW (CORRECT): Get class from reloaded module
+    SdxlTurboGenerator = gen_module.SdxlTurboGenerator
+
+    # DEBUG: Verify reloaded module has new values
+    print(f"[DEBUG quick_gen.generate_with_preset] After reload, module variables are:")
+    print(f"  gen_module.CONTROLNET_WEIGHT = {gen_module.CONTROLNET_WEIGHT}")
+    print(f"  gen_module.CONTROLNET2_WEIGHT = {gen_module.CONTROLNET2_WEIGHT}")
+    print(f"  gen_module.GUIDANCE = {gen_module.GUIDANCE}")
+    print(f"  gen_module.TOTAL_STEPS = {gen_module.TOTAL_STEPS}")
+    print(f"  gen_module.CONTROLNET_GUIDANCE_START = {gen_module.CONTROLNET_GUIDANCE_START}")
+    print(f"  gen_module.CONTROLNET_GUIDANCE_END = {gen_module.CONTROLNET_GUIDANCE_END}")
+    print(f"  gen_module.CONTROLNET2_GUIDANCE_START = {gen_module.CONTROLNET2_GUIDANCE_START}")
+    print(f"  gen_module.CONTROLNET2_GUIDANCE_END = {gen_module.CONTROLNET2_GUIDANCE_END}")
 
     # Create generation request
     request = GenerationRequest(
@@ -363,9 +390,20 @@ def main():
     for preset_name in preset_names:
         preset_config = presets[preset_name].copy()
 
+        # DEBUG: Log preset values immediately after loading
+        print(f"\n[DEBUG quick_gen.main] Preset '{preset_name}' loaded from JSON:")
+        print(f"  controlnet_weight = {preset_config.get('controlnet_weight', 'NOT SET')}")
+        print(f"  controlnet2_weight = {preset_config.get('controlnet2_weight', 'NOT SET')}")
+        print(f"  guidance = {preset_config.get('guidance', 'NOT SET')}")
+        print(f"  total_steps = {preset_config.get('total_steps', 'NOT SET')}")
+
         # Apply overrides if specified
         if args.override:
+            print(f"[DEBUG quick_gen.main] Applying overrides: {args.override}")
             preset_config = apply_overrides(preset_config, args.override)
+            print(f"[DEBUG quick_gen.main] After overrides:")
+            print(f"  controlnet_weight = {preset_config.get('controlnet_weight', 'NOT SET')}")
+            print(f"  controlnet2_weight = {preset_config.get('controlnet2_weight', 'NOT SET')}")
 
         # Generate
         result = generate_with_preset(

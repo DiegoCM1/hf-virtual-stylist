@@ -1,48 +1,48 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Este archivo proporciona orientación a Claude Code (claude.ai/code) cuando trabaja con código en este repositorio.
 
-## Project Overview
+## Descripción General del Proyecto
 
-HF Virtual Stylist is a monorepo with a **FastAPI backend** (`backend/`) and a **Next.js 15 frontend** (`frontend/`) that generates photorealistic suit renders using Stable Diffusion XL. Sales associates select fabrics and colors, and the system produces SDXL-powered visualizations with optional ControlNet/IP-Adapter guidance.
+HF Virtual Stylist es un monorepo con un **backend FastAPI** (`backend/`) y un **frontend Next.js 15** (`frontend/`) que genera renders fotorrealistas de trajes usando Stable Diffusion XL. Los asociados de ventas seleccionan telas y colores, y el sistema produce visualizaciones potenciadas por SDXL con guía opcional de ControlNet/IP-Adapter.
 
-## Repository Structure
+## Estructura del Repositorio
 
 ```
 backend/
 ├── app/
-│   ├── admin/           # Admin CRUD, auth (JWT), schemas for fabric management
-│   ├── core/            # config.py (Pydantic settings), database.py (SQLAlchemy session)
-│   ├── models/          # Pydantic request/response schemas (catalog, generate)
-│   ├── routers/         # FastAPI route handlers (catalog, generate, admin)
-│   ├── services/        # Core logic: generator.py (SDXL), storage.py (local/R2), watermark.py
-│   ├── data/            # fabrics.json (catalog metadata), swatch_mapping.csv
-│   └── main.py          # FastAPI app initialization, CORS, static file mount
-├── alembic/             # Database migrations
-├── devops/runpod/       # deploy.sh for GPU pod deployment
-├── storage/             # Local file storage (created at runtime)
-├── tests/               # Pytest test suite
-├── requirements.txt     # Python dependencies
-├── seed.py              # Populates database from fabrics.json
-└── alembic.ini          # Alembic configuration
+│   ├── admin/           # Admin CRUD, auth (JWT), esquemas para gestión de telas
+│   ├── core/            # config.py (configuración Pydantic), database.py (sesión SQLAlchemy)
+│   ├── models/          # Esquemas Pydantic de request/response (catalog, generate)
+│   ├── routers/         # Manejadores de rutas FastAPI (catalog, generate, admin)
+│   ├── services/        # Lógica central: generator.py (SDXL), storage.py (local/R2), watermark.py
+│   ├── data/            # fabrics.json (metadata del catálogo), swatch_mapping.csv
+│   └── main.py          # Inicialización de app FastAPI, CORS, montaje de archivos estáticos
+├── alembic/             # Migraciones de base de datos
+├── devops/runpod/       # deploy.sh para despliegue en pods GPU
+├── storage/             # Almacenamiento local de archivos (creado en runtime)
+├── tests/               # Suite de tests Pytest
+├── requirements.txt     # Dependencias Python
+├── seed.py              # Puebla la base de datos desde fabrics.json
+└── alembic.ini          # Configuración Alembic
 
 frontend/
 ├── src/
-│   ├── app/             # Next.js App Router pages (page.tsx, /admin)
-│   ├── components/      # React components (gallery, modals, catalog selector)
-│   ├── hooks/           # useVirtualStylist.ts (state machine for generation flow)
-│   ├── lib/             # apiClient.ts (public API), adminApi.ts (admin API)
-│   └── types/           # TypeScript type definitions
-├── next.config.ts       # API proxy rewrites to backend
-└── package.json         # Node scripts and dependencies
+│   ├── app/             # Páginas Next.js App Router (page.tsx, /admin)
+│   ├── components/      # Componentes React (gallery, modals, catalog selector)
+│   ├── hooks/           # useVirtualStylist.ts (máquina de estado para flujo de generación)
+│   ├── lib/             # apiClient.ts (API pública), adminApi.ts (API admin)
+│   └── types/           # Definiciones de tipos TypeScript
+├── next.config.ts       # Rewrites de proxy API al backend
+└── package.json         # Scripts Node y dependencias
 ```
 
-## Development Commands
+## Comandos de Desarrollo
 
 ### Backend (Python 3.11, FastAPI, SQLAlchemy)
 
-**Environment Setup:**
-1. Create `backend/.env` with required keys (see backend/README.md for full list):
+**Configuración del Entorno:**
+1. Crear `backend/.env` con las claves requeridas (ver backend/README.md para la lista completa):
    - `database_url=sqlite:///./storage/app.db`
    - `admin_password=change-me`
    - `jwt_secret=local-dev-secret`
@@ -50,23 +50,23 @@ frontend/
    - `storage_backend=local`
    - `public_base_url=http://localhost:8000/files`
 
-2. Install dependencies:
+2. Instalar dependencias:
    ```bash
    cd backend
    pip install -r requirements.txt
    ```
 
-3. Run database migrations:
+3. Ejecutar migraciones de base de datos:
    ```bash
    alembic upgrade head
    ```
 
-4. Seed initial data (optional):
+4. Cargar datos iniciales (opcional):
    ```bash
    python seed.py
    ```
 
-**Running the API:**
+**Ejecutar la API:**
 ```bash
 cd backend
 uvicorn app.main:app --reload --port 8000
@@ -78,31 +78,31 @@ cd backend
 pytest -q
 ```
 
-**Database Migrations:**
+**Migraciones de Base de Datos:**
 ```bash
-# Create a new migration
-alembic revision --autogenerate -m "description"
+# Crear una nueva migración
+alembic revision --autogenerate -m "descripción"
 
-# Apply migrations
+# Aplicar migraciones
 alembic upgrade head
 
-# Rollback one migration
+# Revertir una migración
 alembic downgrade -1
 ```
 
 ### Frontend (Next.js 15, React 19, TypeScript)
 
-**Environment Setup:**
-Create `frontend/.env.local`:
+**Configuración del Entorno:**
+Crear `frontend/.env.local`:
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
 
-**Running the dev server:**
+**Ejecutar el servidor de desarrollo:**
 ```bash
 cd frontend
 npm install
-npm run dev  # Starts on http://localhost:3000
+npm run dev  # Inicia en http://localhost:3000
 ```
 
 **Linting:**
@@ -110,97 +110,97 @@ npm run dev  # Starts on http://localhost:3000
 npm run lint
 ```
 
-**Building:**
+**Build:**
 ```bash
 npm run build
-npm start  # Production server
+npm start  # Servidor de producción
 ```
 
-## Architecture & Key Concepts
+## Arquitectura y Conceptos Clave
 
-### Backend Architecture
+### Arquitectura del Backend
 
-**Request Flow:**
-1. Client → Next.js `/api/*` proxy → FastAPI router
-2. Router validates request (Pydantic schemas in `app/models/`)
-3. Service layer (`app/services/`) handles business logic
-4. Database operations via SQLAlchemy (`app/core/database.py`)
-5. Response returned to client
+**Flujo de Request:**
+1. Cliente → Proxy Next.js `/api/*` → Router FastAPI
+2. Router valida request (esquemas Pydantic en `app/models/`)
+3. Capa de servicio (`app/services/`) maneja la lógica de negocio
+4. Operaciones de base de datos vía SQLAlchemy (`app/core/database.py`)
+5. Respuesta retornada al cliente
 
-**Generation Pipeline (app/services/generator.py):**
-- `SdxlTurboGenerator`: Main production generator
-  - Loads SDXL base model + optional refiner
-  - Supports ControlNet (openpose, canny) for pose guidance
-  - Supports IP-Adapter for fabric texture transfer
-  - Watermarks outputs via `apply_watermark_image()`
-  - Saves to storage backend (local or R2)
-- `MockGenerator`: Lightweight fallback for testing (toggle via `USE_MOCK` in generate.py)
+**Pipeline de Generación (app/services/generator.py):**
+- `SdxlTurboGenerator`: Generador de producción principal
+  - Carga modelo SDXL base + refiner opcional
+  - Soporta ControlNet (openpose, canny) para guía de pose
+  - Soporta IP-Adapter para transferencia de textura de tela
+  - Marca de agua en outputs vía `apply_watermark_image()`
+  - Guarda en backend de almacenamiento (local o R2)
+- `MockGenerator`: Fallback ligero para testing (alternar vía `USE_MOCK` en generate.py)
 
-**Storage Backends (app/services/storage.py):**
-- `LocalStorage`: Saves to `storage/` directory, URLs rewritten to `/files/*`
-- `R2Storage`: Uploads to Cloudflare R2 using boto3, returns public CDN URLs
-- Selected via `storage_backend` env var
+**Backends de Almacenamiento (app/services/storage.py):**
+- `LocalStorage`: Guarda en directorio `storage/`, URLs reescritas a `/files/*`
+- `R2Storage`: Sube a Cloudflare R2 usando boto3, retorna URLs públicas CDN
+- Seleccionado vía variable de entorno `storage_backend`
 
-**Admin System (app/admin/):**
-- JWT-based authentication (`app/admin/auth.py`)
-- CRUD operations for fabric families and colors (`app/admin/crud.py`)
-- Protected routes mounted under `/admin/fabrics`
+**Sistema Admin (app/admin/):**
+- Autenticación basada en JWT (`app/admin/auth.py`)
+- Operaciones CRUD para familias de telas y colores (`app/admin/crud.py`)
+- Rutas protegidas montadas bajo `/admin/fabrics`
 
-**Database Models:**
-- Defined in `app/admin/models.py`: `FabricFamily`, `Color`
-- SQLAlchemy ORM with declarative base from `app/core/database.py`
-- Migrations in `alembic/versions/`
+**Modelos de Base de Datos:**
+- Definidos en `app/admin/models.py`: `FabricFamily`, `Color`
+- ORM SQLAlchemy con base declarativa desde `app/core/database.py`
+- Migraciones en `alembic/versions/`
 
-### Frontend Architecture
+### Arquitectura del Frontend
 
-**State Management:**
-- `useVirtualStylist` hook (`hooks/useVirtualStylist.ts`) manages entire generation flow:
-  - Fetches catalog on mount
-  - Tracks fabric/color selection
-  - Handles generation requests and loading states
-  - Manages generated image results
+**Gestión de Estado:**
+- Hook `useVirtualStylist` (`hooks/useVirtualStylist.ts`) gestiona todo el flujo de generación:
+  - Obtiene catálogo al montar
+  - Rastrea selección de tela/color
+  - Maneja requests de generación y estados de carga
+  - Gestiona resultados de imágenes generadas
 
-**API Communication:**
-- Public endpoints: `fetchCatalog()`, `generateImages()` in `lib/apiClient.ts`
-- Admin endpoints: `listFabrics()`, `createFabric()`, etc. in `lib/adminApi.ts`
-- All requests proxied through `/api/*` → backend (configured in `next.config.ts`)
+**Comunicación API:**
+- Endpoints públicos: `fetchCatalog()`, `generateImages()` en `lib/apiClient.ts`
+- Endpoints admin: `listFabrics()`, `createFabric()`, etc. en `lib/adminApi.ts`
+- Todos los requests proxy a través de `/api/*` → backend (configurado en `next.config.ts`)
 
-**Key Components:**
-- `GeneratedImageGallery`: Thumbnail grid with modal support
-- `ImageModal`: Full-screen image viewer with metadata
-- `AdminTable` (`app/admin/AdminTable.tsx`): Fabric management UI with search/filter
+**Componentes Clave:**
+- `GeneratedImageGallery`: Grid de thumbnails con soporte de modal
+- `ImageModal`: Visor de imagen a pantalla completa con metadata
+- `AdminTable` (`app/admin/AdminTable.tsx`): UI de gestión de telas con búsqueda/filtro
 
-### Environment Variables by Module
+### Variables de Entorno por Módulo
 
-**Generator (SDXL):**
-- `GUIDANCE=4.3` - CFG scale
-- `TOTAL_STEPS=80` - Inference steps
-- `USE_REFINER=1` - Enable SDXL refiner
-- `REFINER_SPLIT=0.70` - Base/refiner transition point
-- `CONTROLNET_ENABLED=1` - Enable ControlNet
-- `CONTROLNET_MODEL` - HuggingFace model ID
-- `CONTROLNET_WEIGHT=1.15` - ControlNet strength
-- `CONTROL_IMAGE_RECTO`, `CONTROL_IMAGE_CRUZADO` - Pose reference images
-- `IP_ADAPTER_ENABLED=1` - Enable IP-Adapter
-- `IP_ADAPTER_SCALE=0.70` - Image prompt strength
-- `HF_HOME` - Hugging Face cache directory
-- `WATERMARK_PATH` - Path to watermark image
+**Generador (SDXL):**
+- `GUIDANCE=4.3` - Escala CFG
+- `TOTAL_STEPS=80` - Pasos de inferencia
+- `USE_REFINER=1` - Habilitar refiner SDXL
+- `REFINER_SPLIT=0.70` - Punto de transición base/refiner
+- `CONTROLNET_ENABLED=1` - Habilitar ControlNet
+- `CONTROLNET_MODEL` - ID del modelo HuggingFace
+- `CONTROLNET_WEIGHT=1.15` - Fuerza de ControlNet
+- `CONTROL_IMAGE_RECTO`, `CONTROL_IMAGE_CRUZADO` - Imágenes de referencia de pose
+- `IP_ADAPTER_ENABLED=1` - Habilitar IP-Adapter
+- `IP_ADAPTER_SCALE=0.70` - Fuerza del prompt de imagen
+- `HF_HOME` - Directorio de caché Hugging Face
+- `WATERMARK_PATH` - Ruta a imagen de marca de agua
 
-**Storage:**
-- `storage_backend=local|r2` - Storage provider
-- `public_base_url` - Public URL base for local storage
-- `r2_account_id`, `r2_access_key_id`, `r2_secret_access_key`, `r2_bucket_name`, `r2_public_url` - R2 credentials
+**Almacenamiento:**
+- `storage_backend=local|r2` - Proveedor de almacenamiento
+- `public_base_url` - Base de URL pública para almacenamiento local
+- `r2_account_id`, `r2_access_key_id`, `r2_secret_access_key`, `r2_bucket_name`, `r2_public_url` - Credenciales R2
 
-## Testing API Endpoints
+## Testeo de Endpoints de API
 
-**Generate endpoint (POST /generate):**
+**Endpoint de generación (POST /generate):**
 ```bash
 curl -X POST http://127.0.0.1:8000/generate \
   -H "Content-Type: application/json" \
   -d '{"family_id":"algodon-tech","color_id":"negro-001","cuts":["recto"],"seed":123456789}'
 ```
 
-**Catalog endpoint (GET /catalog):**
+**Endpoint de catálogo (GET /catalog):**
 ```bash
 curl http://127.0.0.1:8000/catalog
 ```
@@ -210,48 +210,48 @@ curl http://127.0.0.1:8000/catalog
 curl http://127.0.0.1:8000/healthz
 ```
 
-## Deployment (RunPod GPU Pods)
+## Despliegue (RunPod GPU Pods)
 
-The `backend/devops/runpod/deploy.sh` script handles full deployment:
-1. Creates Python 3.11 venv on network volume (`/workspace/py311`)
-2. Clones/updates repo from `origin/main`
-3. Installs dependencies
-4. Sets generation environment variables (ControlNet, IP-Adapter paths)
-5. Applies database migrations
-6. Seeds fabric data
-7. Starts Uvicorn on port 8000
+El script `backend/devops/runpod/deploy.sh` maneja el despliegue completo:
+1. Crea venv Python 3.11 en volumen de red (`/workspace/py311`)
+2. Clona/actualiza repo desde `origin/main`
+3. Instala dependencias
+4. Establece variables de entorno de generación (ControlNet, rutas IP-Adapter)
+5. Aplica migraciones de base de datos
+6. Carga datos de telas
+7. Inicia Uvicorn en puerto 8000
 
-**Key deployment paths:**
-- `/workspace/app` - Repository clone
-- `/workspace/py311` - Persistent Python 3.11 venv
-- `/workspace/.cache/huggingface` - Model cache (HF_HOME)
+**Rutas clave de despliegue:**
+- `/workspace/app` - Clon del repositorio
+- `/workspace/py311` - Venv Python 3.11 persistente
+- `/workspace/.cache/huggingface` - Caché de modelos (HF_HOME)
 
-## Common Workflows
+## Flujos de Trabajo Comunes
 
-**Adding a new fabric:**
-1. Add entry to `backend/app/data/fabrics.json`
-2. Run `python seed.py` to populate database
-3. Or use admin UI at `http://localhost:3000/admin`
+**Agregar una nueva tela:**
+1. Agregar entrada a `backend/app/data/fabrics.json`
+2. Ejecutar `python seed.py` para poblar la base de datos
+3. O usar la UI admin en `http://localhost:3000/admin`
 
-**Modifying generation parameters:**
-1. Update environment variables in `.env` or deployment script
-2. Restart backend server
-3. No code changes needed for tuning guidance/steps/weights
+**Modificar parámetros de generación:**
+1. Actualizar variables de entorno en `.env` o script de despliegue
+2. Reiniciar servidor backend
+3. No se necesitan cambios de código para ajustar guidance/steps/weights
 
-**Switching storage backends:**
-1. Set `storage_backend=r2` in `.env`
-2. Provide R2 credentials
-3. Restart backend - storage layer is dependency-injected
+**Cambiar backends de almacenamiento:**
+1. Establecer `storage_backend=r2` en `.env`
+2. Proporcionar credenciales R2
+3. Reiniciar backend - la capa de almacenamiento está inyectada por dependencia
 
-**Adding new database fields:**
-1. Modify models in `app/admin/models.py`
-2. Create migration: `alembic revision --autogenerate -m "description"`
-3. Review generated migration in `alembic/versions/`
-4. Apply: `alembic upgrade head`
+**Agregar nuevos campos de base de datos:**
+1. Modificar modelos en `app/admin/models.py`
+2. Crear migración: `alembic revision --autogenerate -m "descripción"`
+3. Revisar migración generada en `alembic/versions/`
+4. Aplicar: `alembic upgrade head`
 
-## Code Style & Conventions
+## Estilo de Código y Convenciones
 
-- **Backend**: FastAPI dependency injection pattern, Pydantic for validation, SQLAlchemy ORM
-- **Frontend**: React hooks for state, TypeScript strict mode, Tailwind for styling
-- **File references**: Use pattern `file_path:line_number` when referencing code locations
-- **Error handling**: Custom error handlers in `app/errors.py`, FastAPI HTTPException for API errors
+- **Backend**: Patrón de inyección de dependencias FastAPI, Pydantic para validación, ORM SQLAlchemy
+- **Frontend**: Hooks de React para estado, TypeScript modo estricto, Tailwind para estilos
+- **Referencias de archivos**: Usar patrón `file_path:line_number` cuando se referencien ubicaciones de código
+- **Manejo de errores**: Manejadores de error personalizados en `app/errors.py`, FastAPI HTTPException para errores de API

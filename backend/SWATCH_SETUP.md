@@ -1,140 +1,140 @@
-# Fabric Swatch Setup Guide
+# Guía de Configuración de Muestras de Tela
 
-## Overview
-This guide helps you configure fabric swatch images to display in the color selector instead of solid hex colors.
+## Descripción General
+Esta guía te ayuda a configurar imágenes de muestras de tela para mostrar en el selector de color en lugar de colores hex sólidos.
 
-## Architecture
+## Arquitectura
 
-### R2 Bucket Structure
+### Estructura del Bucket R2
 ```
 ZEGNA 2025-26/
 ├── 095T-0121.png
 ├── 095T-0132.png
 ├── 095T-017B.png
 ├── 095T-B22D.png
-└── ... (more swatch images)
+└── ... (más imágenes de muestras)
 ```
 
-### Database Fields
-Each `Color` record has:
-- `color_id`: Unique identifier (e.g., "lc-navy-001")
-- `name`: Display name (e.g., "Azul Marino Imperial")
-- `hex_value`: Fallback hex color (e.g., "#0A1D3A")
-- `swatch_code`: R2 filename without extension (e.g., "095T-0121")
-- `swatch_url`: Computed URL (auto-generated from swatch_code)
+### Campos de Base de Datos
+Cada registro `Color` tiene:
+- `color_id`: Identificador único (ej. "lc-navy-001")
+- `name`: Nombre para mostrar (ej. "Azul Marino Imperial")
+- `hex_value`: Color hex de respaldo (ej. "#0A1D3A")
+- `swatch_code`: Nombre de archivo R2 sin extensión (ej. "095T-0121")
+- `swatch_url`: URL computada (auto-generada desde swatch_code)
 
-### URL Generation
-The catalog API automatically builds swatch URLs:
+### Generación de URL
+La API del catálogo construye automáticamente las URLs de muestras:
 ```
 {R2_PUBLIC_URL}/ZEGNA%202025-26/{swatch_code}.png
 ```
 
-Example:
+Ejemplo:
 ```
 https://pub-56acd80744c24e2fb1fca9004abce188.r2.dev/ZEGNA%202025-26/095T-0121.png
 ```
 
-## Setup Steps
+## Pasos de Configuración
 
-### 1. Apply Database Migration
+### 1. Aplicar Migración de Base de Datos
 
-Run the migration to add the `swatch_code` column:
+Ejecutar la migración para agregar la columna `swatch_code`:
 
 ```bash
 cd backend
 alembic upgrade head
 ```
 
-Or on Railway:
+O en Railway:
 ```bash
 python -m alembic upgrade head
 ```
 
-### 2. Map Color IDs to Swatch Codes
+### 2. Mapear IDs de Color a Códigos de Muestra
 
-Edit `backend/swatch_mapping.py` and fill in the `SWATCH_MAPPING` dictionary:
+Editar `backend/swatch_mapping.py` y llenar el diccionario `SWATCH_MAPPING`:
 
 ```python
 SWATCH_MAPPING = {
     "lc-navy-001": "095T-0121",     # Azul Marino Imperial
     "lc-charcoal-002": "095T-0132", # Gris Carbón
     "at-black-001": "095T-B22D",    # Negro Técnico
-    # ... fill in the rest
+    # ... llenar el resto
 }
 ```
 
-**How to find the correct mapping:**
-1. List your R2 bucket contents
-2. Match each swatch image to its corresponding color in your catalog
-3. Use the filename (without .png extension) as the swatch_code
+**Cómo encontrar el mapeo correcto:**
+1. Listar el contenido de tu bucket R2
+2. Coincidir cada imagen de muestra con su color correspondiente en tu catálogo
+3. Usar el nombre de archivo (sin extensión .png) como swatch_code
 
-### 3. Run the Mapping Script
+### 3. Ejecutar el Script de Mapeo
 
 ```bash
 cd backend
 python swatch_mapping.py
 ```
 
-This will populate the `swatch_code` field for all colors.
+Esto poblará el campo `swatch_code` para todos los colores.
 
-### 4. Deploy to Railway
+### 4. Desplegar en Railway
 
-Commit and push changes:
+Hacer commit y push de cambios:
 
 ```bash
 git add backend/
-git commit -m "feat: add fabric swatch image support"
+git commit -m "feat: agregar soporte de imágenes de muestras de tela"
 git push origin main
 ```
 
-Railway will automatically:
-1. Run migrations (`alembic upgrade head`)
-2. Restart the backend
-3. Serve swatch URLs from R2
+Railway automáticamente:
+1. Ejecutará migraciones (`alembic upgrade head`)
+2. Reiniciará el backend
+3. Servirá URLs de muestras desde R2
 
-### 5. Verify Frontend Display
+### 5. Verificar Visualización en Frontend
 
-1. Open your frontend: https://your-app.vercel.app
-2. Navigate to the color selector
-3. You should see fabric swatch images instead of solid colors
-4. Fallback to hex colors if swatch_code is missing
+1. Abrir tu frontend: https://your-app.vercel.app
+2. Navegar al selector de color
+3. Deberías ver imágenes de muestras de tela en lugar de colores sólidos
+4. Respaldo a colores hex si falta swatch_code
 
-## Frontend Behavior
+## Comportamiento del Frontend
 
-The `CatalogSelector` component automatically handles:
-- ✅ Displays swatch image if `swatch_url` is provided
-- ✅ Falls back to hex color if `swatch_url` is null
-- ✅ Responsive sizing (40px mobile → 64px desktop)
-- ✅ Hover and selection states
+El componente `CatalogSelector` maneja automáticamente:
+- ✅ Muestra imagen de muestra si se proporciona `swatch_url`
+- ✅ Respaldo a color hex si `swatch_url` es null
+- ✅ Tamaño responsive (40px móvil → 64px desktop)
+- ✅ Estados de hover y selección
 
-No frontend changes required!
+¡No se requieren cambios en el frontend!
 
-## Troubleshooting
+## Solución de Problemas
 
-### Swatches not displaying?
+### ¿Las muestras no se muestran?
 
-1. **Check R2 configuration**
+1. **Verificar configuración R2**
    ```bash
-   # In backend/.env
+   # En backend/.env
    R2_PUBLIC_URL=https://pub-56acd80744c24e2fb1fca9004abce188.r2.dev
    ```
 
-2. **Verify swatch_code in database**
+2. **Verificar swatch_code en base de datos**
    ```sql
    SELECT color_id, name, swatch_code FROM colors;
    ```
 
-3. **Test R2 URL directly**
+3. **Probar URL R2 directamente**
    ```
    https://pub-56acd80744c24e2fb1fca9004abce188.r2.dev/harris-and-frank/ZEGNA%202025-26/{swatch_code}.png
    ```
 
-4. **Check catalog API response**
+4. **Verificar respuesta de API del catálogo**
    ```bash
    curl https://your-railway-app.railway.app/catalog | jq '.families[0].colors[0]'
    ```
 
-   Should include:
+   Debería incluir:
    ```json
    {
      "color_id": "lc-navy-001",
@@ -144,30 +144,30 @@ No frontend changes required!
    }
    ```
 
-### Images returning 404?
+### ¿Las imágenes retornan 404?
 
-- Verify the R2 bucket path is correct
-- Check filename matches exactly (case-sensitive)
-- Ensure R2 bucket has public read access
+- Verificar que la ruta del bucket R2 sea correcta
+- Verificar que el nombre de archivo coincida exactamente (sensible a mayúsculas)
+- Asegurar que el bucket R2 tenga acceso de lectura público
 
-### Spaces in filenames?
+### ¿Espacios en nombres de archivo?
 
-The API automatically URL-encodes spaces:
-- `ZEGNA 2025-26` becomes `ZEGNA%202025-26`
-- Filenames with spaces like `095T 0121.png` become `095T%200121.png`
+La API automáticamente codifica URLs con espacios:
+- `ZEGNA 2025-26` se convierte en `ZEGNA%202025-26`
+- Nombres de archivo con espacios como `095T 0121.png` se convierten en `095T%200121.png`
 
-## Adding New Swatches
+## Agregar Nuevas Muestras
 
-1. Upload new image to R2: `harris-and-frank/ZEGNA 2025-26/{code}.png`
-2. Update database:
+1. Subir nueva imagen a R2: `harris-and-frank/ZEGNA 2025-26/{code}.png`
+2. Actualizar base de datos:
    ```sql
    UPDATE colors SET swatch_code = '095T-XXXX' WHERE color_id = 'new-color-id';
    ```
-3. Or add to `swatch_mapping.py` and run the script again
+3. O agregar a `swatch_mapping.py` y ejecutar el script nuevamente
 
-## Alternative: Manual URL Assignment
+## Alternativa: Asignación Manual de URL
 
-If you prefer to set full URLs directly:
+Si prefieres establecer URLs completas directamente:
 
 ```sql
 UPDATE colors
@@ -175,7 +175,7 @@ SET swatch_url = 'https://pub-56acd80744c24e2fb1fca9004abce188.r2.dev/custom/pat
 WHERE color_id = 'lc-navy-001';
 ```
 
-The catalog API prioritizes:
-1. `swatch_code` (builds URL automatically)
-2. `swatch_url` (uses explicit URL)
-3. `null` (frontend falls back to hex color)
+La API del catálogo prioriza:
+1. `swatch_code` (construye URL automáticamente)
+2. `swatch_url` (usa URL explícita)
+3. `null` (frontend respaldo a color hex)

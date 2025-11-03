@@ -1,48 +1,48 @@
 # Frontend – Next.js App Router
 
-## Overview
-The frontend is a Next.js 15 application that delivers the client-facing stylist experience and an admin dashboard. It talks to the FastAPI service through a `/api/*` proxy, surfaces fabric and color metadata, orchestrates image generation, and lets merchandising teams curate inventory from `/admin`.【F:frontend/src/app/page.tsx†L1-L70】【F:frontend/src/app/admin/page.tsx†L1-L40】
+## Descripción General
+El frontend es una aplicación Next.js 15 que entrega la experiencia de estilista orientada al cliente y un dashboard administrativo. Se comunica con el servicio FastAPI a través de un proxy `/api/*`, expone metadata de tela y colores, orquesta la generación de imágenes, y permite a los equipos de merchandising curar el inventario desde `/admin`.
 
-## Core Features
-- **Guided styling flow** – `useVirtualStylist` fetches the catalog, manages selection state, triggers generations, and keeps loading and error feedback consistent across components.【F:frontend/src/hooks/useVirtualStylist.ts†L1-L201】
-- **Rich gallery experience** – Components such as `GeneratedImageGallery`, `ImageModal`, and `LoadingState` provide thumbnail grids, zoomable previews, and progress feedback for the rendered looks.【F:frontend/src/components/GeneratedImageGallery.tsx†L1-L120】【F:frontend/src/components/ImageModal.tsx†L1-L120】
-- **Fabric search & quick create** – The `/admin` route renders an interactive table that can search, toggle active status, and seed demo fabrics via the admin API helpers in `src/lib/adminApi.ts`.【F:frontend/src/app/admin/AdminTable.tsx†L1-L228】【F:frontend/src/lib/adminApi.ts†L1-L39】
-- **Device-friendly uploads** – `ImageUploadControls` expose camera and gallery pickers; previews are displayed with metadata so associates can blend reference imagery into conversations.【F:frontend/src/components/ImageUploadControls.tsx†L1-L160】
+## Características Principales
+- **Flujo de estilismo guiado** – `useVirtualStylist` obtiene el catálogo, gestiona el estado de selección, dispara generaciones, y mantiene feedback de carga y error consistente a través de los componentes.
+- **Experiencia rica de galería** – Componentes como `GeneratedImageGallery`, `ImageModal`, y `LoadingState` proporcionan grids de thumbnails, previsualizaciones con zoom, y feedback de progreso para los looks renderizados.
+- **Búsqueda de tela y creación rápida** – La ruta `/admin` renderiza una tabla interactiva que puede buscar, alternar estado activo, y poblar telas demo vía los helpers de API admin en `src/lib/adminApi.ts`.
+- **Uploads amigables con dispositivos** – `ImageUploadControls` expone selectores de cámara y galería; las previsualizaciones se muestran con metadata para que los asociados puedan mezclar imágenes de referencia en conversaciones.
 
-## Project Structure
+## Estructura del Proyecto
 ```
 frontend/
 ├── src/
-│   ├── app/            # App Router pages (`page.tsx`, `/admin`)
-│   ├── components/     # Reusable UI (catalog selector, gallery, modals)
-│   ├── hooks/          # `useVirtualStylist` state machine
-│   ├── lib/            # API clients and typed helpers
-│   └── types/          # Shared TypeScript contracts
-├── public/             # Static assets (logos)
-├── next.config.ts      # API proxy rewrites and remote image patterns
-└── package.json        # Scripts and dependencies
+│   ├── app/            # Páginas App Router (`page.tsx`, `/admin`)
+│   ├── components/     # UI reutilizable (selector catálogo, galería, modals)
+│   ├── hooks/          # Máquina de estado `useVirtualStylist`
+│   ├── lib/            # Clientes API y helpers tipados
+│   └── types/          # Contratos TypeScript compartidos
+├── public/             # Assets estáticos (logos)
+├── next.config.ts      # Rewrites proxy API y patrones imagen remota
+└── package.json        # Scripts y dependencias
 ```
 
-## Getting Started
-1. Install dependencies: `npm install`.
-2. Create `.env.local` to point the proxy and admin tooling to your backend:
+## Primeros Pasos
+1. Instalar dependencias: `npm install`.
+2. Crear `.env.local` para apuntar el proxy y tooling admin a tu backend:
    ```env
    NEXT_PUBLIC_API_BASE=http://localhost:8000
    ```
-   `next.config.ts` rewrites `/api/:path*` to `NEXT_PUBLIC_API_BASE`, so the catalog and generate calls go straight to FastAPI while keeping relative URLs inside the app.【F:frontend/next.config.ts†L1-L24】【F:frontend/src/lib/apiClient.ts†L1-L38】
-3. Run the dev server: `npm run dev` (defaults to `http://localhost:3000`).
-4. Open `/admin` to access the merchandising console. It relies on the same `/api` proxy for `GET/POST/PATCH /admin/fabrics` requests.【F:frontend/src/lib/adminApi.ts†L1-L39】
+   `next.config.ts` reescribe `/api/:path*` a `NEXT_PUBLIC_API_BASE`, así las llamadas de catálogo y generación van directo a FastAPI manteniendo URLs relativas dentro de la app.
+3. Ejecutar servidor de desarrollo: `npm run dev` (por defecto en `http://localhost:3000`).
+4. Abrir `/admin` para acceder a la consola de merchandising. Se apoya en el mismo proxy `/api` para requests `GET/POST/PATCH /admin/fabrics`.
 
-## API Helpers
-- `fetchCatalog()` and `generateImages()` live in `src/lib/apiClient.ts` and return typed responses consumed by the hook and UI components.【F:frontend/src/lib/apiClient.ts†L1-L38】
-- Admin helpers (`listFabrics`, `createFabric`, `setFabricStatus`, `deactivateFabric`) use an Axios client configured with the `/api` base path, making the dashboard portable between local dev and RunPod deployments.【F:frontend/src/lib/adminApi.ts†L1-L39】
+## Helpers API
+- `fetchCatalog()` y `generateImages()` viven en `src/lib/apiClient.ts` y retornan respuestas tipadas consumidas por el hook y componentes UI.
+- Helpers admin (`listFabrics`, `createFabric`, `setFabricStatus`, `deactivateFabric`) usan un cliente Axios configurado con el path base `/api`, haciendo el dashboard portable entre dev local y despliegues RunPod.
 
-## Testing & Quality
-Run ESLint to catch TypeScript and accessibility issues:
+## Testing y Calidad
+Ejecutar ESLint para detectar problemas de TypeScript y accesibilidad:
 ```bash
 npm run lint
 ```
 
-## Deployment Notes
-- Vercel/Next proxies will automatically forward `/api/*` when `NEXT_PUBLIC_API_BASE` is set in the environment. For static hosting or custom deployments, configure an equivalent rewrite.
-- Ensure the backend exposes HTTPS asset URLs (or configure `NEXT_PUBLIC_API_BASE`) so that the gallery can display generated images without mixed-content warnings.【F:frontend/src/app/admin/page.tsx†L1-L37】
+## Notas de Despliegue
+- Los proxies de Vercel/Next automáticamente reenviarán `/api/*` cuando `NEXT_PUBLIC_API_BASE` esté configurado en el entorno. Para hosting estático o despliegues personalizados, configurar un rewrite equivalente.
+- Asegurar que el backend expone URLs de assets HTTPS (o configurar `NEXT_PUBLIC_API_BASE`) para que la galería pueda mostrar imágenes generadas sin advertencias de contenido mixto.

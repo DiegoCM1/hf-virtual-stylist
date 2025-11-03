@@ -1,184 +1,184 @@
-# Quality-First Testing Plan: ControlNet → Quality Tuning → LoRA
+# Plan de Testing Calidad-Primero: ControlNet → Afinación de Calidad → LoRA
 
-**Created**: 2025-11-01
-**Goal**: Maximum quality fabric-accurate suit generation with zero deformation
-**Budget**: <90 seconds per image on 4090 GPU
-
----
-
-## 🎯 Executive Summary
-
-**The Correct Approach:**
-1. **ControlNet Baseline** (Phase 1) - Establish PERFECT suit structure with ZERO deformation
-2. **Quality Tuning** (Phase 2) - Maximize quality within 90s budget
-3. **Identify Gap** (Phase 3) - Confirm generic textures (expected)
-4. **LoRA Training** (Phase 4) - Teach SDXL specific fabric textures from catalog photos
-
-**Why This Order?**
-- ✅ ControlNet provides geometric foundation (structure)
-- ✅ Quality tuning polishes the foundation
-- ✅ LoRA adds fabric-specific textures WITHOUT fighting ControlNet
-- ❌ IP-Adapter FIGHTS with ControlNet and causes deformation
-
-**Critical Understanding:**
-> **Baseline images (Phase 1-3) must ALREADY be perfect** (structure, quality, lighting).
-> **LoRA ONLY teaches fabric textures** - it does NOT fix quality problems.
+**Creado**: 2025-11-01
+**Objetivo**: Generación de trajes con máxima calidad y precisión de tela con cero deformación
+**Presupuesto**: <90 segundos por imagen en GPU 4090
 
 ---
 
-## 🚫 Why NOT IP-Adapter?
+## 🎯 Resumen Ejecutivo
 
-**We tested IP-Adapter and discovered:**
-- Scale 0.8+ = All texture, deformed suit structure
-- Scale 0.3 = Better structure but no precise pattern matching
-- **Fundamental conflict**: IP-Adapter visual style transfer FIGHTS with ControlNet geometric control
+**El Enfoque Correcto:**
+1. **Baseline ControlNet** (Fase 1) - Establecer estructura de traje PERFECTA con CERO deformación
+2. **Afinación de Calidad** (Fase 2) - Maximizar calidad dentro del presupuesto de 90s
+3. **Identificar la Brecha** (Fase 3) - Confirmar texturas genéricas (esperado)
+4. **Entrenamiento LoRA** (Fase 4) - Enseñar a SDXL texturas específicas de tela desde fotos de catálogo
 
-**IP-Adapter is the WRONG tool for this use case.**
+**¿Por Qué Este Orden?**
+- ✅ ControlNet proporciona fundación geométrica (estructura)
+- ✅ Afinación de calidad pule la fundación
+- ✅ LoRA agrega texturas específicas de tela SIN pelear con ControlNet
+- ❌ IP-Adapter PELEA con ControlNet y causa deformación
 
-**LoRA is the RIGHT tool because:**
-- Teaches new concepts: "algodon-tech-negro-001 looks like THIS"
-- Works HARMONIOUSLY with ControlNet (no conflict)
-- Precise pattern/texture replication from catalog photos
-- Standard industry approach for specific object/texture learning
+**Entendimiento Crítico:**
+> **Las imágenes baseline (Fase 1-3) deben SER YA perfectas** (estructura, calidad, iluminación).
+> **LoRA SOLO enseña texturas de tela** - NO arregla problemas de calidad.
 
 ---
 
-## 📋 Phase-by-Phase Testing Plan
+## 🚫 ¿Por Qué NO IP-Adapter?
 
-### Phase 1: ControlNet Baseline - Zero Deformation (20 minutes)
+**Probamos IP-Adapter y descubrimos:**
+- Scale 0.8+ = Toda textura, estructura de traje deformada
+- Scale 0.3 = Mejor estructura pero no coincidencia precisa de patrón
+- **Conflicto fundamental**: Transferencia de estilo visual de IP-Adapter PELEA con control geométrico de ControlNet
 
-**Goal**: Find ControlNet weights that produce PERFECT suit structure
+**IP-Adapter es la herramienta INCORRECTA para este caso de uso.**
 
-**Test Commands:**
+**LoRA es la herramienta CORRECTA porque:**
+- Enseña nuevos conceptos: "algodon-tech-negro-001 se ve ASÍ"
+- Funciona ARMONIOSAMENTE con ControlNet (sin conflicto)
+- Replicación precisa de patrón/textura desde fotos de catálogo
+- Enfoque estándar de la industria para aprendizaje específico de objeto/textura
+
+---
+
+## 📋 Plan de Testing Fase por Fase
+
+### Fase 1: Baseline ControlNet - Cero Deformación (20 minutos)
+
+**Objetivo**: Encontrar pesos de ControlNet que produzcan estructura de traje PERFECTA
+
+**Comandos de Test:**
 ```bash
-# Use single cut for faster iteration
+# Usar corte único para iteración más rápida
 --cuts=recto
 
-# Test 1.1: Depth ControlNet weights (prevents body/pose warping)
+# Test 1.1: Pesos de ControlNet Depth (previene deformación de cuerpo/pose)
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override depth_weight=0.8
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override depth_weight=1.0
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override depth_weight=1.2
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override depth_weight=1.5
 
-# Test 1.2: Canny ControlNet weights (sharp lapels/buttons)
+# Test 1.2: Pesos de ControlNet Canny (solapas/botones nítidos)
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override canny_weight=0.5
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override canny_weight=0.7
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override canny_weight=0.9
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override canny_weight=1.1
 
-# Test 1.3: Verify winning combo with second seed
-python -m scripts.quick_gen --preset=baseline --seed=1234 --cuts=recto --override depth_weight=<WINNER>,canny_weight=<WINNER>
+# Test 1.3: Verificar combo ganador con segunda seed
+python -m scripts.quick_gen --preset=baseline --seed=1234 --cuts=recto --override depth_weight=<GANADOR>,canny_weight=<GANADOR>
 ```
 
-**Evaluation Checklist:**
-- [ ] Zero warping in suit body/sleeves
-- [ ] Sharp, straight lapel edges
-- [ ] Aligned button rows
-- [ ] Professional tailoring drape
-- [ ] No deformation at all (most critical!)
+**Checklist de Evaluación:**
+- [ ] Cero deformación en cuerpo/mangas del traje
+- [ ] Bordes de solapa nítidos y rectos
+- [ ] Filas de botones alineadas
+- [ ] Caída profesional de sastrería
+- [ ] Sin deformación en absoluto (¡más crítico!)
 
-**Decision Point**: Document winning ControlNet weights (e.g., `depth_weight=1.2, canny_weight=0.7`)
+**Punto de Decisión**: Documentar pesos ganadores de ControlNet (ej., `depth_weight=1.2, canny_weight=0.7`)
 
 ---
 
-### Phase 2: Quality Ceiling - Maximum Quality (15 minutes)
+### Fase 2: Techo de Calidad - Máxima Calidad (15 minutos)
 
-**Goal**: Find best quality settings within 90s budget
+**Objetivo**: Encontrar mejores configuraciones de calidad dentro del presupuesto de 90s
 
-**Starting Config**: Use winning ControlNet weights from Phase 1
+**Config Inicial**: Usar pesos ganadores de ControlNet de Fase 1
 
-**Test Commands:**
+**Comandos de Test:**
 ```bash
-# Test 2.1: Step counts (quality vs time tradeoff)
+# Test 2.1: Conteos de pasos (calidad vs tiempo tradeoff)
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override steps=60
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override steps=80
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override steps=100
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override steps=120
 
-# Test 2.2: Refiner impact (quality boost vs time cost)
+# Test 2.2: Impacto del refiner (impulso de calidad vs costo de tiempo)
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override refiner=false
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override refiner=true,refiner_split=0.7
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override refiner=true,refiner_split=0.8
 
-# Test 2.3: Guidance scale (prompt adherence vs creativity)
+# Test 2.3: Escala de guidance (adherencia al prompt vs creatividad)
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override guidance=4.5
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override guidance=6.0
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override guidance=7.5
 
-# Test 2.4: Verify timing (ensure < 90s on 4090)
-python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override steps=<WINNER>,guidance=<WINNER>,refiner=<WINNER>
+# Test 2.4: Verificar timing (asegurar < 90s en 4090)
+python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override steps=<GANADOR>,guidance=<GANADOR>,refiner=<GANADOR>
 ```
 
-**Evaluation Checklist:**
-- [ ] Best overall image quality (sharpness, detail, coherence)
-- [ ] Clean white background
-- [ ] Professional studio lighting
-- [ ] Within 90s generation budget
-- [ ] Maintains zero deformation from Phase 1
+**Checklist de Evaluación:**
+- [ ] Mejor calidad general de imagen (nitidez, detalle, coherencia)
+- [ ] Fondo blanco limpio
+- [ ] Iluminación de estudio profesional
+- [ ] Dentro de presupuesto de generación de 90s
+- [ ] Mantiene cero deformación de Fase 1
 
-**Decision Point**: Document optimal quality config (e.g., `steps=100, guidance=6.5, refiner=true`)
+**Punto de Decisión**: Documentar config óptima de calidad (ej., `steps=100, guidance=6.5, refiner=true`)
 
 ---
 
-### Phase 3: Identify the Gap - Fabric Texture Analysis (5 minutes)
+### Fase 3: Identificar la Brecha - Análisis de Textura de Tela (5 minutos)
 
-**Goal**: Confirm that baseline has generic (not fabric-specific) textures
+**Objetivo**: Confirmar que el baseline tiene texturas genéricas (no específicas de tela)
 
-**Test Commands:**
+**Comandos de Test:**
 ```bash
-# Generate with 2-3 different fabrics using optimized config
+# Generar con 2-3 telas diferentes usando config optimizada
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --fabric=algodon-tech --color=negro-001
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --fabric=lana-super-150 --color=azul-marino
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --fabric=cashmere-blend --color=gris-carbon
 ```
 
-**Expected Results:**
-- ❌ Fabric patterns DON'T match catalog (as expected)
-- ❌ Textures are generic SDXL "suit fabric"
-- ✅ Suit structure is perfect (from Phase 1)
-- ✅ Overall quality is excellent (from Phase 2)
+**Resultados Esperados:**
+- ❌ Patrones de tela NO coinciden con catálogo (como se esperaba)
+- ❌ Texturas son "tela de traje" genérica de SDXL
+- ✅ Estructura de traje es perfecta (de Fase 1)
+- ✅ Calidad general es excelente (de Fase 2)
 
-**Critical Insight:**
-> This is NOT a failure - this is the expected baseline.
-> We have perfect structure + quality, but generic textures.
-> **This is where LoRA comes in** to close the texture gap.
+**Insight Crítico:**
+> Esto NO es un fracaso - es el baseline esperado.
+> Tenemos estructura perfecta + calidad, pero texturas genéricas.
+> **Aquí es donde entra LoRA** para cerrar la brecha de textura.
 
 ---
 
-### Phase 4: LoRA Training - Precise Fabric Texture Transfer
+### Fase 4: Entrenamiento LoRA - Transferencia Precisa de Textura de Tela
 
-**Prerequisites:**
-- ✅ Phase 1-3 complete with perfect baseline
-- ✅ Baseline produces 5-star images with generic textures
-- ✅ ControlNet weights documented and locked in
+**Requisitos Previos:**
+- ✅ Fase 1-3 completa con baseline perfecto
+- ✅ Baseline produce imágenes 5 estrellas con texturas genéricas
+- ✅ Pesos de ControlNet documentados y bloqueados
 
-**LoRA Training Workflow:**
+**Flujo de Trabajo de Entrenamiento LoRA:**
 
-#### Step 1: Data Collection (Per Fabric - 1 hour per fabric)
+#### Paso 1: Recolección de Datos (Por Tela - 1 hora por tela)
 
-Collect 15-20 high-quality catalog photos of each fabric:
+Recolectar 15-20 fotos de catálogo de alta calidad de cada tela:
 
 ```
-Requirements:
-- High resolution (2048px+ preferred)
-- Clear fabric texture visible
-- Consistent lighting
-- Various angles/folds showing fabric behavior
-- Minimal background (crop to fabric if needed)
+Requisitos:
+- Alta resolución (2048px+ preferido)
+- Textura de tela visible claramente
+- Iluminación consistente
+- Varios ángulos/pliegues mostrando comportamiento de tela
+- Fondo mínimo (recortar a tela si es necesario)
 
-Directory structure:
+Estructura de directorio:
 /workspace/lora_training/
 ├── algodon-tech-negro-001/
-│   ├── IMG_0001.jpg  (15-20 images)
+│   ├── IMG_0001.jpg  (15-20 imágenes)
 ├── lana-super-150-azul-marino/
-│   ├── IMG_0001.jpg  (15-20 images)
+│   ├── IMG_0001.jpg  (15-20 imágenes)
 └── cashmere-blend-gris-carbon/
-    ├── IMG_0001.jpg  (15-20 images)
+    ├── IMG_0001.jpg  (15-20 imágenes)
 ```
 
-#### Step 2: Training Environment Setup (30 minutes)
+#### Paso 2: Configuración de Entorno de Entrenamiento (30 minutos)
 
-Install Kohya_ss on RunPod:
+Instalar Kohya_ss en RunPod:
 
 ```bash
 cd /workspace
@@ -188,16 +188,16 @@ python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
-# Launch GUI
+# Lanzar GUI
 python kohya_gui.py
-# Access at http://localhost:7860
+# Acceder en http://localhost:7860
 ```
 
-#### Step 3: Train First LoRA (30-60 minutes per fabric)
+#### Paso 3: Entrenar Primer LoRA (30-60 minutos por tela)
 
-**Recommended SDXL LoRA parameters:**
-- Base model: `stabilityai/stable-diffusion-xl-base-1.0`
-- Resolution: `1024`
+**Parámetros LoRA SDXL recomendados:**
+- Modelo base: `stabilityai/stable-diffusion-xl-base-1.0`
+- Resolución: `1024`
 - Learning rate: `1e-4`
 - Batch size: `1`
 - Epochs: `10-15`
@@ -205,245 +205,245 @@ python kohya_gui.py
 - Network alpha: `32`
 - Optimizer: `AdamW8bit`
 
-**Caption example** (`algodon-tech-negro-001_001.txt`):
+**Ejemplo de caption** (`algodon-tech-negro-001_001.txt`):
 ```
-algodon-tech-negro-001, black technical cotton fabric, fine weave texture, matte finish, professional suit material
+algodon-tech-negro-001, tela de algodón técnico negro, textura de tejido fino, acabado mate, material profesional de traje
 ```
 
-**Training time**: ~20-30 minutes on 4090, ~40-60 minutes on L4
+**Tiempo de entrenamiento**: ~20-30 minutos en 4090, ~40-60 minutos en L4
 
-#### Step 4: Integration with Generator (15 minutes)
+#### Paso 4: Integración con Generador (15 minutos)
 
-1. Copy trained LoRA to models directory:
+1. Copiar LoRA entrenado a directorio de modelos:
 ```bash
 mkdir -p /workspace/app/backend/models/lora
 cp /workspace/kohya_ss/output/algodon-tech-negro-001.safetensors /workspace/app/backend/models/lora/
 ```
 
-2. Update `.env`:
+2. Actualizar `.env`:
 ```bash
 USE_LORA=1
 LORA_PATH=/workspace/app/backend/models/lora/algodon-tech-negro-001.safetensors
 LORA_SCALE=0.8
 ```
 
-3. Test LoRA + ControlNet baseline:
+3. Probar LoRA + baseline ControlNet:
 ```bash
 export USE_LORA=1
 export LORA_PATH=/workspace/app/backend/models/lora/algodon-tech-negro-001.safetensors
 export LORA_SCALE=0.8
 
-# Test with optimized baseline from Phase 1-2
+# Probar con baseline optimizado de Fase 1-2
 python -m scripts.quick_gen --preset=production-baseline --seed=42 --cuts=recto --fabric=algodon-tech --color=negro-001
 
-# Test different LoRA strengths
+# Probar diferentes fuerzas de LoRA
 python -m scripts.quick_gen --preset=production-baseline --seed=42 --override lora_scale=0.6
 python -m scripts.quick_gen --preset=production-baseline --seed=42 --override lora_scale=0.8
 python -m scripts.quick_gen --preset=production-baseline --seed=42 --override lora_scale=1.0
 ```
 
-**Evaluation:**
-- ✅ Fabric texture matches catalog photo
-- ✅ Suit structure remains perfect (ControlNet maintained)
-- ✅ Overall quality remains high
+**Evaluación:**
+- ✅ Textura de tela coincide con foto de catálogo
+- ✅ Estructura de traje permanece perfecta (ControlNet mantenido)
+- ✅ Calidad general permanece alta
 
-**Optimal LoRA scale**: Usually 0.7-0.85 for fabric textures
+**Escala LoRA óptima**: Usualmente 0.7-0.85 para texturas de tela
 
-#### Step 5: Train Remaining 4 LoRAs
+#### Paso 5: Entrenar 4 LoRAs Restantes
 
-Repeat Steps 1-4 for each of the 5 required fabrics.
+Repetir Pasos 1-4 para cada una de las 5 telas requeridas.
 
-**Total time estimate**: ~3-5 hours for all 5 LoRAs (sequential training)
-
----
-
-## 📊 Success Criteria by Phase
-
-### Phase 1 Success:
-- ✅ Zero deformation in suit structure
-- ✅ Sharp lapels, aligned buttons, professional drape
-- ❌ Fabric texture is generic (expected at this stage)
-
-### Phase 2 Success:
-- ✅ Maximum quality within 90s budget
-- ✅ Clean backgrounds, professional lighting
-- ✅ Maintains zero deformation from Phase 1
-- ❌ Fabric texture still generic (expected)
-
-### Phase 3 Success:
-- ✅ Confirmed: baseline produces perfect images
-- ✅ Confirmed: fabric textures are generic
-- ✅ Gap identified: need fabric-specific textures
-
-### Phase 4 Success (Final Goal):
-- ✅ Fabric texture precisely matches catalog photo
-- ✅ Suit structure remains perfect (ControlNet maintained)
-- ✅ Overall quality remains excellent
-- ✅ **Holy Grail**: Structure + Quality + Specific Texture
+**Estimación de tiempo total**: ~3-5 horas para todos los 5 LoRAs (entrenamiento secuencial)
 
 ---
 
-## 🎓 Key Learnings from IP-Adapter Testing
+## 📊 Criterios de Éxito por Fase
 
-**What We Learned:**
-1. IP-Adapter visual style transfer CONFLICTS with ControlNet geometric control
-2. High IP-Adapter scale (0.8+) → deformed suit structure
-3. Low IP-Adapter scale (0.3) → no precise texture matching
-4. IP-Adapter cannot balance both structure AND precise texture
+### Éxito Fase 1:
+- ✅ Cero deformación en estructura de traje
+- ✅ Solapas nítidas, botones alineados, caída profesional
+- ❌ Textura de tela es genérica (esperado en esta etapa)
 
-**Why LoRA is Better:**
-1. LoRA teaches concepts, doesn't transfer styles
-2. LoRA works WITH ControlNet, not against it
-3. LoRA is standard approach for specific object/texture learning
-4. Industry-proven for fabric/material texture replication
+### Éxito Fase 2:
+- ✅ Máxima calidad dentro de presupuesto de 90s
+- ✅ Fondos limpios, iluminación profesional
+- ✅ Mantiene cero deformación de Fase 1
+- ❌ Textura de tela aún genérica (esperado)
 
-**IP-Adapter Use Cases** (not ours):
-- General style transfer (artistic styles)
-- Low-precision texture hints
-- Quick prototyping without training
+### Éxito Fase 3:
+- ✅ Confirmado: baseline produce imágenes perfectas
+- ✅ Confirmado: texturas de tela son genéricas
+- ✅ Brecha identificada: necesitamos texturas específicas de tela
 
-**LoRA Use Cases** (our use case):
-- Specific object/concept learning
-- Precise texture/pattern replication
-- Working alongside ControlNet structural controls
-- Production-ready fabric texture matching
+### Éxito Fase 4 (Objetivo Final):
+- ✅ Textura de tela coincide precisamente con foto de catálogo
+- ✅ Estructura de traje permanece perfecta (ControlNet mantenido)
+- ✅ Calidad general permanece excelente
+- ✅ **Santo Grial**: Estructura + Calidad + Textura Específica
 
 ---
 
-## 📁 Updated File Structure
+## 🎓 Aprendizajes Clave del Testing de IP-Adapter
+
+**Lo Que Aprendimos:**
+1. Transferencia de estilo visual de IP-Adapter CONFLICTUA con control geométrico de ControlNet
+2. Escala alta de IP-Adapter (0.8+) → estructura de traje deformada
+3. Escala baja de IP-Adapter (0.3) → sin coincidencia precisa de textura
+4. IP-Adapter no puede balancear estructura Y textura precisa
+
+**Por Qué LoRA es Mejor:**
+1. LoRA enseña conceptos, no transfiere estilos
+2. LoRA funciona CON ControlNet, no contra él
+3. LoRA es enfoque estándar para aprendizaje específico de objeto/textura
+4. Probado en la industria para replicación de textura de tela/material
+
+**Casos de Uso de IP-Adapter** (no el nuestro):
+- Transferencia general de estilo (estilos artísticos)
+- Pistas de textura de baja precisión
+- Prototipado rápido sin entrenamiento
+
+**Casos de Uso de LoRA** (nuestro caso de uso):
+- Aprendizaje específico de objeto/concepto
+- Replicación precisa de textura/patrón
+- Trabajar junto con controles estructurales de ControlNet
+- Coincidencia de textura de tela lista para producción
+
+---
+
+## 📁 Estructura de Archivos Actualizada
 
 ```
 backend/scripts/
-├── quick_gen.py                    # Rapid testing script
-├── quick_defaults.json             # Updated with ControlNet-first presets
-├── README.md                       # Updated with ControlNet → LoRA workflow
-└── QUALITY_FIRST_PLAN.md          # This document
+├── quick_gen.py                    # Script de testing rápido
+├── quick_defaults.json             # Actualizado con presets ControlNet-primero
+├── README.md                       # Actualizado con flujo ControlNet → LoRA
+└── QUALITY_FIRST_PLAN.md          # Este documento
 
-Updated Presets in quick_defaults.json:
-- baseline                          # Phase 1 starting point
-- controlnet-test-1,2,3            # Phase 1 ControlNet weight testing
-- quality-baseline-80              # Phase 2 starting point
-- quality-100, quality-120         # Phase 2 quality ceiling testing
-- [IP-Adapter presets deprecated]  # Marked as experimental, not recommended
+Presets Actualizados en quick_defaults.json:
+- baseline                          # Punto inicial Fase 1
+- controlnet-test-1,2,3            # Testing peso ControlNet Fase 1
+- quality-baseline-80              # Punto inicial Fase 2
+- quality-100, quality-120         # Testing techo calidad Fase 2
+- [Presets IP-Adapter deprecados]  # Marcados como experimentales, no recomendados
 ```
 
 ---
 
-## 🚀 Immediate Next Steps
+## 🚀 Próximos Pasos Inmediatos
 
-### 1. Start Phase 1 Testing (20 minutes)
+### 1. Iniciar Testing Fase 1 (20 minutos)
 
 ```bash
-# SSH to RunPod
+# SSH a RunPod
 ssh root@<pod-ip> -p <pod-port> -i ~/.ssh/id_ed25519
 
-# Activate environment
+# Activar entorno
 source /workspace/py311/bin/activate
 cd /workspace/app/backend
 
-# Pull latest changes
+# Jalar últimos cambios
 git pull origin main
 
-# Start Phase 1.1: Depth ControlNet testing
+# Iniciar Fase 1.1: Testing ControlNet Depth
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override depth_weight=0.8
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override depth_weight=1.0
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override depth_weight=1.2
 python -m scripts.quick_gen --preset=baseline --seed=42 --cuts=recto --override depth_weight=1.5
 
-# Download results to local machine
-# (From NEW terminal on Windows)
+# Descargar resultados a máquina local
+# (Desde terminal NUEVA en Windows)
 scp -i ~/.ssh/id_ed25519 -P <port> -r root@<pod-ip>:/workspace/app/backend/outputs/ ./phase1_depth_tests/
 ```
 
-**Evaluate outputs visually:**
-- Which depth weight has zero deformation?
-- Which produces sharpest suit structure?
+**Evaluar outputs visualmente:**
+- ¿Qué peso depth tiene cero deformación?
+- ¿Cuál produce estructura de traje más nítida?
 
-### 2. Complete Phase 1 (40 minutes total)
+### 2. Completar Fase 1 (40 minutos total)
 
-Continue with Phase 1.2 (Canny testing) and Phase 1.3 (verification).
+Continuar con Fase 1.2 (testing Canny) y Fase 1.3 (verificación).
 
-Document winning ControlNet weights in `quick_defaults.json` under new preset:
+Documentar pesos ganadores de ControlNet en `quick_defaults.json` bajo nuevo preset:
 ```json
 "production-baseline": {
-  "description": "Optimized ControlNet baseline - zero deformation",
-  "controlnet_weight": <WINNER>,
-  "controlnet2_weight": <WINNER>,
+  "description": "Baseline ControlNet optimizado - cero deformación",
+  "controlnet_weight": <GANADOR>,
+  "controlnet2_weight": <GANADOR>,
   ...
 }
 ```
 
-### 3. Phase 2-3 Testing (30 minutes)
+### 3. Testing Fase 2-3 (30 minutos)
 
-Test quality ceiling with winning ControlNet weights locked in.
+Probar techo de calidad con pesos ganadores de ControlNet bloqueados.
 
-### 4. Data Collection for LoRA (1-2 hours)
+### 4. Recolección de Datos para LoRA (1-2 horas)
 
-Photograph/collect 15-20 catalog images per fabric while testing continues.
+Fotografiar/recolectar 15-20 imágenes de catálogo por tela mientras continúa el testing.
 
-### 5. LoRA Training Setup (30 minutes)
+### 5. Configuración de Entrenamiento LoRA (30 minutos)
 
-Install Kohya_ss on RunPod during downtime.
+Instalar Kohya_ss en RunPod durante tiempo de inactividad.
 
-### 6. Train First LoRA (1 hour)
+### 6. Entrenar Primer LoRA (1 hora)
 
-Start with one fabric to validate the approach.
+Iniciar con una tela para validar el enfoque.
 
 ---
 
-## 📈 Expected Timeline
+## 📈 Cronología Esperada
 
-| Phase | Duration | Deliverable |
+| Fase | Duración | Entregable |
 |-------|----------|-------------|
-| **Phase 1** | 40 min | ControlNet weights for zero deformation |
-| **Phase 2** | 30 min | Quality config within 90s budget |
-| **Phase 3** | 10 min | Baseline validation, gap confirmed |
-| **Phase 4 Setup** | 2 hours | Data collected, Kohya_ss installed |
-| **Phase 4 Training** | 3-5 hours | 5 LoRAs trained and tested |
-| **Total** | **7-9 hours** | Production-ready system with 5 fabric LoRAs |
+| **Fase 1** | 40 min | Pesos ControlNet para cero deformación |
+| **Fase 2** | 30 min | Config calidad dentro de presupuesto 90s |
+| **Fase 3** | 10 min | Validación baseline, brecha confirmada |
+| **Fase 4 Setup** | 2 horas | Datos recolectados, Kohya_ss instalado |
+| **Fase 4 Training** | 3-5 horas | 5 LoRAs entrenados y probados |
+| **Total** | **7-9 horas** | Sistema listo para producción con 5 LoRAs de tela |
 
-**Can be parallelized:**
-- Data collection during Phase 1-3 testing
-- Multiple LoRA training sessions (sequential on single GPU)
+**Se puede paralelizar:**
+- Recolección de datos durante testing Fase 1-3
+- Múltiples sesiones de entrenamiento LoRA (secuencial en GPU única)
 
 ---
 
-## ✅ Commit and Deploy
+## ✅ Hacer Commit y Desplegar
 
-Once Phase 1-3 are complete:
+Una vez Fase 1-3 estén completas:
 
 ```bash
-# Commit optimized baseline to git
+# Hacer commit baseline optimizado a git
 cd /workspace/app/backend
 git add scripts/quick_defaults.json scripts/README.md scripts/QUALITY_FIRST_PLAN.md
-git commit -m "feat: ControlNet-first testing approach with LoRA roadmap
+git commit -m "feat: enfoque testing ControlNet-primero con roadmap LoRA
 
-- Updated testing workflow: ControlNet → Quality → LoRA
-- Deprecated IP-Adapter presets (fights with ControlNet)
-- Added comprehensive LoRA training plan
-- New baseline presets for Phase 1-3 testing"
+- Actualizado flujo de trabajo testing: ControlNet → Calidad → LoRA
+- Deprecados presets IP-Adapter (pelea con ControlNet)
+- Agregado plan integral entrenamiento LoRA
+- Nuevos presets baseline para testing Fase 1-3"
 
 git push origin main
 ```
 
 ---
 
-## 📖 Reference Documentation
+## 📖 Documentación de Referencia
 
-- **Testing Workflow**: `backend/scripts/README.md` (sections: "Technology Stack", "Workflow: Quality-First Testing Plan", "Comprehensive LoRA Training Plan")
-- **Preset Configurations**: `backend/scripts/quick_defaults.json`
-- **This Plan**: `backend/scripts/QUALITY_FIRST_PLAN.md`
+- **Flujo Testing**: `backend/scripts/README.md` (secciones: "Stack Tecnológico", "Flujo: Plan Testing Calidad-Primero", "Plan Integral Entrenamiento LoRA")
+- **Configuraciones Preset**: `backend/scripts/quick_defaults.json`
+- **Este Plan**: `backend/scripts/QUALITY_FIRST_PLAN.md`
 
 ---
 
 ## 💡 Pro Tips
 
-1. **Use Fixed Seeds**: Always use `--seed=42` and `--seed=1234` for A/B testing
-2. **Single Cut Testing**: Use `--cuts=recto` during Phase 1-2 for 2x faster iteration
-3. **Visual Comparison**: Open outputs side-by-side at 100% zoom to check fabric detail
-4. **Document Everything**: Note winning parameters in `quick_defaults.json` immediately
-5. **Don't Skip Phases**: Each phase builds on the previous - order is critical
+1. **Usar Seeds Fijas**: Siempre usar `--seed=42` y `--seed=1234` para testing A/B
+2. **Testing Corte Único**: Usar `--cuts=recto` durante Fase 1-2 para iteración 2x más rápida
+3. **Comparación Visual**: Abrir outputs lado a lado al 100% zoom para verificar detalle de tela
+4. **Documentar Todo**: Anotar parámetros ganadores en `quick_defaults.json` inmediatamente
+5. **No Saltar Fases**: Cada fase se construye sobre la anterior - el orden es crítico
 
 ---
 
-**Ready to start Phase 1?** Pull latest changes on RunPod and run the first depth ControlNet test! 🚀
+**¿Listo para iniciar Fase 1?** ¡Jala últimos cambios en RunPod y ejecuta el primer test depth ControlNet! 🚀
