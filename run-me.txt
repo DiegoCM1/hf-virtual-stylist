@@ -1,0 +1,22 @@
+=================================================================
+Para iniciar el sistema HF Virtual Stylist:
+=================================================================
+
+1. Abre CMD o PowerShell
+
+2. Copia y pega estos comandos:
+
+   cd D:\OneDrive\Escritorio\Dev\hf-virtual-stylist
+   start-all.bat
+
+3. Se abrirán 3 ventanas de terminal automáticamente
+
+4. Espera 30 segundos y luego abre en tu navegador:
+   http://localhost:3000
+
+=================================================================
+
+Para detener todo: Cierra las 3 ventanas de terminal
+O presiona Ctrl+C en cada una
+
+=================================================================

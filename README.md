@@ -2,6 +2,32 @@
 
 The HF Virtual Stylist pairs a FastAPI backend with a Next.js front end to let Harris & Frank sales associates design bespoke looks in real time. The system generates SDXL-powered suit renders, manages a structured fabric catalog, and exposes an admin surface for merchandising teams to curate offerings.
 
+## 🚀 Inicio Rápido (3 Minutos)
+
+**¿Quieres ver el sistema funcionando ahora mismo?**
+
+### Un Solo Comando:
+
+**Windows:**
+```bash
+.\start-all.bat
+```
+
+**Mac/Linux:**
+```bash
+chmod +x start-all.sh
+./start-all.sh
+```
+
+Esto iniciará automáticamente:
+1. **Backend API** (puerto 8000)
+2. **Worker** (procesa generaciones)
+3. **Frontend** (puerto 3000)
+
+Luego abre http://localhost:3000, selecciona una tela, elige un color y presiona **"Generar"**. En ~5-10 segundos verás imágenes generadas.
+
+📖 **Guía completa**: Ver [START.md](START.md) para troubleshooting y configuración manual.
+
 ## Feature Highlights
 - **Photorealistic generation pipeline** – The backend orchestrates Stable Diffusion XL with optional ControlNet and IP-Adapter guidance while watermarking and persisting each render. Local disk storage works out of the box and a Cloudflare R2 backend can be switched on via environment variables.【F:backend/app/services/generator.py†L1-L117】【F:backend/app/services/storage.py†L1-L60】
 - **Dynamic catalog management** – Fabric families and colors live in a SQLAlchemy database, can be seeded from `app/data/fabrics.json`, and are exposed both to the public catalog endpoint and to an internal admin API used by the dashboard in `/admin`. Alembic migrations keep the schema in sync.【F:backend/app/routers/catalog.py†L1-L55】【F:backend/alembic/versions/41832a8aee86_add_fabric_and_color_models.py†L1-L46】【F:backend/seed.py†L1-L66】
@@ -53,6 +79,49 @@ The HF Virtual Stylist pairs a FastAPI backend with a Next.js front end to let H
 3. Start the dev server: `npm run dev` (defaults to port 3000).
 
 Visit `http://localhost:3000` for the stylist UI and `http://localhost:3000/admin` for the merchandising console.
+
+## Arquitectura de Generación (Background Jobs)
+
+El sistema usa una **arquitectura de jobs en segundo plano** para separar la API de la generación intensiva:
+
+```
+Frontend → Backend API → Database (crea job "pending")
+                            ↓
+                         Worker (polling cada 5s)
+                            ↓
+                    Procesa job → SDXL/MockGenerator
+                            ↓
+                    Actualiza job "completed" con URLs
+                            ↓
+            Frontend (polling) → Obtiene resultados
+```
+
+### Componentes:
+
+1. **Backend API** (`uvicorn app.main:app`)
+   - Endpoint `/generate` crea un job en BD con status="pending"
+   - Endpoint `/jobs/{job_id}` retorna status y resultados
+   - **No ejecuta SDXL** - retorna inmediatamente
+
+2. **Worker** (`python worker.py`)
+   - Proceso separado que hace polling de la BD cada 5 segundos
+   - Toma jobs "pending", ejecuta generación (Mock o SDXL)
+   - Actualiza job a "completed" con URLs de imágenes
+   - **Debe estar corriendo** para que las generaciones funcionen
+
+3. **Generadores:**
+   - `MockGenerator`: Genera imágenes placeholder (sin GPU) - para desarrollo
+   - `SdxlTurboGenerator`: Generación real con SDXL (requiere GPU) - para producción
+
+### Variables de Entorno Clave:
+
+```env
+# Usar MockGenerator (sin GPU) o SdxlTurboGenerator (con GPU)
+USE_MOCK_GENERATOR=true   # true = Mock, false = SDXL
+
+# Storage backend
+STORAGE_BACKEND=local     # local o r2
+```
 
 ## Testing
 - Backend: `pytest -q`
