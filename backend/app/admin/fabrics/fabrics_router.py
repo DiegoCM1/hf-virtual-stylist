@@ -124,7 +124,7 @@ def deactivate_fabric(fabric_id: int, db: Session = Depends(get_db)):
     return fam
 
 
-@router.patch("/{fabric_id}/status", response_model=schemas.FabricRead])
+@router.patch("/{fabric_id}/status", response_model=schemas.FabricRead)
 def set_fabric_status(
     fabric_id: int,
     status_data: schemas.StatusUpdate,
