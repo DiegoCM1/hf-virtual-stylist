@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.models.generate import GenerationRequest, GenerationResponse
-from app.admin.models import GenerationJob
+from app.admin.generations.models import GenerationJob  # Updated import
 from app.admin.dependencies import get_db
 
 router = APIRouter()

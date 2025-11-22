@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session, joinedload
 from urllib.parse import quote
 
 from app.admin.dependencies import get_db
-from app.admin import models
-from app.catalog.service import load_catalog  # Updated import
+from app.admin.fabrics import models  # Updated import
+from app.catalog.service import load_catalog
 from app.core.config import settings
 
 router = APIRouter(tags=["public"])
