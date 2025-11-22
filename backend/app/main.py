@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import generate
+from app.generation import router as generation_router  # Updated: using new generation module
 from app.catalog import router as catalog_router  # Updated: using new catalog module
 from app.errors import add_error_handlers
 import os
@@ -50,4 +50,4 @@ def healthz():
     return {"ok": True, "version": os.getenv("APP_VERSION", "0.1.0")}
 
 app.include_router(catalog_router, prefix="")  # Updated: using new catalog module
-app.include_router(generate.router, prefix="")
+app.include_router(generation_router, prefix="")  # Updated: using new generation module

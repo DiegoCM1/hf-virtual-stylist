@@ -1,0 +1,497 @@
+"""Main SDXL generator with ControlNet and refiner support."""
+from __future__ import annotations
+import io, os, time, uuid, secrets, gc, hashlib, base64
+from typing import List
+import urllib.request
+from urllib.parse import urljoin, urlparse
+from PIL import Image
+import torch
+from diffusers import (
+    StableDiffusionXLPipeline,
+    StableDiffusionXLImg2ImgPipeline,
+    DPMSolverMultistepScheduler,
+    StableDiffusionXLControlNetPipeline,
+    ControlNetModel,
+)
+
+from app.generation.schemas import GenerationRequest, GenerationResponse, ImageResult
+from app.generation.storage import Storage
+from app.generation.watermark import apply_watermark_image
+from app.generation.generator_config import (
+    GUIDANCE, MAX_CUTS, USE_REFINER, TOTAL_STEPS, REFINER_SPLIT,
+    CONTROLNET_ENABLED, CONTROLNET_MODEL, CONTROLNET_WEIGHT,
+    CONTROLNET_GUIDANCE_START, CONTROLNET_GUIDANCE_END,
+    CONTROL_IMAGE_RECTO, CONTROL_IMAGE_CRUZADO,
+    CONTROLNET2_ENABLED, CONTROLNET2_MODEL, CONTROLNET2_WEIGHT,
+    CONTROLNET2_GUIDANCE_START, CONTROLNET2_GUIDANCE_END,
+    CONTROL_IMAGE_RECTO_CANNY, CONTROL_IMAGE_CRUZADO_CANNY,
+    IP_ADAPTER_ENABLED, IP_ADAPTER_REPO, IP_ADAPTER_SUBFOLDER,
+    IP_ADAPTER_WEIGHT, IP_ADAPTER_SCALE, IP_ADAPTER_IMAGE,
+    WATERMARK_PATH,
+)
+from app.core.config import PUBLIC_BASE_URL
+from app.generation.generator_mock import Generator
+
+
+class SdxlTurboGenerator(Generator):
+    """Production SDXL generator with optional ControlNet and refiner."""
+    _base = None     # lazy singletons
+    _refiner = None
+    _device = "cpu"
+
+    def __init__(self, storage: Storage, watermark_path: str | None = None):
+        self.storage = storage
+        self.watermark_path = watermark_path or WATERMARK_PATH
+
+    @classmethod
+    def _get_pipes(cls):
+        if cls._base is not None:
+            return cls._base, cls._refiner
+
+        t0 = time.time()
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        dtype = torch.float16 if device == "cuda" else torch.float32
+
+        print("[sdxl] init: base on", device)
+        cls._base = StableDiffusionXLPipeline.from_pretrained(
+            "stabilityai/stable-diffusion-xl-base-1.0",
+            torch_dtype=dtype,
+            use_safetensors=True,
+        ).to(device)
+        try:
+            if device == "cuda":
+                cls._base.enable_xformers_memory_efficient_attention()
+        except Exception:
+            pass
+        # --- Scheduler: DPM-Solver (Karras) + VAE memory helpers
+        cls._base.scheduler = DPMSolverMultistepScheduler.from_config(
+            cls._base.scheduler.config, use_karras_sigmas=True
+        )
+        cls._base.enable_attention_slicing()
+        cls._base.enable_vae_tiling()
+        cls._base.enable_vae_slicing()
+
+        # --- Optional ControlNet(s) ----------------------------------------------
+        if CONTROLNET_ENABLED and CONTROLNET_MODEL:
+            print(f"[controlnet] loading {CONTROLNET_MODEL}")
+            cn_modules = []
+            cn_depth = ControlNetModel.from_pretrained(
+                CONTROLNET_MODEL,
+                torch_dtype=dtype,
+                use_safetensors=True,
+            ).to(device)
+            cn_modules.append(cn_depth)
+
+            # Second CN (Canny), if enabled
+            if CONTROLNET2_ENABLED and CONTROLNET2_MODEL:
+                print(f"[controlnet-2] loading {CONTROLNET2_MODEL}")
+                cn_canny = ControlNetModel.from_pretrained(
+                    CONTROLNET2_MODEL,
+                    torch_dtype=dtype,
+                    use_safetensors=True,
+                ).to(device)
+                cn_modules.append(cn_canny)
+
+            # For broad diffusers compatibility:
+            # - if 1 CN → pass the single ControlNetModel
+            # - if 2 CNs → pass a list; SDXL ControlNet pipeline accepts List[ControlNetModel]
+            controlnet = cn_modules[0] if len(cn_modules) == 1 else cn_modules
+
+            cls._base = StableDiffusionXLControlNetPipeline(
+                vae=cls._base.vae,
+                text_encoder=cls._base.text_encoder,
+                text_encoder_2=cls._base.text_encoder_2,
+                tokenizer=cls._base.tokenizer,
+                tokenizer_2=cls._base.tokenizer_2,
+                unet=cls._base.unet,
+                controlnet=controlnet,
+                scheduler=cls._base.scheduler,
+                feature_extractor=cls._base.feature_extractor,
+            ).to(device)
+            try:
+                if device == "cuda":
+                    cls._base.enable_xformers_memory_efficient_attention()
+            except Exception:
+                pass
+            cls._base.enable_vae_tiling()
+            cls._base.enable_attention_slicing()
+            cls._base.enable_vae_slicing()
+            print("[controlnet] enabled")
+
+        # --- Optional IP-Adapter -------------------------------------------------
+        # (supported on SDXL text2img and ControlNet pipelines)
+        if IP_ADAPTER_ENABLED:
+            print(f"[ip-adapter] loading {IP_ADAPTER_REPO}/{IP_ADAPTER_WEIGHT}")
+            cls._base.load_ip_adapter(
+                IP_ADAPTER_REPO,
+                subfolder=IP_ADAPTER_SUBFOLDER,
+                weight_name=IP_ADAPTER_WEIGHT,
+            )
+            cls._base.set_ip_adapter_scale(IP_ADAPTER_SCALE)
+
+        if USE_REFINER:
+            print("[sdxl] init: refiner on", device)
+            cls._refiner = StableDiffusionXLImg2ImgPipeline.from_pretrained(
+                "stabilityai/stable-diffusion-xl-refiner-1.0",
+                torch_dtype=dtype,
+                use_safetensors=True,
+            ).to(device)
+            try:
+                if device == "cuda":
+                    cls._refiner.enable_xformers_memory_efficient_attention()
+            except Exception:
+                pass
+            # --- Scheduler + VAE helpers for refiner as well
+            cls._refiner.scheduler = DPMSolverMultistepScheduler.from_config(
+                cls._refiner.scheduler.config, use_karras_sigmas=True
+            )
+            cls._refiner.enable_attention_slicing()
+            cls._refiner.enable_vae_tiling()
+            cls._refiner.enable_vae_slicing()
+
+        print(f"[sdxl] init: done in {time.time()-t0:.2f}s")
+        cls._device = device
+        return cls._base, cls._refiner
+
+    @staticmethod
+    def _to_data_url(img: Image.Image) -> str:
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode("utf-8")
+
+
+    def _control_images_for_cut(self, cut: str, size: tuple[int,int]):
+        """
+        Returns (images, scales, starts, ends) for enabled controlnets, resized to size.
+        Each list can have length 0, 1, or 2 depending on what is enabled/available.
+        """
+        print(f"[DEBUG _control_images_for_cut] Called for cut='{cut}', size={size}")
+        print(f"[DEBUG] CONTROLNET_ENABLED={CONTROLNET_ENABLED}")
+        print(f"[DEBUG] CONTROLNET_WEIGHT={CONTROLNET_WEIGHT}")
+        print(f"[DEBUG] CONTROLNET2_ENABLED={CONTROLNET2_ENABLED}")
+
+        images, scales, starts, ends = [], [], [], []
+
+        # Depth (primary)
+        if CONTROLNET_ENABLED:
+            dpath = CONTROL_IMAGE_RECTO if cut == "recto" else CONTROL_IMAGE_CRUZADO
+            print(f"[DEBUG] Depth ControlNet: checking path '{dpath}'")
+            print(f"  Path exists: {os.path.exists(dpath) if dpath else 'dpath is None/empty'}")
+
+            if dpath and os.path.exists(dpath):
+                img = Image.open(dpath).convert("RGB").resize(size, Image.BICUBIC)
+                images.append(img)
+                scales.append(CONTROLNET_WEIGHT)
+                starts.append(CONTROLNET_GUIDANCE_START)
+                ends.append(CONTROLNET_GUIDANCE_END)
+                print(f"[DEBUG] ✅ Depth ControlNet image loaded, weight={CONTROLNET_WEIGHT}")
+            else:
+                print(f"[DEBUG] ❌ Depth ControlNet NOT loaded (path invalid or missing)")
+        else:
+            print(f"[DEBUG] Depth ControlNet DISABLED (CONTROLNET_ENABLED=False)")
+
+        # Canny (secondary)
+        if CONTROLNET2_ENABLED:
+            cpath = CONTROL_IMAGE_RECTO_CANNY if cut == "recto" else CONTROL_IMAGE_CRUZADO_CANNY
+            print(f"[DEBUG] Canny ControlNet: checking path '{cpath}'")
+            print(f"  Path exists: {os.path.exists(cpath) if cpath else 'cpath is None/empty'}")
+
+            if cpath and os.path.exists(cpath):
+                img = Image.open(cpath).convert("RGB").resize(size, Image.BICUBIC)
+                images.append(img)
+                scales.append(CONTROLNET2_WEIGHT)
+                starts.append(CONTROLNET2_GUIDANCE_START)
+                ends.append(CONTROLNET2_GUIDANCE_END)
+                print(f"[DEBUG] ✅ Canny ControlNet image loaded, weight={CONTROLNET2_WEIGHT}")
+            else:
+                print(f"[DEBUG] ❌ Canny ControlNet NOT loaded (path invalid or missing)")
+        else:
+            print(f"[DEBUG] Canny ControlNet DISABLED (CONTROLNET2_ENABLED=False)")
+
+        print(f"[DEBUG _control_images_for_cut] Returning {len(images)} control image(s)")
+        print(f"  scales={scales}")
+        print(f"  starts={starts}")
+        print(f"  ends={ends}")
+
+        return images, scales, starts, ends
+
+    def generate(self, req: GenerationRequest) -> GenerationResponse:
+        # DEBUG: Print comprehensive config being used for this generation
+        print(f"\n{'='*80}")
+        print(f"[DEBUG generator.generate()] Starting generation with configuration:")
+        print(f"{'='*80}")
+        print(f"  Request: family_id={req.family_id}, color_id={req.color_id}, cuts={req.cuts}, seed={req.seed}")
+        print(f"\n  Core SDXL Settings (from module variables):")
+        print(f"    GUIDANCE = {GUIDANCE}")
+        print(f"    TOTAL_STEPS = {TOTAL_STEPS}")
+        print(f"    USE_REFINER = {USE_REFINER}")
+        print(f"    REFINER_SPLIT = {REFINER_SPLIT}")
+        print(f"\n  ControlNet #1 (Depth):")
+        print(f"    CONTROLNET_ENABLED = {CONTROLNET_ENABLED}")
+        print(f"    CONTROLNET_WEIGHT = {CONTROLNET_WEIGHT}")
+        print(f"    CONTROLNET_GUIDANCE_START = {CONTROLNET_GUIDANCE_START}")
+        print(f"    CONTROLNET_GUIDANCE_END = {CONTROLNET_GUIDANCE_END}")
+        print(f"\n  ControlNet #2 (Canny):")
+        print(f"    CONTROLNET2_ENABLED = {CONTROLNET2_ENABLED}")
+        print(f"    CONTROLNET2_WEIGHT = {CONTROLNET2_WEIGHT}")
+        print(f"    CONTROLNET2_GUIDANCE_START = {CONTROLNET2_GUIDANCE_START}")
+        print(f"    CONTROLNET2_GUIDANCE_END = {CONTROLNET2_GUIDANCE_END}")
+        print(f"\n  IP-Adapter:")
+        print(f"    IP_ADAPTER_ENABLED = {IP_ADAPTER_ENABLED}")
+        print(f"    IP_ADAPTER_SCALE = {IP_ADAPTER_SCALE}")
+        print(f"\n  Direct env var verification:")
+        print(f"    os.getenv('CONTROLNET_WEIGHT') = {os.getenv('CONTROLNET_WEIGHT', 'NOT SET')}")
+        print(f"    os.getenv('CONTROLNET2_WEIGHT') = {os.getenv('CONTROLNET2_WEIGHT', 'NOT SET')}")
+        print(f"    os.getenv('GUIDANCE') = {os.getenv('GUIDANCE', 'NOT SET')}")
+        print(f"    os.getenv('TOTAL_STEPS') = {os.getenv('TOTAL_STEPS', 'NOT SET')}")
+        print(f"{'='*80}\n")
+
+        t0 = time.time()
+        base, refiner = self._get_pipes()
+        device = self._device
+
+        cuts = (req.cuts or ["recto", "cruzado"])[:MAX_CUTS]
+
+        # Calidad (SDXL Base en GPU)
+        width, height = 1344, 2016  # vertical, the bigger it is, the more details the image will have
+        steps, guidance = TOTAL_STEPS, GUIDANCE  # tune via env GUIDANCE (e.g., 4.5–4.7)
+
+        # Common product-photo prompt (neutral, high detail, e-comm style)
+        base_prompt = (
+            "studio photo of a men's tailored suit on a mannequin, ultra-realistic, white seamless background, "
+            "neutral background, soft even lighting, 85mm look, "
+            "sharp tailoring, crisp lapels, detailed fabric texture"
+        )
+
+        neg_prompt = (
+            "blurry, low quality, text, watermark, logo, jpeg artifacts, "
+            "texture stretching, melted cloth, rubbery fabric, wavy weave, "
+            "misaligned buttons, off-center buttons, missing buttons, warped edges, "
+            "asymmetry, twisted torso, duplicated patterns, heavy denoise"
+        )
+
+        # Minimal pose hints (ControlNet handles geometry)  garment specifics
+        CUT_TEMPLATES = {
+            "recto": {
+                "pos": "single-breasted 2-button, notch lapels, patch pockets, buttons centered",
+                "neg": "double-breasted, peak lapels"
+            },
+            "cruzado": {
+                "pos": "double-breasted 6x2, peak lapels, clean overlap, aligned button rows",
+                "neg": "single-breasted, notch lapels"
+            },
+        }
+
+        def build_prompts(base_pos: str, base_neg: str, cut: str):
+            d = CUT_TEMPLATES.get(cut, {"pos": "", "neg": ""})
+            pos = f"{base_pos}, {d['pos']}".strip(", ")
+            neg = base_neg + (", " + d["neg"] if d["neg"] else "")
+            return pos, neg
+
+        # Resolve IP-Adapter image (env-only for Step 1)
+        def _load_ip_image(path_or_url: str) -> Image.Image | None:
+            if not path_or_url:
+                return None
+            try:
+                parsed = urlparse(path_or_url)
+                if parsed.scheme in ("http", "https"):
+                    with urllib.request.urlopen(path_or_url, timeout=10) as r:
+                        return Image.open(io.BytesIO(r.read())).convert("RGB")
+                # local path
+                return Image.open(path_or_url).convert("RGB")
+            except Exception as e:
+                print(f"[ip-adapter] failed to load image: {e}")
+                return None
+        ip_image = _load_ip_image(IP_ADAPTER_IMAGE)
+
+                # --- IP-Adapter kwargs (version-safe): pass image directly -------------
+        ip_kwargs_base = {}
+        if IP_ADAPTER_ENABLED:
+            if ip_image is None:
+                print("[ip-adapter] enabled but no image; continuing without IP-Adapter")
+            else:
+                ip_kwargs_base["ip_adapter_image"] = ip_image
+                ip_kwargs_base["ip_adapter_scale"] = [float(IP_ADAPTER_SCALE)]
+
+        run_id = uuid.uuid4().hex[:10]
+        images: List[ImageResult] = []
+
+        base_seed = req.seed if req.seed is not None else secrets.randbits(32)
+
+        for cut in cuts:
+            # derive a per-cut seed from base_seed (stable & distinct)
+            derived = hashlib.sha256(f"{base_seed}:{cut}".encode()).digest()
+            seed = int.from_bytes(derived[:4], "little")
+            g = torch.Generator(device=device).manual_seed(seed)
+
+            print(f"[sdxl] {cut}: infer start")
+            t1 = time.time()
+            pos, neg = build_prompts(base_prompt, neg_prompt, cut)
+            if refiner:
+                # Optional ControlNet kwargs (apply only on base stage)
+                imgs, scales, starts, ends = self._control_images_for_cut(cut, (width, height))
+                print(f"[DEBUG] After _control_images_for_cut: got {len(imgs)} images")
+                extra = {}
+                if imgs:
+                    # Support 1 or 2 controlnets transparently
+                    payload = imgs if len(imgs) > 1 else imgs[0]
+                    w = scales if len(scales) > 1 else scales[0]
+                    s = starts if len(starts) > 1 else starts[0]
+                    e = ends if len(ends) > 1 else ends[0]
+                    extra = dict(
+                        image=payload,
+                        controlnet_conditioning_scale=w,
+                        control_guidance_start=s,
+                        control_guidance_end=e,
+                    )
+                    print(f"[DEBUG pipeline] Passing ControlNet params to base pipeline:")
+                    print(f"  controlnet_conditioning_scale={w}")
+                    print(f"  control_guidance_start={s}")
+                    print(f"  control_guidance_end={e}")
+                # Base → latent (0 → split)
+                ip_kwargs = dict(ip_kwargs_base)
+                base_out = base(
+                    prompt=pos,
+                    negative_prompt=neg,
+                    num_inference_steps=steps,
+                    denoising_end=REFINER_SPLIT,
+                    guidance_scale=guidance,
+                    width=width,
+                    height=height,
+                    generator=g,
+                    num_images_per_prompt=1,
+                    output_type="latent",
+                    **ip_kwargs,
+                    **extra,
+                )
+                latents = base_out.images  # latent tensor
+
+                # --- VRAM relief before refiner ---------------------------------
+                # Share a single VAE (avoid duplicate copy) and keep it tiled.
+                try:
+                    refiner.vae = base.vae
+                    refiner.vae.to(device)
+                    # refiner device (don't assume "cuda": query module)
+                    try:
+                        ref_device = next(refiner.parameters()).device
+                    except Exception:
+                        ref_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                    refiner.vae.to(ref_device)
+                    if hasattr(refiner.vae, "enable_tiling"): refiner.vae.enable_tiling()
+                    if hasattr(refiner.vae, "enable_slicing"): refiner.vae.enable_slicing()
+                except Exception as e:
+                    print(f"[mem] VAE share/tiling warn: {e}")
+
+                # Offload heavy base modules to CPU to free space for VAE decode.
+                try:
+                    # unet
+                    if hasattr(base, "unet") and base.unet is not None:
+                        base.unet.to("cpu")
+                    # controlnet (can be a model or a wrapper with .to)
+                    cn = getattr(base, "controlnet", None)
+                    if cn is not None:
+                        try:
+                            cn.to("cpu")
+                        except AttributeError:
+                            # handle list-like just in case
+                            for m in cn if isinstance(cn, (list, tuple)) else []:
+                                try: m.to("cpu")
+                                except Exception: pass
+                    for enc in ("text_encoder", "text_encoder_2"):
+                        mod = getattr(base, enc, None)
+                        if mod is not None: mod.to("cpu")
+                except Exception as e:
+                    print(f"[mem] offload base warn: {e}")
+                gc.collect(); torch.cuda.empty_cache()
+
+                # Refiner → image (split → 1.0)
+                refiner_steps = max(5, int(round(steps * (1.0 - REFINER_SPLIT))))
+                img: Image.Image = refiner(
+                    prompt=pos,
+                    negative_prompt=neg,
+                    num_inference_steps=refiner_steps,
+                    denoising_start=REFINER_SPLIT,
+                    guidance_scale=guidance,
+                    image=latents,
+                    generator=g,
+                ).images[0]
+            else:
+                # Optional ControlNet kwargs (no refiner path)
+                imgs, scales, starts, ends = self._control_images_for_cut(cut, (width, height))
+                print(f"[DEBUG] After _control_images_for_cut (no refiner): got {len(imgs)} images")
+                extra = {}
+                if imgs:
+                    payload = imgs if len(imgs) > 1 else imgs[0]
+                    w = scales if len(scales) > 1 else scales[0]
+                    s = starts if len(starts) > 1 else starts[0]
+                    e = ends if len(ends) > 1 else ends[0]
+                    extra = dict(
+                        image=payload,
+                        controlnet_conditioning_scale=w,
+                        control_guidance_start=s,
+                        control_guidance_end=e,
+                    )
+                    print(f"[DEBUG pipeline] Passing ControlNet params to base pipeline (no refiner):")
+                    print(f"  controlnet_conditioning_scale={w}")
+                    print(f"  control_guidance_start={s}")
+                    print(f"  control_guidance_end={e}")
+                ip_kwargs = dict(ip_kwargs_base)
+                img: Image.Image = base(
+                    prompt=pos,
+                    negative_prompt=neg,
+                    num_inference_steps=steps,
+                    guidance_scale=guidance,
+                    width=width,
+                    height=height,
+                    generator=g,
+                    num_images_per_prompt=1,
+                    **ip_kwargs,
+                    **extra,
+                ).images[0]
+            print(f"[sdxl] {cut}: infer done in {time.time()-t1:.2f}s (seed={seed})")
+
+            # bytes -> watermark -> storage URL
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=95)
+            raw_bytes = buf.getvalue()
+
+            wm_bytes = apply_watermark_image(raw_bytes, self.watermark_path, scale=0.30)
+            key = f"generated/{req.family_id}/{req.color_id}/{run_id}/{cut}.jpg"
+            saved_url  = self.storage.save_bytes(wm_bytes, key)
+
+            # --- Force public domain if env is set ---
+            if PUBLIC_BASE_URL:
+                parsed = urlparse(saved_url)
+                # if storage returned absolute (e.g., http://localhost:8000/...),
+                # strip domain and keep only the path; if it was already relative, keep it
+                path = parsed.path if parsed.scheme else saved_url
+                public_url = urljoin(PUBLIC_BASE_URL.rstrip('/') + '/', path.lstrip('/'))
+            else:
+                public_url = saved_url
+            # ---------------------------------------------
+
+            images.append(
+                ImageResult(
+                    cut=cut,
+                    url=public_url,
+                    width=width,
+                    height=height,
+                    watermark=True,
+                    meta={
+                        "seed": str(seed),
+                        "steps": str(steps),
+                        "guidance": str(guidance),
+                        "engine": "sdxl-refiner" if refiner else "sdxl-base",
+                        "refiner_split": str(REFINER_SPLIT),
+                        "refiner_steps": str(refiner_steps) if refiner else "0",
+                        },
+                )
+            )
+
+        return GenerationResponse(
+            request_id=run_id,
+            status="completed",
+            images=images,
+            duration_ms=int((time.time() - t0) * 1000),
+            meta={"family_id": req.family_id, "color_id": req.color_id, "device": device},
+        )

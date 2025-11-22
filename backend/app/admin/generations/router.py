@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 
-from app.admin.generations import models, schemas  # Updated import
+from app.generation.models import GenerationJob  # Updated import
+from app.admin.generations import schemas
 from app.admin.dependencies import get_db
 
 router = APIRouter(prefix="/admin/generations", tags=["admin:generations"])
@@ -20,7 +21,7 @@ def list_generations(
     offset: int = Query(0, ge=0),
 ):
     """List all generation jobs with optional filters."""
-    query = db.query(models.GenerationJob)
+    query = db.query(GenerationJob)
 
     if status_filter:
         query = query.filter(models.GenerationJob.status == status_filter)
