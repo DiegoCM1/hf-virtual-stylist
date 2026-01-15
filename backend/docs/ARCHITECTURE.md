@@ -54,15 +54,4 @@ app/
 - Related code stays together (router + schemas + logic)
 - `generator.py` split into smaller, focused files
 
-## Benefits
 
-1. **Findability:** All catalog code in `catalog/`, all generation code in `generation/`
-2. **Scalability:** Adding features = add new folder (no giant files)
-3. **Maintainability:** Clear boundaries between features
-4. **Consistency:** Same pattern across all modules
-
-## Migration Notes
-
-- **No breaking changes** to API endpoints
-- All imports updated from old paths to new structure
-- Old files kept temporarily for safety (can delete after testing)
