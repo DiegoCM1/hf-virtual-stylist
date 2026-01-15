@@ -20,6 +20,7 @@ class GenerationJob(Base):
     color_id = Column(String, nullable=False)
     cuts = Column(JSON, nullable=False)  # ["recto", "cruzado"]
     seed = Column(Integer, nullable=True)
+    swatch_url = Column(String, nullable=True)  # URL to fabric swatch for IP-Adapter
 
     # Results
     result_urls = Column(JSON, nullable=True)  # Array of generated image URLs

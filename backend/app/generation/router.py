@@ -26,6 +26,7 @@ def generate(req: GenerationRequest, db: Session = Depends(get_db)) -> Generatio
         color_id=req.color_id,
         cuts=req.cuts,
         seed=req.seed,
+        swatch_url=req.swatch_url,
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow(),
     )

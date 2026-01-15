@@ -9,6 +9,7 @@ class GenerationRequest(BaseModel):
     cuts: List[Cut] = Field(default_factory=lambda: ["recto", "cruzado"])
     seed: Optional[int] = None
     quality: Literal["preview", "final"] = "final"
+    swatch_url: Optional[str] = None  # URL to fabric swatch image for IP-Adapter
 
 
 class ImageResult(BaseModel):
