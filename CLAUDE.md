@@ -43,12 +43,12 @@ frontend/
 
 **Configuración del Entorno:**
 1. Crear `backend/.env` con las claves requeridas (ver backend/README.md para la lista completa):
-   - `database_url=sqlite:///./storage/app.db`
+   - `DATABASE_URL=postgresql://user:pass@host:5432/dbname` (Railway/Neon)
    - `admin_password=change-me`
    - `jwt_secret=local-dev-secret`
    - `jwt_algorithm=HS256`
-   - `storage_backend=local`
-   - `public_base_url=http://localhost:8000/files`
+   - `storage_backend=r2`
+   - R2 credentials: `r2_account_id`, `r2_access_key_id`, `r2_secret_access_key`, `r2_bucket_name`, `r2_public_url`
 
 2. Instalar dependencias:
    ```bash

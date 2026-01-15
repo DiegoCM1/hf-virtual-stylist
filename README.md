@@ -44,23 +44,22 @@ Luego abre http://localhost:3000, selecciona una tela, elige un color y presiona
 ### Prerequisites
 - Python 3.11
 - Node.js 18+ and npm
-- SQLite (or another database supported by SQLAlchemy) for local development
+- PostgreSQL database (use Railway or Neon for hosted option)
 
 ### Backend
 1. Create `backend/.env` with at least:
    ```env
-   database_url=sqlite:///./storage/app.db
+   DATABASE_URL=postgresql://user:password@host:5432/dbname
    admin_password=change-me
    jwt_secret=local-dev-secret
    jwt_algorithm=HS256
-   storage_backend=local
-   public_base_url=http://localhost:8000/files
-   # R2 credentials only when using storage_backend=r2
-   # r2_account_id=...
-   # r2_access_key_id=...
-   # r2_secret_access_key=...
-   # r2_bucket_name=...
-   # r2_public_url=https://<bucket>.r2.dev
+   storage_backend=r2
+   # R2 credentials (required for production)
+   r2_account_id=...
+   r2_access_key_id=...
+   r2_secret_access_key=...
+   r2_bucket_name=...
+   r2_public_url=https://<bucket>.r2.dev
    ```
 2. (Optional) Create and activate a virtual environment.
 3. Install dependencies: `pip install -r backend/requirements.txt`.
@@ -127,9 +126,31 @@ STORAGE_BACKEND=local     # local o r2
 - Backend: `pytest -q`
 - Frontend: `npm run lint`
 
-## Deployment Notes
-- Use `backend/devops/runpod/deploy.sh` on RunPod to clone the repo, install Python packages, configure ControlNet/IP-Adapter assets, run migrations, seed data, and launch Uvicorn.【F:backend/devops/runpod/deploy.sh†L1-L134】
-- Switch to Cloudflare R2 storage by setting `storage_backend=r2` and providing the R2 credentials in `.env`; URLs are rewritten automatically when `public_base_url` is absent.【F:backend/app/routers/generate.py†L1-L40】【F:backend/app/services/storage.py†L26-L60】
+## Deployment Architecture
+
+```
+Frontend (Vercel) → Railway (API + PostgreSQL) ← RunPod (GPU Worker)
+                                                        ↓
+                                                 Cloudflare R2 (images)
+```
+
+### Components:
+- **Railway**: Runs the FastAPI backend and PostgreSQL database
+- **RunPod**: Runs `worker.py` which polls PostgreSQL for pending jobs and processes them with SDXL
+- **Vercel**: Hosts the Next.js frontend
+- **Cloudflare R2**: Stores generated images
+
+### RunPod Setup
+Use `backend/devops/runpod/deploy.sh` on RunPod GPU pods. Configure these environment variables in RunPod:
+```env
+DATABASE_URL=postgresql://...  # From Railway dashboard
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET_NAME=...
+R2_PUBLIC_URL=https://pub-xxx.r2.dev
+```
+The script runs `worker.py` which connects to Railway's PostgreSQL to process generation jobs.
 
 ## Additional Documentation
 - [`backend/README.md`](backend/README.md) – detailed API contracts, environment variables, and generator internals.
