@@ -295,7 +295,11 @@ class SdxlTurboGenerator(Generator):
             try:
                 parsed = urlparse(path_or_url)
                 if parsed.scheme in ("http", "https"):
-                    with urllib.request.urlopen(path_or_url, timeout=10) as r:
+                    req_obj = urllib.request.Request(
+                        path_or_url,
+                        headers={"User-Agent": "Mozilla/5.0 (HFVirtualStylist/1.0)"}
+                    )
+                    with urllib.request.urlopen(req_obj, timeout=10) as r:
                         return Image.open(io.BytesIO(r.read())).convert("RGB")
                 # local path
                 return Image.open(path_or_url).convert("RGB")
@@ -308,11 +312,18 @@ class SdxlTurboGenerator(Generator):
         if req.swatch_url:
             print(f"[ip-adapter] Using swatch from request: {req.swatch_url}")
 
-                # --- IP-Adapter kwargs (version-safe): pass image directly -------------
+        # --- IP-Adapter kwargs (version-safe): pass image directly -------------
+        # IMPORTANT: Once load_ip_adapter() is called at init, the UNet is modified
+        # to expect image_embeds on EVERY forward pass. We MUST always pass an image.
+        # If no swatch is available, pass a blank image with scale=0 (neutral effect).
         ip_kwargs_base = {}
         if IP_ADAPTER_ENABLED:
             if ip_image is None:
-                print("[ip-adapter] enabled but no image; continuing without IP-Adapter")
+                print("[ip-adapter] enabled but no image; using blank image with scale=0")
+                # Create a neutral blank image (white) - IP-Adapter needs something
+                blank_img = Image.new("RGB", (512, 512), color=(255, 255, 255))
+                ip_kwargs_base["ip_adapter_image"] = blank_img
+                ip_kwargs_base["ip_adapter_scale"] = [0.0]  # Zero effect
             else:
                 ip_kwargs_base["ip_adapter_image"] = ip_image
                 ip_kwargs_base["ip_adapter_scale"] = [float(IP_ADAPTER_SCALE)]
@@ -328,13 +339,31 @@ class SdxlTurboGenerator(Generator):
             seed = int.from_bytes(derived[:4], "little")
             g = torch.Generator(device=device).manual_seed(seed)
 
+            # --- Ensure base components are on GPU (may have been offloaded in previous cut)
+            if device == "cuda":
+                try:
+                    if hasattr(base, "unet") and base.unet is not None:
+                        base.unet.to(device)
+                    cn = getattr(base, "controlnet", None)
+                    if cn is not None:
+                        if isinstance(cn, (list, tuple)):
+                            for m in cn:
+                                m.to(device)
+                        else:
+                            cn.to(device)
+                    for enc in ("text_encoder", "text_encoder_2"):
+                        mod = getattr(base, enc, None)
+                        if mod is not None:
+                            mod.to(device)
+                except Exception as e:
+                    print(f"[mem] reload base to GPU warn: {e}")
+
             print(f"[sdxl] {cut}: infer start")
             t1 = time.time()
             pos, neg = build_prompts(base_prompt, neg_prompt, cut)
             if refiner:
                 # Optional ControlNet kwargs (apply only on base stage)
                 imgs, scales, starts, ends = self._control_images_for_cut(cut, (width, height))
-                print(f"[DEBUG] After _control_images_for_cut: got {len(imgs)} images")
                 extra = {}
                 if imgs:
                     # Support 1 or 2 controlnets transparently

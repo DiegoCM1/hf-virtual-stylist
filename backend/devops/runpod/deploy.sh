@@ -30,10 +30,11 @@ git reset --hard origin/main
 echo "[setup] Synced to origin/main"
 
 # --- 2) Install dependencies -------------------------------------------------
+echo "[setup] Installing dependencies"
 cd backend
 python -m pip install --upgrade pip -q
-python -m pip install --quiet --only-binary=:all: tokenizers==0.19.1
-python -m pip install --quiet -r requirements.txt
+python -m pip install --only-binary=:all: tokenizers==0.19.1
+python -m pip install -r requirements.txt
 echo "[setup] Dependencies installed"
 
 # --- 3) Environment Variables ------------------------------------------------
@@ -42,16 +43,16 @@ export HF_HOME=/workspace/.cache/huggingface
 export HF_HUB_ENABLE_HF_TRANSFER=1
 
 # =============================================================================
-# DATABASE - Connect to Railway's PostgreSQL (NOT local SQLite)
+# DATABASE - Connect to Neon's PostgreSQL (NOT local SQLite)
 # =============================================================================
 # Set this in RunPod's environment variables or secrets:
 #   DATABASE_URL=postgresql://user:pass@host:5432/dbname
 if [ -z "${DATABASE_URL:-}" ]; then
   echo "[ERROR] DATABASE_URL not set. Configure it in RunPod environment variables."
-  echo "        Get the connection string from Railway dashboard."
+  echo "        Get the connection string from Neon dashboard."
   exit 1
 fi
-echo "[config] DATABASE_URL is set (connecting to Railway PostgreSQL)"
+echo "[config] DATABASE_URL is set (connecting to Neon PostgreSQL)"
 
 # =============================================================================
 # STORAGE - Cloudflare R2
@@ -133,7 +134,7 @@ PY
 # =============================================================================
 echo "========================================"
 echo "  Starting GPU Worker..."
-echo "  Polling for jobs from Railway DB"
+echo "  Polling for jobs from Neon DB"
 echo "========================================"
 
 cd /workspace/app/backend
