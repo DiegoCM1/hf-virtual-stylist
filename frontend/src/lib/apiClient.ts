@@ -118,6 +118,7 @@ export type GenerateRequest = {
   cuts?: Cut[];
   seed?: number;
   quality?: "preview" | "final";
+  swatch_url?: string;  // Custom swatch image URL for IP-Adapter
 };
 
 export type ImageResult = {
@@ -139,6 +140,19 @@ export type GenerateResponse = {
 
 export const generateImages = (body: GenerateRequest) =>
   apiPost<GenerateResponse>("/generate", body);
+
+// Swatch upload types and function
+export type SwatchUploadResponse = {
+  swatch_url: string;
+  filename: string;
+  size_bytes: number;
+};
+
+export const uploadSwatch = async (file: File): Promise<SwatchUploadResponse> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  return apiPost<SwatchUploadResponse>("/upload-swatch", formData);
+};
 
 // Poll for job status
 export const getJobStatus = (jobId: string) =>
