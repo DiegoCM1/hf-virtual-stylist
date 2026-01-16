@@ -27,3 +27,10 @@ class GenerationResponse(BaseModel):
     images: List[ImageResult] = Field(default_factory=list)
     duration_ms: Optional[int] = None
     meta: Dict[str, str] = Field(default_factory=dict)
+
+
+class SwatchUploadResponse(BaseModel):
+    """Response from POST /upload-swatch endpoint."""
+    swatch_url: str
+    filename: str
+    size_bytes: int
