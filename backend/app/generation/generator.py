@@ -295,7 +295,11 @@ class SdxlTurboGenerator(Generator):
             try:
                 parsed = urlparse(path_or_url)
                 if parsed.scheme in ("http", "https"):
-                    with urllib.request.urlopen(path_or_url, timeout=10) as r:
+                    req_obj = urllib.request.Request(
+                        path_or_url,
+                        headers={"User-Agent": "Mozilla/5.0 (HFVirtualStylist/1.0)"}
+                    )
+                    with urllib.request.urlopen(req_obj, timeout=10) as r:
                         return Image.open(io.BytesIO(r.read())).convert("RGB")
                 # local path
                 return Image.open(path_or_url).convert("RGB")
@@ -308,11 +312,18 @@ class SdxlTurboGenerator(Generator):
         if req.swatch_url:
             print(f"[ip-adapter] Using swatch from request: {req.swatch_url}")
 
-                # --- IP-Adapter kwargs (version-safe): pass image directly -------------
+        # --- IP-Adapter kwargs (version-safe): pass image directly -------------
+        # IMPORTANT: Once load_ip_adapter() is called at init, the UNet is modified
+        # to expect image_embeds on EVERY forward pass. We MUST always pass an image.
+        # If no swatch is available, pass a blank image with scale=0 (neutral effect).
         ip_kwargs_base = {}
         if IP_ADAPTER_ENABLED:
             if ip_image is None:
-                print("[ip-adapter] enabled but no image; continuing without IP-Adapter")
+                print("[ip-adapter] enabled but no image; using blank image with scale=0")
+                # Create a neutral blank image (white) - IP-Adapter needs something
+                blank_img = Image.new("RGB", (512, 512), color=(255, 255, 255))
+                ip_kwargs_base["ip_adapter_image"] = blank_img
+                ip_kwargs_base["ip_adapter_scale"] = [0.0]  # Zero effect
             else:
                 ip_kwargs_base["ip_adapter_image"] = ip_image
                 ip_kwargs_base["ip_adapter_scale"] = [float(IP_ADAPTER_SCALE)]
