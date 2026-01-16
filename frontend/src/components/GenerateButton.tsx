@@ -10,7 +10,7 @@ export function GenerateButton({ onClick, disabled, loading }: GenerateButtonPro
       onClick={onClick}
       disabled={disabled}
       className="
-        w-full bg-gray-900 text-white
+        w-full bg-neutral-600 text-white
         px-6 py-4 rounded-[3px]
         font-body text-sm font-medium tracking-wide uppercase
         shadow-sm

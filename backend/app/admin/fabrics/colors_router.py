@@ -1,10 +1,10 @@
-# app/admin/colors_router.py
+# app/admin/fabrics/colors_router.py
 """Admin endpoints for individual color management."""
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
 
-from app.admin import models, schemas
+from app.admin.fabrics import models, schemas  # Updated import
 from app.admin.dependencies import get_db
 
 router = APIRouter(prefix="/admin/colors", tags=["admin:colors"])

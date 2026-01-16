@@ -1,10 +1,10 @@
-# app/admin/router.py
+# app/admin/fabrics/fabrics_router.py
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
 from urllib.parse import quote
 
-from app.admin import models, schemas
+from app.admin.fabrics import models, schemas  # Updated import
 from app.admin.dependencies import get_db
 from app.core.config import settings
 

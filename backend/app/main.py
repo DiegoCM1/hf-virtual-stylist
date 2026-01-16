@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import catalog, generate
+from app.generation import router as generation_router  # Updated: using new generation module
+from app.catalog import router as catalog_router  # Updated: using new catalog module
 from app.errors import add_error_handlers
 import os
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
-from app.admin.router import router as admin_fabrics_router
-from app.admin.colors_router import router as admin_colors_router
-from app.admin.generations_router import router as admin_generations_router
+from app.admin.fabrics import fabrics_router, colors_router  # Updated imports
+from app.admin.generations import router as admin_generations_router  # Updated import
 
 
 
@@ -41,13 +41,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(admin_fabrics_router)
-app.include_router(admin_colors_router)
+app.include_router(fabrics_router)  # Updated
+app.include_router(colors_router)  # Updated
 app.include_router(admin_generations_router)
 
 @app.get("/healthz")
 def healthz():
     return {"ok": True, "version": os.getenv("APP_VERSION", "0.1.0")}
 
-app.include_router(catalog.router, prefix="")
-app.include_router(generate.router, prefix="")
+app.include_router(catalog_router, prefix="")  # Updated: using new catalog module
+app.include_router(generation_router, prefix="")  # Updated: using new generation module
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

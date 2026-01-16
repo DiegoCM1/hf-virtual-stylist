@@ -1,7 +1,6 @@
-"""Database models for the admin application."""
+"""Database models for fabric families and colors."""
 from datetime import datetime
-from sqlalchemy import Column, ForeignKey, Integer, String, Text, DateTime
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
@@ -46,29 +45,3 @@ class Color(Base):
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     fabric_family = relationship("FabricFamily", back_populates="colors")
-
-
-class GenerationJob(Base):
-    """Represents a background job for generating suit visualizations."""
-
-    __tablename__ = "generation_jobs"
-
-    id = Column(Integer, primary_key=True, index=True)
-    job_id = Column(String, unique=True, nullable=False, index=True)  # UUID for API
-    status = Column(String, nullable=False, default="pending", index=True)  # pending, processing, completed, failed
-
-    # Request parameters
-    family_id = Column(String, nullable=False)
-    color_id = Column(String, nullable=False)
-    cuts = Column(JSON, nullable=False)  # ["recto", "cruzado"]
-    seed = Column(Integer, nullable=True)
-
-    # Results
-    result_urls = Column(JSON, nullable=True)  # Array of generated image URLs
-    error_message = Column(Text, nullable=True)
-
-    # Timestamps
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
-    started_at = Column(DateTime, nullable=True)
-    completed_at = Column(DateTime, nullable=True)
