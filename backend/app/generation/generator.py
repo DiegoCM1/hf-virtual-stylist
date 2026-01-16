@@ -339,6 +339,25 @@ class SdxlTurboGenerator(Generator):
             seed = int.from_bytes(derived[:4], "little")
             g = torch.Generator(device=device).manual_seed(seed)
 
+            # --- Ensure base components are on GPU (may have been offloaded in previous cut)
+            if device == "cuda":
+                try:
+                    if hasattr(base, "unet") and base.unet is not None:
+                        base.unet.to(device)
+                    cn = getattr(base, "controlnet", None)
+                    if cn is not None:
+                        if isinstance(cn, (list, tuple)):
+                            for m in cn:
+                                m.to(device)
+                        else:
+                            cn.to(device)
+                    for enc in ("text_encoder", "text_encoder_2"):
+                        mod = getattr(base, enc, None)
+                        if mod is not None:
+                            mod.to(device)
+                except Exception as e:
+                    print(f"[mem] reload base to GPU warn: {e}")
+
             print(f"[sdxl] {cut}: infer start")
             t1 = time.time()
             pos, neg = build_prompts(base_prompt, neg_prompt, cut)
