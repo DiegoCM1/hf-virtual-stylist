@@ -25,9 +25,14 @@ from app.core.config import settings
 # Load environment variables
 load_dotenv()
 
-# Initialize database
+# Initialize database with connection resilience for long-running jobs
 SQLALCHEMY_DATABASE_URL = settings.database_url
-engine = create_engine(SQLALCHEMY_DATABASE_URL, future=True)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    future=True,
+    pool_pre_ping=True,  # Test connections before use (handles Neon timeouts)
+    pool_recycle=300,    # Recycle connections after 5 minutes
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, future=True)
 
 # Initialize storage backend
