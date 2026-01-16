@@ -23,7 +23,7 @@ class ImageResult(BaseModel):
 
 class GenerationResponse(BaseModel):
     request_id: str
-    status: Literal["completed","pending","failed"]
+    status: Literal["pending", "processing", "completed", "failed"]
     images: List[ImageResult] = Field(default_factory=list)
     duration_ms: Optional[int] = None
     meta: Dict[str, str] = Field(default_factory=dict)
