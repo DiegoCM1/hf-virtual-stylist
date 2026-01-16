@@ -75,7 +75,7 @@
   ┌───────────────┬────────────────────────────────────┬────────────────────────────────────────────────┐
   │     Área      │              Decisión              │                 Justificación                  │
   ├───────────────┼────────────────────────────────────┼────────────────────────────────────────────────┤
-  │ Base de Datos │ PostgreSQL único (Railway)         │ Simplicidad, sin SQLite                        │
+  │ Base de Datos │ PostgreSQL único (Neon)         │ Simplicidad, sin SQLite                        │
   ├───────────────┼────────────────────────────────────┼────────────────────────────────────────────────┤
   │ Arquitectura  │ Worker separado (no API en RunPod) │ API ligera en Railway, GPU solo genera         │
   ├───────────────┼────────────────────────────────────┼────────────────────────────────────────────────┤
@@ -88,13 +88,37 @@
   │ Watermark     │ Aplicado antes de subir a R2       │ Protección de imágenes                         │
   ├───────────────┼────────────────────────────────────┼────────────────────────────────────────────────┤
   │ Frontend      │ Vercel + Next.js                   │ Deploy automático, edge functions              │
+  ├───────────────┼────────────────────────────────────┼────────────────────────────────────────────────┤
+  │ Swatch URLs   │ Híbrido: DB + User Upload          │ Catálogo desde DB, usuarios suben a R2 temp    │
+  ├───────────────┼────────────────────────────────────┼────────────────────────────────────────────────┤
+  │ User Uploads  │ POST /upload-swatch → R2 temp      │ Consistencia con arquitectura R2 existente     │
+  ├───────────────┼────────────────────────────────────┼────────────────────────────────────────────────┤
+  │ Temp Cleanup  │ R2 Lifecycle Rules (24h)           │ Zero code, fully managed, auto-delete          │
   └───────────────┴────────────────────────────────────┴────────────────────────────────────────────────┘
+
+  ---
+  Detalle: Swatch URLs (RESUELTO ✅)
+
+  Flujo para swatches del catálogo:
+  1. DB tiene campo `swatch_code` (ej: "095T-0121")
+  2. GET /catalog construye URL: {R2_PUBLIC_URL}/ZEGNA%202025-26/{swatch_code}.png
+  3. Frontend recibe swatch_url listo para usar
+
+  Flujo para uploads de usuario:
+  1. Usuario selecciona imagen en frontend
+  2. POST /upload-swatch con FormData
+  3. Backend valida (tipo: jpeg/png/webp, tamaño: max 5MB)
+  4. Sube a R2: temp-uploads/{uuid}.{ext}
+  5. Retorna URL pública
+  6. Frontend incluye URL en POST /generate → se guarda en generation_jobs.swatch_url
+  7. Worker usa esa URL con IP-Adapter
+
+  Cleanup automático:
+  - R2 Lifecycle Rule: objetos en temp-uploads/ expiran en 24 horas
+  - Configurado en Cloudflare Dashboard (no requiere código)
+
   ---
   Decisiones PENDIENTES ❓
-  Área: swatch_url
-  Pregunta: ¿Cómo obtiene el frontend la URL del swatch?
-  Opciones: A) Hardcoded por color_id, B) Viene de la DB (endpoint /catalog), C) Frontend la construye
-  ────────────────────────────────────────
   Área: Escalabilidad
   Pregunta: ¿Múltiples workers en RunPod?
   Opciones: A) Un solo pod siempre encendido, B) Múltiples pods, C) Serverless (encender/apagar)
