@@ -118,6 +118,15 @@ export function useVirtualStylist() {
   );
 
   const handleColorSelect = useCallback((nextColorId: string) => {
+    // Clear custom swatch when selecting from catalog
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+    setPreview(null);
+    setCustomSwatchUrl(null);
+    setUploadError(null);
+
     setColorId(nextColorId);
   }, []);
 
@@ -235,6 +244,18 @@ export function useVirtualStylist() {
     cameraInputRef.current?.click();
   }, []);
 
+  const clearCustomSwatch = useCallback(() => {
+    // Revoke object URL to free memory
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+    // Clear all swatch-related state
+    setPreview(null);
+    setCustomSwatchUrl(null);
+    setUploadError(null);
+  }, []);
+
   const openImage = useCallback((image: GeneratedImage) => {
     setSelectedImage(image);
   }, []);
@@ -267,6 +288,7 @@ export function useVirtualStylist() {
     handleFileSelection,
     openGalleryPicker,
     openCameraPicker,
+    clearCustomSwatch,
     openImage,
     closeImage,
   };
