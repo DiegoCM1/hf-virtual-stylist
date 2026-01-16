@@ -7,8 +7,8 @@ class Settings(BaseSettings):
     # v2 style: read backend/.env and ignore extra keys (e.g., PUBLIC_BASE_URL)
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    # Database/Auth (required on Railway, optional on RunPod)
-    database_url: str = "sqlite:///dummy.db"
+    # Database - PostgreSQL (required, get from Railway dashboard)
+    database_url: str = ""  # Must be set in .env or environment
     admin_password: str = "not-used"
     jwt_secret: str = "not-used"
     jwt_algorithm: str = "HS256"

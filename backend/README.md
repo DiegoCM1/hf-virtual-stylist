@@ -8,12 +8,11 @@ Crear `backend/.env` antes de iniciar el servicio. Las claves requeridas refleja
 
 | Clave | Propósito | Ejemplo |
 | --- | --- | --- |
-| `database_url` | Cadena de conexión SQLAlchemy. | `sqlite:///./storage/app.db` |
+| `DATABASE_URL` | Cadena de conexión PostgreSQL (Railway/Neon). | `postgresql://user:pass@host:5432/db` |
 | `admin_password` | Credencial seed para flujos admin (hash o plano, dependiendo del uso). | `change-me` |
 | `jwt_secret` / `jwt_algorithm` | Secretos de firma JWT para endpoints admin. | `local-secret` / `HS256` |
-| `storage_backend` | `local` (predeterminado) o `r2`. | `local` |
-| `public_base_url` | Base absoluta opcional usada al reescribir URLs de almacenamiento local. | `http://localhost:8000/files` |
-| `r2_*` claves | Credenciales de Cloudflare R2 cuando `storage_backend=r2`. | _ver `.env`_ |
+| `storage_backend` | `r2` para producción. | `r2` |
+| `r2_*` claves | Credenciales de Cloudflare R2: `r2_account_id`, `r2_access_key_id`, `r2_secret_access_key`, `r2_bucket_name`, `r2_public_url`. | _ver `.env`_ |
 | `HF_HOME`, `WATERMARK_PATH`, `CONTROLNET_*`, `IP_ADAPTER_*` | Toggles avanzados de generación leídos directamente dentro del módulo generador. | _opcional_ |
 
 ## Instalación y Configuración
@@ -59,7 +58,29 @@ pytest -q
 ```
 
 ## Despliegue
-`backend/devops/runpod/deploy.sh` encapsula el flujo de despliegue en GPU: sincronizar el repo, instalar Python 3.11, exportar variables de entorno de generación, aplicar migraciones Alembic, cargar datos y iniciar Uvicorn. Úsalo como base para RunPod u otros orquestadores de GPU.【F:backend/devops/runpod/deploy.sh†L1-L134】
+
+### Arquitectura
+```
+Frontend (Vercel) → Railway (API + PostgreSQL) ← RunPod (GPU Worker)
+                                                        ↓
+                                                 Cloudflare R2 (images)
+```
+
+### RunPod (GPU Worker)
+`backend/devops/runpod/deploy.sh` configura el pod como **worker** que:
+1. Conecta a PostgreSQL de Railway (no usa DB local)
+2. Corre `worker.py` que hace polling por jobs pendientes
+3. Procesa generaciones con SDXL y sube resultados a R2
+
+Variables requeridas en RunPod:
+```env
+DATABASE_URL=postgresql://...  # De Railway
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET_NAME=...
+R2_PUBLIC_URL=https://pub-xxx.r2.dev
+```
 
 
 ---

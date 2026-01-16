@@ -15,10 +15,11 @@ from sqlalchemy.orm import sessionmaker, Session
 from dotenv import load_dotenv
 import os
 
-from app.admin.models import GenerationJob
-from app.models.generate import GenerationRequest
-from app.services.generator import MockGenerator, SdxlTurboGenerator
-from app.services.storage import LocalStorage, R2Storage, Storage
+from app.generation.models import GenerationJob
+from app.generation.schemas import GenerationRequest
+from app.generation.generator import SdxlTurboGenerator
+from app.generation.generator_mock import MockGenerator
+from app.generation.storage import LocalStorage, R2Storage, Storage
 from app.core.config import settings
 
 # Load environment variables
@@ -61,7 +62,8 @@ def process_job(db: Session, job: GenerationJob) -> None:
             family_id=job.family_id,
             color_id=job.color_id,
             cuts=job.cuts,
-            seed=job.seed
+            seed=job.seed,
+            swatch_url=job.swatch_url,
         )
 
         # Run SDXL generation

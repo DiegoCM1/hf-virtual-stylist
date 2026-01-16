@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getCatalog as fetchCatalog, generateImages, waitForJobCompletion, type ImageResult } from "@/lib/apiClient";
+import { getCatalog as fetchCatalog, generateImages, waitForJobCompletion, uploadSwatch, type ImageResult } from "@/lib/apiClient";
 import {
   CatalogResponse,
   Family,
@@ -24,6 +24,9 @@ export function useVirtualStylist() {
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [preview, setPreview] = useState<PreviewImage | null>(null);
+  const [customSwatchUrl, setCustomSwatchUrl] = useState<string | null>(null);
+  const [isUploadingSwatch, setIsUploadingSwatch] = useState<boolean>(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
@@ -127,12 +130,19 @@ export function useVirtualStylist() {
     setGenerationError(null);
     setImages([]);
 
+    // Determine swatch_url: custom upload takes priority, then catalog swatch
+    const selectedColor = currentFamily?.colors.find((c) => c.color_id === colorId);
+    const swatchUrl = customSwatchUrl || selectedColor?.swatch_url || undefined;
+
+    console.log("[useVirtualStylist] Generating with swatch_url:", swatchUrl);
+
     try {
       // Step 1: Create the generation job
       const jobResponse = await generateImages({
         family_id: familyId,
         color_id: colorId,
         cuts: ["recto", "cruzado"],
+        swatch_url: swatchUrl,
       });
 
       // Step 2: Poll for completion
@@ -163,13 +173,17 @@ export function useVirtualStylist() {
     } finally {
       setIsGenerating(false);
     }
-  }, [familyId, colorId]);
+  }, [familyId, colorId, customSwatchUrl, currentFamily]);
 
-  const handleFileSelection = useCallback((files: FileList | null) => {
+  const handleFileSelection = useCallback(async (files: FileList | null) => {
     const file = files?.[0];
     if (!file) {
       return;
     }
+
+    // Clear previous state
+    setUploadError(null);
+    setCustomSwatchUrl(null);
 
     if (previewUrlRef.current) {
       URL.revokeObjectURL(previewUrlRef.current);
@@ -178,6 +192,7 @@ export function useVirtualStylist() {
     const objectUrl = URL.createObjectURL(file);
     previewUrlRef.current = objectUrl;
 
+    // Set preview immediately for UI feedback
     const image = new window.Image();
     image.onload = () => {
       setPreview({
@@ -196,6 +211,20 @@ export function useVirtualStylist() {
       });
     };
     image.src = objectUrl;
+
+    // Upload to backend
+    setIsUploadingSwatch(true);
+    try {
+      console.log("[useVirtualStylist] Uploading swatch...", file.name);
+      const response = await uploadSwatch(file);
+      console.log("[useVirtualStylist] Upload success:", response.swatch_url);
+      setCustomSwatchUrl(response.swatch_url);
+    } catch (error) {
+      console.error("[useVirtualStylist] Upload failed:", error);
+      setUploadError(error instanceof Error ? error.message : "Error al subir imagen");
+    } finally {
+      setIsUploadingSwatch(false);
+    }
   }, []);
 
   const openGalleryPicker = useCallback(() => {
@@ -227,6 +256,9 @@ export function useVirtualStylist() {
     images,
     selectedImage,
     preview,
+    customSwatchUrl,
+    isUploadingSwatch,
+    uploadError,
     galleryInputRef,
     cameraInputRef,
     selectFamily: handleFamilyChange,

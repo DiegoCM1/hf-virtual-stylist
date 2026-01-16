@@ -28,8 +28,10 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 # alembic/env.py
-from app.core.database import Base  # We'll create this file in the next (Codex) step
-from app.admin import models  # This ensures Alembic sees your admin models
+from app.core.database import Base
+# Import all models so Alembic can detect them for autogenerate
+from app.admin.fabrics.models import FabricFamily, Color  # noqa: F401
+from app.generation.models import GenerationJob  # noqa: F401
 
 target_metadata = Base.metadata
 

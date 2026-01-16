@@ -153,7 +153,7 @@ class SdxlTurboGenerator(Generator):
         cls._device = device
         return cls._base, cls._refiner
 
-    @staticmethod
+    @staticmethod 
     def _to_data_url(img: Image.Image) -> str:
         buf = io.BytesIO()
         img.save(buf, format="PNG")
@@ -302,7 +302,11 @@ class SdxlTurboGenerator(Generator):
             except Exception as e:
                 print(f"[ip-adapter] failed to load image: {e}")
                 return None
-        ip_image = _load_ip_image(IP_ADAPTER_IMAGE)
+        # Use swatch_url from request if provided, otherwise fall back to env var
+        ip_source = req.swatch_url if req.swatch_url else IP_ADAPTER_IMAGE
+        ip_image = _load_ip_image(ip_source)
+        if req.swatch_url:
+            print(f"[ip-adapter] Using swatch from request: {req.swatch_url}")
 
                 # --- IP-Adapter kwargs (version-safe): pass image directly -------------
         ip_kwargs_base = {}

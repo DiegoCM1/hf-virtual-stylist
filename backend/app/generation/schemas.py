@@ -9,6 +9,7 @@ class GenerationRequest(BaseModel):
     cuts: List[Cut] = Field(default_factory=lambda: ["recto", "cruzado"])
     seed: Optional[int] = None
     quality: Literal["preview", "final"] = "final"
+    swatch_url: Optional[str] = None  # URL to fabric swatch image for IP-Adapter
 
 
 class ImageResult(BaseModel):
@@ -26,3 +27,10 @@ class GenerationResponse(BaseModel):
     images: List[ImageResult] = Field(default_factory=list)
     duration_ms: Optional[int] = None
     meta: Dict[str, str] = Field(default_factory=dict)
+
+
+class SwatchUploadResponse(BaseModel):
+    """Response from POST /upload-swatch endpoint."""
+    swatch_url: str
+    filename: str
+    size_bytes: int
