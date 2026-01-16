@@ -364,7 +364,6 @@ class SdxlTurboGenerator(Generator):
             if refiner:
                 # Optional ControlNet kwargs (apply only on base stage)
                 imgs, scales, starts, ends = self._control_images_for_cut(cut, (width, height))
-                print(f"[DEBUG] After _control_images_for_cut: got {len(imgs)} images")
                 extra = {}
                 if imgs:
                     # Support 1 or 2 controlnets transparently
