@@ -197,4 +197,10 @@ bucket/
 
 **Cleanup:** R2 Lifecycle Rule elimina `temp-uploads/*` despues de 24 horas
 
+## Worker Resilience
+
+- **DB Connection:** `pool_pre_ping=True` handles Neon connection timeouts during long GPU jobs
+- **IP-Adapter Fallback:** If swatch URL fails to load, uses blank image with scale=0 (no effect)
+- **Multi-cut GPU:** Base model reloaded to GPU between cuts to avoid device mismatch
+
 

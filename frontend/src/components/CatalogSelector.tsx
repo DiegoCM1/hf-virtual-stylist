@@ -7,6 +7,7 @@ type CatalogSelectorProps = {
   selectedColorId: string;
   onFamilyChange: (familyId: string) => void;
   onColorSelect: (colorId: string) => void;
+  hasCustomSwatch?: boolean;
 };
 
 export function CatalogSelector({
@@ -15,6 +16,7 @@ export function CatalogSelector({
   selectedColorId,
   onFamilyChange,
   onColorSelect,
+  hasCustomSwatch = false,
 }: CatalogSelectorProps) {
   const activeFamily = families.find((family) => family.family_id === selectedFamilyId);
 
@@ -29,7 +31,7 @@ export function CatalogSelector({
                 key={color.color_id}
                 onClick={() => onColorSelect(color.color_id)}
                 className={`border rounded-[3px] p-3 text-sm hover:border-gray-900 hover:shadow-md transition-all duration-200 group ${
-                  selectedColorId === color.color_id
+                  selectedColorId === color.color_id && !hasCustomSwatch
                     ? "ring-2 ring-gray-900 ring-offset-2 border-gray-900 shadow-md"
                     : "border-gray-300 bg-white"
                 }`}

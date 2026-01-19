@@ -5,6 +5,7 @@ import { CatalogSelector } from "@/components/CatalogSelector";
 import { GenerateButton } from "@/components/GenerateButton";
 import SearchTela from "@/components/SearchTela";
 import { ImageUploadControls } from "@/components/ImageUploadControls";
+import { CustomSwatchBanner } from "@/components/CustomSwatchBanner";
 import { GeneratedImageGallery } from "@/components/GeneratedImageGallery";
 import { ImageModal } from "@/components/ImageModal";
 import { LoadingState } from "@/components/LoadingState";
@@ -31,6 +32,7 @@ export default function Home() {
     handleFileSelection,
     openGalleryPicker,
     openCameraPicker,
+    clearCustomSwatch,
     openImage,
     closeImage,
   } = useVirtualStylist();
@@ -76,12 +78,18 @@ export default function Home() {
             />
           </div>
 
+          {/* Custom swatch banner - shows above catalog when image uploaded */}
+          {preview && (
+            <CustomSwatchBanner preview={preview} onDiscard={clearCustomSwatch} />
+          )}
+
           <CatalogSelector
             families={families}
             selectedFamilyId={familyId}
             selectedColorId={colorId}
             onFamilyChange={selectFamily}
             onColorSelect={selectColor}
+            hasCustomSwatch={!!preview}
           />
 
           <GenerateButton onClick={generate} disabled={disableGenerate} loading={isGenerating} />
@@ -94,7 +102,7 @@ export default function Home() {
             onFileChange={handleFileSelection}
             onOpenGallery={openGalleryPicker}
             onOpenCamera={openCameraPicker}
-            preview={preview}
+            hasCustomSwatch={!!preview}
           />
         </div>
 

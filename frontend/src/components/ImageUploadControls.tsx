@@ -1,6 +1,4 @@
 import { RefObject } from "react";
-import Image from "next/image";
-import { PreviewImage } from "@/types/catalog";
 
 type ImageUploadControlsProps = {
   galleryInputRef: RefObject<HTMLInputElement | null>;
@@ -8,7 +6,7 @@ type ImageUploadControlsProps = {
   onFileChange: (files: FileList | null) => void;
   onOpenGallery: () => void;
   onOpenCamera: () => void;
-  preview: PreviewImage | null;
+  hasCustomSwatch?: boolean;
 };
 
 export function ImageUploadControls({
@@ -17,7 +15,7 @@ export function ImageUploadControls({
   onFileChange,
   onOpenGallery,
   onOpenCamera,
-  preview,
+  hasCustomSwatch = false,
 }: ImageUploadControlsProps) {
   return (
     <div className="space-y-2">
@@ -57,7 +55,7 @@ export function ImageUploadControls({
           "
           onClick={onOpenGallery}
         >
-          📁 Elegir Foto
+          {hasCustomSwatch ? "📁 Cambiar Foto" : "📁 Elegir Foto"}
         </button>
         <button
           type="button"
@@ -77,21 +75,6 @@ export function ImageUploadControls({
           📷 Tomar Foto
         </button>
       </div>
-      {preview && (
-        <div className="space-y-2 mt-4">
-          <div className="text-sm font-body text-gray-700 font-medium">Vista previa</div>
-          <div className="overflow-hidden rounded-[3px] border border-gray-300 bg-white shadow-sm">
-            <Image
-              src={preview.url}
-              alt={`Vista previa de ${preview.name}`}
-              width={preview.width || 400}
-              height={preview.height || 400}
-              className="h-auto w-full object-cover"
-              unoptimized
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
