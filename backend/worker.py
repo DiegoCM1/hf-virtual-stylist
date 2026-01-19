@@ -18,6 +18,7 @@ import os
 from app.generation.models import GenerationJob
 from app.generation.schemas import GenerationRequest
 from app.generation.generator import SdxlTurboGenerator
+from app.generation.generator_inpaint import InpaintGenerator
 from app.generation.generator_mock import MockGenerator
 from app.generation.storage import LocalStorage, R2Storage, Storage
 from app.core.config import settings
@@ -44,10 +45,22 @@ else:
     storage = LocalStorage()
     print("✅ [Worker] Using LocalStorage backend.")
 
-# Initialize generator
+# Initialize generator based on GENERATOR_MODE
+# Options: "mock", "full" (default), "inpaint"
 USE_MOCK = os.getenv("USE_MOCK_GENERATOR", "false").lower() == "true"
-generator = MockGenerator(storage) if USE_MOCK else SdxlTurboGenerator(storage)
-print(f"✅ [Worker] Using {'Mock' if USE_MOCK else 'SDXL'} generator.")
+GENERATOR_MODE = os.getenv("GENERATOR_MODE", "full").lower()
+
+if USE_MOCK:
+    generator = MockGenerator(storage)
+    generator_name = "Mock"
+elif GENERATOR_MODE == "inpaint":
+    generator = InpaintGenerator(storage)
+    generator_name = "SDXL Inpaint"
+else:
+    generator = SdxlTurboGenerator(storage)
+    generator_name = "SDXL Full Generation"
+
+print(f"✅ [Worker] Using {generator_name} generator (mode={GENERATOR_MODE}).")
 
 
 def process_job(db: Session, job: GenerationJob) -> None:
@@ -137,7 +150,8 @@ if __name__ == "__main__":
     print("="*60)
     print(f"Database: {SQLALCHEMY_DATABASE_URL[:50]}...")
     print(f"Storage: {settings.storage_backend}")
-    print(f"Generator: {'Mock' if USE_MOCK else 'SDXL Turbo'}")
+    print(f"Generator: {generator_name}")
+    print(f"Mode: {GENERATOR_MODE}")
     print("="*60)
 
     worker_loop()
