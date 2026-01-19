@@ -116,7 +116,7 @@ export IP_ADAPTER_SCALE="${IP_ADAPTER_SCALE:-0.70}"
 export INPAINT_MODEL="${INPAINT_MODEL:-diffusers/stable-diffusion-xl-1.0-inpainting-0.1}"
 export INPAINT_STRENGTH="${INPAINT_STRENGTH:-0.65}"
 export INPAINT_GUIDANCE="${INPAINT_GUIDANCE:-4.0}"
-export INPAINT_STEPS="${INPAINT_STEPS:-80}"
+export INPAINT_STEPS="${INPAINT_STEPS:-100}"
 
 # IP-Adapter Plus (higher quality texture/color transfer for inpainting)
 # Plus version requires ViT-H encoder (loaded automatically by generator_inpaint.py)
