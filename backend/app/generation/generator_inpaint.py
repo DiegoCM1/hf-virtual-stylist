@@ -29,6 +29,7 @@ from diffusers import (
     StableDiffusionXLInpaintPipeline,
     DPMSolverMultistepScheduler,
 )
+from transformers import CLIPVisionModelWithProjection
 
 from app.generation.schemas import GenerationRequest, GenerationResponse, ImageResult
 from app.generation.storage import Storage
@@ -264,35 +265,89 @@ class InpaintGenerator(Generator):
         except Exception:
             print("[inpaint] xformers not available, using default attention")
 
-        # Load IP-Adapter Plus
+        # Load IP-Adapter (with Plus support)
         if IP_ADAPTER_ENABLED:
-            print(f"[inpaint] Loading IP-Adapter: {IP_ADAPTER_WEIGHT}")
-            try:
-                cls._pipe.load_ip_adapter(
-                    IP_ADAPTER_REPO,
-                    subfolder=IP_ADAPTER_SUBFOLDER,
-                    weight_name=IP_ADAPTER_WEIGHT,
-                )
-                cls._pipe.set_ip_adapter_scale(IP_ADAPTER_SCALE)
-                print(f"[inpaint] IP-Adapter loaded, scale={IP_ADAPTER_SCALE}")
-            except Exception as e:
-                print(f"[inpaint] WARNING: Failed to load IP-Adapter Plus, trying base version: {e}")
-                try:
-                    # Fallback to base IP-Adapter
-                    cls._pipe.load_ip_adapter(
-                        IP_ADAPTER_REPO,
-                        subfolder=IP_ADAPTER_SUBFOLDER,
-                        weight_name="ip-adapter_sdxl.bin",
-                    )
-                    cls._pipe.set_ip_adapter_scale(IP_ADAPTER_SCALE)
-                    print("[inpaint] Fallback: IP-Adapter base loaded")
-                except Exception as e2:
-                    print(f"[inpaint] ERROR: Could not load any IP-Adapter: {e2}")
+            cls._load_ip_adapter(dtype, device)
 
         cls._device = device
         print(f"[inpaint] Pipeline ready in {time.time() - t0:.2f}s")
 
         return cls._pipe
+
+    @classmethod
+    def _load_ip_adapter(cls, dtype, device):
+        """
+        Load IP-Adapter with proper image encoder support.
+
+        IP-Adapter Plus requires the ViT-H image encoder from OpenCLIP.
+        Standard IP-Adapter uses the default CLIP encoder.
+
+        Falls back to standard IP-Adapter if Plus fails.
+        """
+        is_plus_version = "plus" in IP_ADAPTER_WEIGHT.lower()
+
+        print(f"[inpaint] Loading IP-Adapter: {IP_ADAPTER_WEIGHT}")
+        print(f"[inpaint] Is Plus version: {is_plus_version}")
+
+        try:
+            # IP-Adapter Plus requires ViT-H image encoder
+            if is_plus_version:
+                print("[inpaint] Loading ViT-H image encoder for IP-Adapter Plus...")
+                try:
+                    image_encoder = CLIPVisionModelWithProjection.from_pretrained(
+                        IP_ADAPTER_REPO,
+                        subfolder="models/image_encoder",
+                        torch_dtype=dtype,
+                    ).to(device)
+
+                    # Set the image encoder on the pipeline BEFORE loading IP-Adapter
+                    cls._pipe.image_encoder = image_encoder
+                    print("[inpaint] ViT-H image encoder loaded successfully")
+
+                except Exception as enc_error:
+                    print(f"[inpaint] WARNING: Failed to load ViT-H encoder: {enc_error}")
+                    print("[inpaint] Falling back to standard IP-Adapter...")
+                    # Fall back to standard version
+                    cls._load_standard_ip_adapter()
+                    return
+
+            # Load IP-Adapter weights
+            cls._pipe.load_ip_adapter(
+                IP_ADAPTER_REPO,
+                subfolder=IP_ADAPTER_SUBFOLDER,
+                weight_name=IP_ADAPTER_WEIGHT,
+            )
+            cls._pipe.set_ip_adapter_scale(IP_ADAPTER_SCALE)
+
+            adapter_type = "Plus (ViT-H)" if is_plus_version else "Standard"
+            print(f"[inpaint] IP-Adapter {adapter_type} loaded, scale={IP_ADAPTER_SCALE}")
+
+        except Exception as e:
+            print(f"[inpaint] WARNING: Failed to load IP-Adapter ({IP_ADAPTER_WEIGHT}): {e}")
+
+            # Try fallback to standard IP-Adapter
+            if is_plus_version:
+                print("[inpaint] Attempting fallback to standard IP-Adapter...")
+                cls._load_standard_ip_adapter()
+            else:
+                print("[inpaint] ERROR: Could not load IP-Adapter. Continuing without it.")
+
+    @classmethod
+    def _load_standard_ip_adapter(cls):
+        """
+        Fallback: Load standard IP-Adapter (no special encoder needed).
+        """
+        try:
+            cls._pipe.load_ip_adapter(
+                IP_ADAPTER_REPO,
+                subfolder=IP_ADAPTER_SUBFOLDER,
+                weight_name="ip-adapter_sdxl.bin",
+            )
+            cls._pipe.set_ip_adapter_scale(IP_ADAPTER_SCALE)
+            print(f"[inpaint] Fallback: Standard IP-Adapter loaded, scale={IP_ADAPTER_SCALE}")
+        except Exception as e2:
+            print(f"[inpaint] ERROR: Could not load standard IP-Adapter: {e2}")
+            print("[inpaint] Continuing without IP-Adapter - swatch colors will NOT be applied!")
 
     def _get_assets_for_cut(
         self,

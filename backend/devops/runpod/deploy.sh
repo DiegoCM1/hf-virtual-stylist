@@ -118,7 +118,8 @@ export INPAINT_STRENGTH="${INPAINT_STRENGTH:-0.85}"
 export INPAINT_GUIDANCE="${INPAINT_GUIDANCE:-7.5}"
 export INPAINT_STEPS="${INPAINT_STEPS:-50}"
 
-# IP-Adapter Plus (higher quality texture transfer for inpainting)
+# IP-Adapter Plus (higher quality texture/color transfer for inpainting)
+# Plus version requires ViT-H encoder (loaded automatically by generator_inpaint.py)
 export INPAINT_IP_ADAPTER_WEIGHT="${INPAINT_IP_ADAPTER_WEIGHT:-ip-adapter-plus_sdxl_vit-h.safetensors}"
 export INPAINT_IP_ADAPTER_SCALE="${INPAINT_IP_ADAPTER_SCALE:-0.70}"
 
