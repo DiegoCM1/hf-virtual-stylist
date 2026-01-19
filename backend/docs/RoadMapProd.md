@@ -265,4 +265,102 @@
   ├── cruzado_reference.jpg    # Photo of model in suit (cruzado pose)
   └── cruzado_mask.png         # Binary mask: white=suit, black=keep
 
+  ═══════════════════════════════════════════════════════════════════════════════
+  TEXTURE FIDELITY: IP-Adapter Limitations & Solutions
+  ═══════════════════════════════════════════════════════════════════════════════
+
+  IP-Adapter Reality Check:
+  ─────────────────────────
+  IP-Adapter is an APPROXIMATION, not a copy. It transfers "style/vibe", not exact texture.
+
+  What it does well:
+  - General color (navy blue swatch → navy blue suit)
+  - Brightness/matte feeling
+  - Coarse textures (tweed, visible wool)
+
+  What it struggles with:
+  - Fine patterns (thin stripes, small checks, prince of wales)
+  - Exact pattern reproduction
+  - Scale of the weave
+
+  Estimated fidelity: ~60-70%
+
+  ───────────────────────────────────────────────────────────────────────────────
+  Options to Improve Texture Fidelity
+  ───────────────────────────────────────────────────────────────────────────────
+
+  ┌─────────────────────┬───────────┬────────────────┬─────────────────────────┐
+  │ Method              │ Fidelity  │ Effort         │ Scalability             │
+  ├─────────────────────┼───────────┼────────────────┼─────────────────────────┤
+  │ IP-Adapter only     │ ~60-70%   │ Low (current)  │ High (any swatch)       │
+  ├─────────────────────┼───────────┼────────────────┼─────────────────────────┤
+  │ IP-Adapter + Tile   │ ~85-90%   │ Medium         │ High (any swatch)       │
+  │ ControlNet          │           │                │                         │
+  ├─────────────────────┼───────────┼────────────────┼─────────────────────────┤
+  │ LoRA per fabric     │ ~85-90%   │ High (train    │ Low (1 LoRA = 1 fabric) │
+  │                     │           │ each one)      │                         │
+  ├─────────────────────┼───────────┼────────────────┼─────────────────────────┤
+  │ Texture tiling      │ 100%      │ Medium         │ High (requires 3D       │
+  │ (non-AI)            │           │                │ pipeline)               │
+  └─────────────────────┴───────────┴────────────────┴─────────────────────────┘
+
+  ───────────────────────────────────────────────────────────────────────────────
+  ControlNet Tile (Promising Option)
+  ───────────────────────────────────────────────────────────────────────────────
+
+  What it does:
+  - Preserves texture details from reference image
+  - Maintains repetitive patterns (stripes, checks, weave)
+  - Respects pattern scale
+
+  Combined pipeline:
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │                                                                             │
+  │  Swatch ──────────────────┬──→ IP-Adapter ────→ Color/style general         │
+  │     │                     │                                                 │
+  │     └──→ ControlNet Tile ─┴──→ SDXL Inpaint ──→ Result with preserved       │
+  │                                                  pattern details            │
+  └─────────────────────────────────────────────────────────────────────────────┘
+
+  Available models for SDXL:
+  - xinsir/controlnet-tile-sdxl-1.0 (community, less tested than SD 1.5 version)
+
+  ───────────────────────────────────────────────────────────────────────────────
+  LoRAs Integration
+  ───────────────────────────────────────────────────────────────────────────────
+
+  Decision: Add LoRA support to the NEW pipeline (inpainting), not the current one.
+  Reason: Avoid duplicate work if migrating to inpainting anyway.
+
+  Implementation (when ready):
+  1. Add to generator_config.py:
+     - LORA_ENABLED, LORA_PATH, LORA_WEIGHT
+
+  2. Load in pipeline init:
+     - pipeline.load_lora_weights(LORA_PATH)
+     - pipeline.fuse_lora(lora_scale=LORA_WEIGHT)
+
+  3. Add to deploy.sh:
+     - export LORA_ENABLED, LORA_PATH, LORA_WEIGHT
+
+  ───────────────────────────────────────────────────────────────────────────────
+  DECISIONS PENDING: Texture Quality ❓
+  ───────────────────────────────────────────────────────────────────────────────
+
+  1. Quality standard required:
+     - "Looks like navy wool" (IP-Adapter sufficient) OR
+     - "Looks exactly like Zegna 095T-0121" (need Tile/LoRAs)
+
+  2. First step: Test IP-Adapter alone
+     - Try different IP_ADAPTER_SCALE values (0.5, 0.7, 0.9)
+     - Evaluate if fidelity is acceptable for the use case
+
+  3. If not sufficient: Add ControlNet Tile
+     - Test xinsir/controlnet-tile-sdxl-1.0
+     - Combine with IP-Adapter
+
+  4. For specific hero fabrics: Train LoRAs
+     - Only if Tile+IP-Adapter still not enough
+     - High effort, only for most important fabrics
+
   ---
