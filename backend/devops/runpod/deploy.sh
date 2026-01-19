@@ -114,14 +114,14 @@ export IP_ADAPTER_SCALE="${IP_ADAPTER_SCALE:-0.70}"
 # =============================================================================
 # Inpainting uses SDXL Inpaint model + IP-Adapter Plus for better texture fidelity
 export INPAINT_MODEL="${INPAINT_MODEL:-diffusers/stable-diffusion-xl-1.0-inpainting-0.1}"
-export INPAINT_STRENGTH="${INPAINT_STRENGTH:-0.85}"
-export INPAINT_GUIDANCE="${INPAINT_GUIDANCE:-7.5}"
-export INPAINT_STEPS="${INPAINT_STEPS:-50}"
+export INPAINT_STRENGTH="${INPAINT_STRENGTH:-0.65}"
+export INPAINT_GUIDANCE="${INPAINT_GUIDANCE:-4.0}"
+export INPAINT_STEPS="${INPAINT_STEPS:-80}"
 
 # IP-Adapter Plus (higher quality texture/color transfer for inpainting)
 # Plus version requires ViT-H encoder (loaded automatically by generator_inpaint.py)
 export INPAINT_IP_ADAPTER_WEIGHT="${INPAINT_IP_ADAPTER_WEIGHT:-ip-adapter-plus_sdxl_vit-h.safetensors}"
-export INPAINT_IP_ADAPTER_SCALE="${INPAINT_IP_ADAPTER_SCALE:-0.70}"
+export INPAINT_IP_ADAPTER_SCALE="${INPAINT_IP_ADAPTER_SCALE:-1.0}"
 
 # Inpainting reference images and masks
 export INPAINT_ASSETS_DIR="${INPAINT_ASSETS_DIR:-/workspace/app/backend/assets/inpaint}"
