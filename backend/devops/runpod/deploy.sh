@@ -65,7 +65,14 @@ if [ -z "${R2_ACCESS_KEY_ID:-}" ]; then
 fi
 
 # =============================================================================
-# SDXL Generation Settings
+# GENERATOR MODE
+# =============================================================================
+# Options: "full" (SDXL + ControlNet + IP-Adapter), "inpaint" (SDXL Inpaint + IP-Adapter Plus), "mock"
+export GENERATOR_MODE="${GENERATOR_MODE:-inpaint}"
+echo "[config] GENERATOR_MODE=${GENERATOR_MODE}"
+
+# =============================================================================
+# SDXL Generation Settings (for GENERATOR_MODE=full)
 # =============================================================================
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
@@ -102,8 +109,29 @@ export IP_ADAPTER_SUBFOLDER="${IP_ADAPTER_SUBFOLDER:-sdxl_models}"
 export IP_ADAPTER_WEIGHT="${IP_ADAPTER_WEIGHT:-ip-adapter_sdxl.bin}"
 export IP_ADAPTER_SCALE="${IP_ADAPTER_SCALE:-0.70}"
 
-# Watermark
-export WATERMARK_PATH="${WATERMARK_PATH:-/workspace/app/backend/assets/watermark.png}"
+# =============================================================================
+# INPAINTING Settings (for GENERATOR_MODE=inpaint)
+# =============================================================================
+# Inpainting uses SDXL Inpaint model + IP-Adapter Plus for better texture fidelity
+export INPAINT_MODEL="${INPAINT_MODEL:-diffusers/stable-diffusion-xl-1.0-inpainting-0.1}"
+export INPAINT_STRENGTH="${INPAINT_STRENGTH:-0.65}"
+export INPAINT_GUIDANCE="${INPAINT_GUIDANCE:-4.0}"
+export INPAINT_STEPS="${INPAINT_STEPS:-100}"
+
+# IP-Adapter Plus (higher quality texture/color transfer for inpainting)
+# Plus version requires ViT-H encoder (loaded automatically by generator_inpaint.py)
+export INPAINT_IP_ADAPTER_WEIGHT="${INPAINT_IP_ADAPTER_WEIGHT:-ip-adapter-plus_sdxl_vit-h.safetensors}"
+export INPAINT_IP_ADAPTER_SCALE="${INPAINT_IP_ADAPTER_SCALE:-1.0}"
+
+# Inpainting reference images and masks
+export INPAINT_ASSETS_DIR="${INPAINT_ASSETS_DIR:-/workspace/app/backend/assets/inpaint}"
+export INPAINT_REF_RECTO="${INPAINT_REF_RECTO:-${INPAINT_ASSETS_DIR}/recto_reference.jpg}"
+export INPAINT_REF_CRUZADO="${INPAINT_REF_CRUZADO:-${INPAINT_ASSETS_DIR}/cruzado_reference.jpg}"
+export INPAINT_MASK_RECTO="${INPAINT_MASK_RECTO:-${INPAINT_ASSETS_DIR}/recto_mask.png}"
+export INPAINT_MASK_CRUZADO="${INPAINT_MASK_CRUZADO:-${INPAINT_ASSETS_DIR}/cruzado_mask.png}"
+
+# Watermark (uses tests/assets location where the actual file exists)
+export WATERMARK_PATH="${WATERMARK_PATH:-/workspace/app/backend/tests/assets/watermark-logo.png}"
 
 # =============================================================================
 # Sanity Checks
@@ -111,12 +139,16 @@ export WATERMARK_PATH="${WATERMARK_PATH:-/workspace/app/backend/assets/watermark
 echo "[sanity] Checking CUDA and SDXL..."
 python - <<'PY'
 import torch
+import os
 print(f"  torch {torch.__version__}")
 print(f"  CUDA available: {torch.cuda.is_available()}")
 if torch.cuda.is_available():
     print(f"  GPU: {torch.cuda.get_device_name(0)}")
 from diffusers import StableDiffusionXLPipeline
 print("  SDXL pipeline import: OK")
+if os.environ.get("GENERATOR_MODE", "full") == "inpaint":
+    from diffusers import StableDiffusionXLInpaintPipeline
+    print("  SDXL Inpaint pipeline import: OK")
 PY
 
 echo "[sanity] Testing database connection..."
