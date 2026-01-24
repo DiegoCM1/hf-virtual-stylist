@@ -152,6 +152,17 @@ R2_PUBLIC_URL=https://pub-xxx.r2.dev
 ```
 The script runs `worker.py` which connects to Railway's PostgreSQL to process generation jobs.
 
+## Production Operations
+
+See **[OPERATIONS.md](OPERATIONS.md)** for complete production documentation:
+- Service inventory (Railway, Neon, RunPod, Cloudflare R2, Vercel)
+- RunPod GPU worker setup from scratch
+- Environment variables reference
+- Deployment procedures
+- Troubleshooting guide
+- Credentials management
+
 ## Additional Documentation
 - [`backend/README.md`](backend/README.md) – detailed API contracts, environment variables, and generator internals.
 - [`frontend/README.md`](frontend/README.md) – Next.js architecture and admin console details.
+- [`OPERATIONS.md`](OPERATIONS.md) – production operations, deployment, and handover guide.
