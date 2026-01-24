@@ -2,37 +2,11 @@
 
 The HF Virtual Stylist pairs a FastAPI backend with a Next.js front end to let Harris & Frank sales associates design bespoke looks in real time. The system generates SDXL-powered suit renders, manages a structured fabric catalog, and exposes an admin surface for merchandising teams to curate offerings.
 
-## 🚀 Inicio Rápido (3 Minutos)
-
-**¿Quieres ver el sistema funcionando ahora mismo?**
-
-### Un Solo Comando:
-
-**Windows:**
-```bash
-.\start-all.bat
-```
-
-**Mac/Linux:**
-```bash
-chmod +x start-all.sh
-./start-all.sh
-```
-
-Esto iniciará automáticamente:
-1. **Backend API** (puerto 8000)
-2. **Worker** (procesa generaciones)
-3. **Frontend** (puerto 3000)
-
-Luego abre http://localhost:3000, selecciona una tela, elige un color y presiona **"Generar"**. En ~5-10 segundos verás imágenes generadas.
-
-📖 **Guía completa**: Ver [START.md](START.md) para troubleshooting y configuración manual.
-
 ## Feature Highlights
-- **Photorealistic generation pipeline** – The backend orchestrates Stable Diffusion XL with optional ControlNet and IP-Adapter guidance while watermarking and persisting each render. Local disk storage works out of the box and a Cloudflare R2 backend can be switched on via environment variables.【F:backend/app/services/generator.py†L1-L117】【F:backend/app/services/storage.py†L1-L60】
-- **Dynamic catalog management** – Fabric families and colors live in a SQLAlchemy database, can be seeded from `app/data/fabrics.json`, and are exposed both to the public catalog endpoint and to an internal admin API used by the dashboard in `/admin`. Alembic migrations keep the schema in sync.【F:backend/app/routers/catalog.py†L1-L55】【F:backend/alembic/versions/41832a8aee86_add_fabric_and_color_models.py†L1-L46】【F:backend/seed.py†L1-L66】
-- **Sales-floor friendly UI** – The Next.js App Router client offers guided fabric selection, live previews, and a modal gallery for generated imagery. It also ships with an admin table that can search, toggle, and create fabric entries against the FastAPI admin routes.【F:frontend/src/app/page.tsx†L1-L70】【F:frontend/src/app/admin/AdminTable.tsx†L1-L228】
-- **RunPod-ready deployment** – `backend/devops/runpod/deploy.sh` installs dependencies on GPU pods, wires up ControlNet/IP-Adapter assets, applies migrations, seeds data, and starts the API—mirroring the production pipeline.【F:backend/devops/runpod/deploy.sh†L1-L134】
+- **Photorealistic generation pipeline** – The backend orchestrates Stable Diffusion XL with optional ControlNet and IP-Adapter guidance while watermarking and persisting each render. Local disk storage works out of the box and a Cloudflare R2 backend can be switched on via environment variables.
+- **Dynamic catalog management** – Fabric families and colors live in a SQLAlchemy database, can be seeded from `app/data/fabrics.json`, and are exposed both to the public catalog endpoint and to an internal admin API used by the dashboard in `/admin`. Alembic migrations keep the schema in sync.
+- **Sales-floor friendly UI** – The Next.js App Router client offers guided fabric selection, live previews, and a modal gallery for generated imagery. It also ships with an admin table that can search, toggle, and create fabric entries against the FastAPI admin routes.
+- **RunPod-ready deployment** – `backend/devops/runpod/deploy.sh` installs dependencies on GPU pods, wires up ControlNet/IP-Adapter assets, and starts the worker to process generation jobs.
 
 ## Repository Layout
 | Path | Description |
@@ -69,12 +43,11 @@ Luego abre http://localhost:3000, selecciona una tela, elige un color y presiona
 
 ### Frontend
 1. Install dependencies from `frontend/`: `npm install`.
-2. Create `frontend/.env.local` and point the proxy and admin page to your API:
+2. Create `frontend/.env.local` and point the proxy to your API:
    ```env
-   NEXT_PUBLIC_RUNPOD_URL=http://localhost:8000
-   NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+   NEXT_PUBLIC_API_BASE=http://localhost:8000
    ```
-   The Next.js config rewrites `/api/*` calls to `NEXT_PUBLIC_RUNPOD_URL`, so the catalog and generation hooks work both locally and on RunPod.【F:frontend/next.config.ts†L1-L21】【F:frontend/src/lib/apiClient.ts†L1-L38】
+   The Next.js config rewrites `/api/*` calls to this URL, so the catalog and generation hooks work both locally and in production.
 3. Start the dev server: `npm run dev` (defaults to port 3000).
 
 Visit `http://localhost:3000` for the stylist UI and `http://localhost:3000/admin` for the merchandising console.
@@ -110,7 +83,8 @@ Frontend → Backend API → Database (crea job "pending")
 
 3. **Generadores:**
    - `MockGenerator`: Genera imágenes placeholder (sin GPU) - para desarrollo
-   - `SdxlTurboGenerator`: Generación real con SDXL (requiere GPU) - para producción
+   - `InpaintGenerator`: Inpainting con SDXL + IP-Adapter Plus (requiere GPU) - **modo por defecto**
+   - `SdxlTurboGenerator`: Generación completa con SDXL + ControlNet (requiere GPU) - alternativo
 
 ### Variables de Entorno Clave:
 
@@ -129,13 +103,14 @@ STORAGE_BACKEND=local     # local o r2
 ## Deployment Architecture
 
 ```
-Frontend (Vercel) → Railway (API + PostgreSQL) ← RunPod (GPU Worker)
-                                                        ↓
-                                                 Cloudflare R2 (images)
+Frontend (Vercel) → Railway (API) → Neon (PostgreSQL) ← RunPod (GPU Worker)
+                                                                ↓
+                                                         Cloudflare R2 (images)
 ```
 
 ### Components:
-- **Railway**: Runs the FastAPI backend and PostgreSQL database
+- **Railway**: Runs the FastAPI backend API
+- **Neon**: Hosts the PostgreSQL database (shared between Railway and RunPod)
 - **RunPod**: Runs `worker.py` which polls PostgreSQL for pending jobs and processes them with SDXL
 - **Vercel**: Hosts the Next.js frontend
 - **Cloudflare R2**: Stores generated images
@@ -143,15 +118,26 @@ Frontend (Vercel) → Railway (API + PostgreSQL) ← RunPod (GPU Worker)
 ### RunPod Setup
 Use `backend/devops/runpod/deploy.sh` on RunPod GPU pods. Configure these environment variables in RunPod:
 ```env
-DATABASE_URL=postgresql://...  # From Railway dashboard
+DATABASE_URL=postgresql://...  # From Neon dashboard
 R2_ACCOUNT_ID=...
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
 R2_BUCKET_NAME=...
 R2_PUBLIC_URL=https://pub-xxx.r2.dev
 ```
-The script runs `worker.py` which connects to Railway's PostgreSQL to process generation jobs.
+The script runs `worker.py` which connects to Neon's PostgreSQL to process generation jobs.
+
+## Production Operations
+
+See **[OPERATIONS.md](OPERATIONS.md)** for complete production documentation:
+- Service inventory (Railway, Neon, RunPod, Cloudflare R2, Vercel)
+- RunPod GPU worker setup from scratch
+- Environment variables reference
+- Deployment procedures
+- Troubleshooting guide
+- Credentials management
 
 ## Additional Documentation
 - [`backend/README.md`](backend/README.md) – detailed API contracts, environment variables, and generator internals.
 - [`frontend/README.md`](frontend/README.md) – Next.js architecture and admin console details.
+- [`OPERATIONS.md`](OPERATIONS.md) – production operations, deployment, and handover guide.
