@@ -1,257 +1,276 @@
 # CLAUDE.md
 
-Este archivo proporciona orientación a Claude Code (claude.ai/code) cuando trabaja con código en este repositorio.
+Este archivo proporciona orientación a Claude Code cuando trabaja con este repositorio.
 
-## Descripción General del Proyecto
+## Descripción del Proyecto
 
-HF Virtual Stylist es un monorepo con un **backend FastAPI** (`backend/`) y un **frontend Next.js 15** (`frontend/`) que genera renders fotorrealistas de trajes usando Stable Diffusion XL. Los asociados de ventas seleccionan telas y colores, y el sistema produce visualizaciones potenciadas por SDXL con guía opcional de ControlNet/IP-Adapter.
+HF Virtual Stylist es una aplicación de visualización de trajes potenciada por IA para Harris & Frank. El sistema genera renders fotorrealistas de trajes usando SDXL Inpainting con IP-Adapter para transferencia de texturas de tela.
+
+**Stack tecnológico:**
+- **Backend:** FastAPI + SQLAlchemy + PostgreSQL (Neon)
+- **Frontend:** Next.js 15 + React 19 + TypeScript + Tailwind CSS
+- **IA/ML:** SDXL Inpainting + IP-Adapter Plus
+- **Almacenamiento:** Cloudflare R2
+- **Despliegue:** Railway (API) + RunPod (GPU Worker) + Vercel (Frontend)
+
+## Arquitectura de Producción
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Vercel    │────▶│   Railway   │────▶│    Neon     │
+│  (Frontend) │     │    (API)    │     │ (PostgreSQL)│
+└─────────────┘     └─────────────┘     └──────┬──────┘
+                                               │
+                                        polling cada 5s
+                                               │
+                                        ┌──────▼──────┐
+                                        │   RunPod    │
+                                        │  (Worker)   │
+                                        │  GPU SDXL   │
+                                        └──────┬──────┘
+                                               │
+                                        ┌──────▼──────┐
+                                        │ Cloudflare  │
+                                        │     R2      │
+                                        └─────────────┘
+```
+
+**Flujo de generación:**
+1. Usuario selecciona tela/color en frontend
+2. Frontend → POST /generate → Railway API
+3. API crea job en PostgreSQL con status="pending", retorna job_id
+4. Frontend hace polling GET /jobs/{job_id}
+5. Worker (RunPod) detecta job pendiente
+6. Worker procesa con SDXL Inpainting + IP-Adapter
+7. Worker sube imagen a R2, actualiza job a "completed"
+8. Frontend recibe URLs en siguiente poll
 
 ## Estructura del Repositorio
 
 ```
 backend/
 ├── app/
-│   ├── admin/           # Admin CRUD, auth (JWT), esquemas para gestión de telas
-│   ├── core/            # config.py (configuración Pydantic), database.py (sesión SQLAlchemy)
-│   ├── models/          # Esquemas Pydantic de request/response (catalog, generate)
-│   ├── routers/         # Manejadores de rutas FastAPI (catalog, generate, admin)
-│   ├── services/        # Lógica central: generator.py (SDXL), storage.py (local/R2), watermark.py
-│   ├── data/            # fabrics.json (metadata del catálogo), swatch_mapping.csv
-│   └── main.py          # Inicialización de app FastAPI, CORS, montaje de archivos estáticos
-├── alembic/             # Migraciones de base de datos
-├── devops/runpod/       # deploy.sh para despliegue en pods GPU
-├── storage/             # Almacenamiento local de archivos (creado en runtime)
-├── tests/               # Suite de tests Pytest
-├── requirements.txt     # Dependencias Python
-├── seed.py              # Puebla la base de datos desde fabrics.json
-└── alembic.ini          # Configuración Alembic
+│   ├── main.py              # FastAPI app, CORS, routers
+│   ├── core/
+│   │   ├── config.py        # Pydantic settings (env vars)
+│   │   └── database.py      # SQLAlchemy session
+│   ├── catalog/
+│   │   ├── router.py        # GET /catalog
+│   │   ├── service.py       # Carga fabrics.json
+│   │   └── schemas.py
+│   ├── generation/
+│   │   ├── router.py        # POST /generate, GET /jobs/{id}, POST /upload-swatch
+│   │   ├── generator.py           # SdxlTurboGenerator (full generation)
+│   │   ├── generator_inpaint.py   # InpaintGenerator (default mode)
+│   │   ├── generator_mock.py      # MockGenerator (testing)
+│   │   ├── generator_config.py    # Env vars para generación
+│   │   ├── storage.py       # LocalStorage, R2Storage
+│   │   ├── models.py        # GenerationJob ORM
+│   │   └── watermark.py
+│   ├── admin/
+│   │   ├── fabrics/         # CRUD familias y colores
+│   │   ├── generations/     # Historial de jobs
+│   │   ├── auth.py          # JWT
+│   │   └── dependencies.py
+│   └── data/
+│       └── fabrics.json     # Catálogo seed
+├── worker.py                # GPU worker (polling loop)
+├── seed.py                  # Poblar BD desde fabrics.json
+├── alembic/                 # Migraciones
+├── devops/runpod/
+│   └── deploy.sh            # Setup y ejecución en RunPod
+└── requirements.txt
 
 frontend/
 ├── src/
-│   ├── app/             # Páginas Next.js App Router (page.tsx, /admin)
-│   ├── components/      # Componentes React (gallery, modals, catalog selector)
-│   ├── hooks/           # useVirtualStylist.ts (máquina de estado para flujo de generación)
-│   ├── lib/             # apiClient.ts (API pública), adminApi.ts (API admin)
-│   └── types/           # Definiciones de tipos TypeScript
-├── next.config.ts       # Rewrites de proxy API al backend
-└── package.json         # Scripts Node y dependencias
+│   ├── app/
+│   │   ├── page.tsx         # UI principal
+│   │   └── admin/           # Dashboard admin
+│   ├── components/          # React components
+│   ├── hooks/
+│   │   └── useVirtualStylist.ts  # Estado de generación
+│   ├── lib/
+│   │   ├── apiClient.ts     # API pública
+│   │   └── adminApi.ts      # API admin
+│   └── types/
+├── next.config.ts           # Rewrites /api/* → backend
+└── package.json
 ```
 
 ## Comandos de Desarrollo
 
-### Backend (Python 3.11, FastAPI, SQLAlchemy)
+### Backend
 
-**Configuración del Entorno:**
-1. Crear `backend/.env` con las claves requeridas (ver backend/README.md para la lista completa):
-   - `DATABASE_URL=postgresql://user:pass@host:5432/dbname` (Railway/Neon)
-   - `admin_password=change-me`
-   - `jwt_secret=local-dev-secret`
-   - `jwt_algorithm=HS256`
-   - `storage_backend=r2`
-   - R2 credentials: `r2_account_id`, `r2_access_key_id`, `r2_secret_access_key`, `r2_bucket_name`, `r2_public_url`
-
-2. Instalar dependencias:
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
-
-3. Ejecutar migraciones de base de datos:
-   ```bash
-   alembic upgrade head
-   ```
-
-4. Cargar datos iniciales (opcional):
-   ```bash
-   python seed.py
-   ```
-
-**Ejecutar la API:**
 ```bash
 cd backend
+
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Migraciones
+alembic upgrade head
+
+# Poblar datos (opcional)
+python seed.py
+
+# Ejecutar API
 uvicorn app.main:app --reload --port 8000
-```
 
-**Testing:**
-```bash
-cd backend
+# Ejecutar worker (para testing local con mock)
+USE_MOCK_GENERATOR=true python worker.py
+
+# Tests
 pytest -q
 ```
 
-**Migraciones de Base de Datos:**
-```bash
-# Crear una nueva migración
-alembic revision --autogenerate -m "descripción"
+### Frontend
 
-# Aplicar migraciones
-alembic upgrade head
-
-# Revertir una migración
-alembic downgrade -1
-```
-
-### Frontend (Next.js 15, React 19, TypeScript)
-
-**Configuración del Entorno:**
-Crear `frontend/.env.local`:
-```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
-```
-
-**Ejecutar el servidor de desarrollo:**
 ```bash
 cd frontend
+
+# Instalar dependencias
 npm install
-npm run dev  # Inicia en http://localhost:3000
-```
 
-**Linting:**
-```bash
+# Desarrollo
+npm run dev
+
+# Lint
 npm run lint
-```
 
-**Build:**
-```bash
+# Build
 npm run build
-npm start  # Servidor de producción
 ```
 
-## Arquitectura y Conceptos Clave
+## Variables de Entorno
 
-### Arquitectura del Backend
+### Backend (.env)
 
-**Flujo de Request:**
-1. Cliente → Proxy Next.js `/api/*` → Router FastAPI
-2. Router valida request (esquemas Pydantic en `app/models/`)
-3. Capa de servicio (`app/services/`) maneja la lógica de negocio
-4. Operaciones de base de datos vía SQLAlchemy (`app/core/database.py`)
-5. Respuesta retornada al cliente
+```env
+# Base de datos (Neon PostgreSQL)
+DATABASE_URL=postgresql://user:pass@host:5432/dbname
 
-**Pipeline de Generación (app/services/generator.py):**
-- `SdxlTurboGenerator`: Generador de producción principal
-  - Carga modelo SDXL base + refiner opcional
-  - Soporta ControlNet (openpose, canny) para guía de pose
-  - Soporta IP-Adapter para transferencia de textura de tela
-  - Marca de agua en outputs vía `apply_watermark_image()`
-  - Guarda en backend de almacenamiento (local o R2)
-- `MockGenerator`: Fallback ligero para testing (alternar vía `USE_MOCK` en generate.py)
+# Admin/Auth
+ADMIN_PASSWORD=secure-password
+JWT_SECRET=your-secret-key
+JWT_ALGORITHM=HS256
 
-**Backends de Almacenamiento (app/services/storage.py):**
-- `LocalStorage`: Guarda en directorio `storage/`, URLs reescritas a `/files/*`
-- `R2Storage`: Sube a Cloudflare R2 usando boto3, retorna URLs públicas CDN
-- Seleccionado vía variable de entorno `storage_backend`
+# Storage
+STORAGE_BACKEND=r2
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET_NAME=harris-and-frank
+R2_PUBLIC_URL=https://pub-xxx.r2.dev
+```
 
-**Sistema Admin (app/admin/):**
-- Autenticación basada en JWT (`app/admin/auth.py`)
-- Operaciones CRUD para familias de telas y colores (`app/admin/crud.py`)
-- Rutas protegidas montadas bajo `/admin/fabrics`
+### Frontend (.env.local)
 
-**Modelos de Base de Datos:**
-- Definidos en `app/admin/models.py`: `FabricFamily`, `Color`
-- ORM SQLAlchemy con base declarativa desde `app/core/database.py`
-- Migraciones en `alembic/versions/`
+```env
+NEXT_PUBLIC_API_BASE=http://localhost:8000
+```
 
-### Arquitectura del Frontend
+### RunPod (GPU Worker)
 
-**Gestión de Estado:**
-- Hook `useVirtualStylist` (`hooks/useVirtualStylist.ts`) gestiona todo el flujo de generación:
-  - Obtiene catálogo al montar
-  - Rastrea selección de tela/color
-  - Maneja requests de generación y estados de carga
-  - Gestiona resultados de imágenes generadas
+```env
+DATABASE_URL=postgresql://...
+GENERATOR_MODE=inpaint          # inpaint (default), full, mock
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET_NAME=...
+R2_PUBLIC_URL=...
+```
 
-**Comunicación API:**
-- Endpoints públicos: `fetchCatalog()`, `generateImages()` en `lib/apiClient.ts`
-- Endpoints admin: `listFabrics()`, `createFabric()`, etc. en `lib/adminApi.ts`
-- Todos los requests proxy a través de `/api/*` → backend (configurado en `next.config.ts`)
+## Generadores
 
-**Componentes Clave:**
-- `GeneratedImageGallery`: Grid de thumbnails con soporte de modal
-- `ImageModal`: Visor de imagen a pantalla completa con metadata
-- `AdminTable` (`app/admin/AdminTable.tsx`): UI de gestión de telas con búsqueda/filtro
+El sistema tiene 3 modos de generación controlados por `GENERATOR_MODE`:
 
-### Variables de Entorno por Módulo
+| Modo | Clase | Uso |
+|------|-------|-----|
+| `mock` | MockGenerator | Testing sin GPU, genera placeholders |
+| `inpaint` | InpaintGenerator | **Producción (default)** - SDXL Inpainting + IP-Adapter Plus |
+| `full` | SdxlTurboGenerator | Generación completa con ControlNet (alternativo) |
 
-**Generador (SDXL):**
-- `GUIDANCE=4.3` - Escala CFG
-- `TOTAL_STEPS=80` - Pasos de inferencia
-- `USE_REFINER=1` - Habilitar refiner SDXL
-- `REFINER_SPLIT=0.70` - Punto de transición base/refiner
-- `CONTROLNET_ENABLED=1` - Habilitar ControlNet
-- `CONTROLNET_MODEL` - ID del modelo HuggingFace
-- `CONTROLNET_WEIGHT=1.15` - Fuerza de ControlNet
-- `CONTROL_IMAGE_RECTO`, `CONTROL_IMAGE_CRUZADO` - Imágenes de referencia de pose
-- `IP_ADAPTER_ENABLED=1` - Habilitar IP-Adapter
-- `IP_ADAPTER_SCALE=0.70` - Fuerza del prompt de imagen
-- `HF_HOME` - Directorio de caché Hugging Face
-- `WATERMARK_PATH` - Ruta a imagen de marca de agua
+## API Endpoints
 
-**Almacenamiento:**
-- `storage_backend=local|r2` - Proveedor de almacenamiento
-- `public_base_url` - Base de URL pública para almacenamiento local
-- `r2_account_id`, `r2_access_key_id`, `r2_secret_access_key`, `r2_bucket_name`, `r2_public_url` - Credenciales R2
+### Públicos
 
-## Testeo de Endpoints de API
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | /catalog | Lista familias de tela activas con colores |
+| POST | /generate | Crea job de generación, retorna job_id |
+| GET | /jobs/{job_id} | Consulta estado del job (polling) |
+| POST | /upload-swatch | Sube imagen de tela temporal a R2 |
+| GET | /healthz | Health check |
 
-**Endpoint de generación (POST /generate):**
+### Admin (requiere JWT)
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | /admin/fabrics | Lista todas las familias |
+| POST | /admin/fabrics | Crear familia |
+| PATCH | /admin/fabrics/{id} | Actualizar familia |
+| DELETE | /admin/fabrics/{id} | Eliminar familia |
+
+## Despliegue
+
+### Railway (API)
+- Deploy automático desde `main`
+- Variables de entorno en Railway dashboard
+- Ejecuta: `uvicorn app.main:app`
+
+### RunPod (GPU Worker)
+- Crear Network Volume + Pod con GPU (RTX 4090 recomendado)
+- Configurar env vars en pod
+- Ejecutar: `./backend/devops/runpod/deploy.sh`
+- El script clona repo, instala deps, y ejecuta `worker.py`
+
+### Vercel (Frontend)
+- Deploy automático desde `main`
+- Configurar `NEXT_PUBLIC_API_BASE` apuntando a Railway
+
+## Testing de Endpoints
+
 ```bash
-curl -X POST http://127.0.0.1:8000/generate \
+# Health check
+curl http://localhost:8000/healthz
+
+# Catálogo
+curl http://localhost:8000/catalog
+
+# Crear job de generación
+curl -X POST http://localhost:8000/generate \
   -H "Content-Type: application/json" \
-  -d '{"family_id":"algodon-tech","color_id":"negro-001","cuts":["recto"],"seed":123456789}'
+  -d '{"family_id":"azules","color_id":"az-001","cuts":["recto"]}'
+
+# Consultar estado
+curl http://localhost:8000/jobs/{job_id}
 ```
 
-**Endpoint de catálogo (GET /catalog):**
-```bash
-curl http://127.0.0.1:8000/catalog
-```
+## Base de Datos
 
-**Health check (GET /healthz):**
-```bash
-curl http://127.0.0.1:8000/healthz
-```
+### Tablas principales
 
-## Despliegue (RunPod GPU Pods)
+**fabric_families**
+- `family_id` (unique): Identificador (ej: "azules")
+- `display_name`: Nombre visible (ej: "Azules")
+- `status`: "active" | "inactive"
 
-El script `backend/devops/runpod/deploy.sh` maneja el despliegue completo:
-1. Crea venv Python 3.11 en volumen de red (`/workspace/py311`)
-2. Clona/actualiza repo desde `origin/main`
-3. Instala dependencias
-4. Establece variables de entorno de generación (ControlNet, rutas IP-Adapter)
-5. Aplica migraciones de base de datos
-6. Carga datos de telas
-7. Inicia Uvicorn en puerto 8000
+**colors**
+- `color_id` (unique): Identificador (ej: "az-095T-0121")
+- `fabric_family_id`: FK a fabric_families
+- `name`: Nombre visible (ej: "Azul Oscuro")
+- `hex_value`: Color hex (ej: "#0A1D3A")
+- `swatch_code`: Nombre archivo R2 (ej: "095T-0121")
 
-**Rutas clave de despliegue:**
-- `/workspace/app` - Clon del repositorio
-- `/workspace/py311` - Venv Python 3.11 persistente
-- `/workspace/.cache/huggingface` - Caché de modelos (HF_HOME)
+**generation_jobs**
+- `job_id` (unique): UUID
+- `status`: "pending" | "processing" | "completed" | "failed"
+- `family_id`, `color_id`, `cuts`, `seed`, `swatch_url`
+- `result_urls`: JSON array con URLs de imágenes generadas
 
-## Flujos de Trabajo Comunes
+## Documentación Adicional
 
-**Agregar una nueva tela:**
-1. Agregar entrada a `backend/app/data/fabrics.json`
-2. Ejecutar `python seed.py` para poblar la base de datos
-3. O usar la UI admin en `http://localhost:3000/admin`
-
-**Modificar parámetros de generación:**
-1. Actualizar variables de entorno en `.env` o script de despliegue
-2. Reiniciar servidor backend
-3. No se necesitan cambios de código para ajustar guidance/steps/weights
-
-**Cambiar backends de almacenamiento:**
-1. Establecer `storage_backend=r2` en `.env`
-2. Proporcionar credenciales R2
-3. Reiniciar backend - la capa de almacenamiento está inyectada por dependencia
-
-**Agregar nuevos campos de base de datos:**
-1. Modificar modelos en `app/admin/models.py`
-2. Crear migración: `alembic revision --autogenerate -m "descripción"`
-3. Revisar migración generada en `alembic/versions/`
-4. Aplicar: `alembic upgrade head`
-
-## Estilo de Código y Convenciones
-
-- **Backend**: Patrón de inyección de dependencias FastAPI, Pydantic para validación, ORM SQLAlchemy
-- **Frontend**: Hooks de React para estado, TypeScript modo estricto, Tailwind para estilos
-- **Referencias de archivos**: Usar patrón `file_path:line_number` cuando se referencien ubicaciones de código
-- **Manejo de errores**: Manejadores de error personalizados en `app/errors.py`, FastAPI HTTPException para errores de API
+- [OPERATIONS.md](OPERATIONS.md) - Guía de operaciones y handover
+- [backend/docs/ARCHITECTURE.md](backend/docs/ARCHITECTURE.md) - Arquitectura técnica
+- [backend/docs/RoadMapProd.md](backend/docs/RoadMapProd.md) - Decisiones técnicas
