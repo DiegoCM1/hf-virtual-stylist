@@ -79,7 +79,8 @@ backend/
 ├── alembic/                 # Migraciones
 ├── devops/runpod/
 │   └── deploy.sh            # Setup y ejecución en RunPod
-└── requirements.txt
+├── requirements.txt         # Dependencias API (Railway, local dev)
+└── requirements-gpu.txt     # Dependencias GPU (RunPod)
 
 frontend/
 ├── src/
@@ -104,8 +105,10 @@ frontend/
 ```bash
 cd backend
 
-# Instalar dependencias
+# Instalar dependencias (API/local dev)
 pip install -r requirements.txt
+
+# Para GPU worker (RunPod) usar: requirements-gpu.txt
 
 # Migraciones
 alembic upgrade head

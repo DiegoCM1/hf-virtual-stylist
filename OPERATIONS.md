@@ -208,7 +208,7 @@ El script automatiza todo el setup:
 
 1. **Crea Python 3.11 venv** en `/workspace/py311` (persiste en NV)
 2. **Sincroniza código** desde `origin/main`
-3. **Instala dependencias** de `requirements.txt`
+3. **Instala dependencias** de `requirements-gpu.txt`
 4. **Configura variables** de entorno para SDXL:
    - Guidance scale, steps, refiner
    - ControlNet (depth + canny)
