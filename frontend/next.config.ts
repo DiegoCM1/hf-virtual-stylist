@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.railway.app" }, // Railway backend
       { protocol: "https", hostname: "hf-virtual-stylist-production.up.railway.app" }, // Railway production
       // Storage backends
-      { protocol: "https", hostname: "pub-56acd80744c24e2fb1fca9004abce188.r2.dev" }, // Cloudflare R2
+      { protocol: "https", hostname: "*.r2.dev" }, // Cloudflare R2 (allows any R2 public bucket)
     ],
   },
 };
