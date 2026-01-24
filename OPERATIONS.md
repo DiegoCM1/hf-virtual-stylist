@@ -501,6 +501,28 @@ python worker.py
 
 ---
 
+## Optimizaciones Futuras
+
+### Separar requirements.txt
+
+Actualmente `backend/requirements.txt` contiene **todas** las dependencias:
+- Paquetes GPU (torch, diffusers, transformers) ~3GB
+- Paquetes API (FastAPI, SQLAlchemy, uvicorn) ~100MB
+
+**Problema:** Railway instala paquetes GPU que nunca usa (desperdicio de tiempo y espacio).
+
+**Solución recomendada:**
+1. Crear `requirements-api.txt` para Railway (sin GPU packages)
+2. Crear `requirements-worker.txt` para RunPod (con GPU + SQLAlchemy)
+3. Actualizar deploy.sh para usar `requirements-worker.txt`
+4. Configurar Railway para usar `requirements-api.txt`
+
+**Beneficio:** Deploys de Railway más rápidos y contenedores más pequeños.
+
+**Prioridad:** Baja (el sistema actual funciona correctamente)
+
+---
+
 ## Contacto y Soporte
 
 Para problemas técnicos:
