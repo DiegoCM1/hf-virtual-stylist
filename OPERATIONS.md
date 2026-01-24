@@ -208,7 +208,7 @@ El script automatiza todo el setup:
 
 1. **Crea Python 3.11 venv** en `/workspace/py311` (persiste en NV)
 2. **Sincroniza código** desde `origin/main`
-3. **Instala dependencias** de `requirements.txt`
+3. **Instala dependencias** de `requirements-gpu.txt`
 4. **Configura variables** de entorno para SDXL:
    - Guidance scale, steps, refiner
    - ControlNet (depth + canny)
@@ -231,6 +231,27 @@ curl -X POST https://tu-api.railway.app/generate \
   -H "Content-Type: application/json" \
   -d '{"family_id":"azul-001","color_id":"azul-marino","cuts":["recto"]}'
 ```
+
+---
+
+## Dependencias (Requirements)
+
+El backend tiene dos archivos de dependencias:
+
+| Archivo | Uso | Tamaño |
+|---------|-----|--------|
+| `requirements.txt` | Railway, desarrollo local | ~100 MB |
+| `requirements-gpu.txt` | RunPod (GPU worker) | ~3 GB |
+
+**Para desarrollo local:**
+```bash
+cd backend
+pip install -r requirements.txt
+```
+
+**Para RunPod:** El script `deploy.sh` usa automáticamente `requirements-gpu.txt`.
+
+**Nota:** `requirements.txt` funciona en cualquier plataforma (macOS, Windows, Linux) y cualquier Python 3.10+. `requirements-gpu.txt` requiere Linux con CUDA y Python 3.11.
 
 ---
 

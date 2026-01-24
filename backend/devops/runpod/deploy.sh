@@ -34,7 +34,7 @@ echo "[setup] Installing dependencies"
 cd backend
 python -m pip install --upgrade pip -q
 python -m pip install --only-binary=:all: tokenizers==0.19.1
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-gpu.txt
 echo "[setup] Dependencies installed"
 
 # --- 3) Environment Variables ------------------------------------------------
